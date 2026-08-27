@@ -225,7 +225,7 @@ Pantallas propuestas:
 7. Dashboard del director con asignaciones, estados y reportes.
 8. Formulario de asignacion de practica.
 
-La navegacion debe usar menu lateral contextual, tablas con filtros, formularios con validacion y mensajes claros de exito o error.
+La navegacion debe usar menu lateral contextual, tablas con filtros, formularios con validacion y mensajes claros de exito o error. El prototipo navegable esta en `prototipo_mediana_fidelidad.html` y los diagramas independientes en `diagramas_primera_entrega.md`.
 
 ## 11. Anexos y referencias
 
