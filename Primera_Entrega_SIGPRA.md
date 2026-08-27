@@ -210,7 +210,7 @@ erDiagram
   BITACORA ||--o{ EVIDENCIA : referencia
 ```
 
-El script ejecutable de PostgreSQL se encuentra en `database/postgresql/schema.sql` y el modelo de colecciones en `database/mongodb/collections.js`.
+El script ejecutable de PostgreSQL se encuentra en `schema.sql` y el modelo de colecciones en `collections.js`.
 
 ## 10. Prototipo de mediana fidelidad
 
