@@ -210,6 +210,8 @@ erDiagram
   BITACORA ||--o{ EVIDENCIA : referencia
 ```
 
+Diagrama visual: `modelo_entidad_relacion.svg`.
+
 El script ejecutable de PostgreSQL se encuentra en `schema.sql` y el modelo de colecciones en `collections.js`.
 
 ## 10. Prototipo de mediana fidelidad
@@ -231,6 +233,7 @@ La navegacion debe usar menu lateral contextual, tablas con filtros, formularios
 
 - Anexo A: diagrama de casos de uso.
 - Anexo B: modelo de dominio y entidad-relacion.
+- Anexo B1: diagrama visual del modelo entidad-relacion (`modelo_entidad_relacion.svg`).
 - Anexo C: script PostgreSQL.
 - Anexo D: colecciones MongoDB.
 - Anexo E: prototipo de mediana fidelidad.
