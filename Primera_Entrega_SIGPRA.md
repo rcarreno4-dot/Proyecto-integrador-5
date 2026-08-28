@@ -212,6 +212,8 @@ erDiagram
 
 Diagrama visual: `modelo_entidad_relacion.svg`.
 
+![Modelo entidad-relacion](modelo_entidad_relacion.svg)
+
 El script ejecutable de PostgreSQL se encuentra en `schema.sql` y el modelo de colecciones en `collections.js`.
 
 ## 10. Prototipo de mediana fidelidad
@@ -229,11 +231,14 @@ Pantallas propuestas:
 
 La navegacion debe usar menu lateral contextual, tablas con filtros, formularios con validacion y mensajes claros de exito o error. El prototipo navegable esta en `prototipo_mediana_fidelidad.html` y los diagramas independientes en `diagramas_primera_entrega.md`.
 
+![Pantalla de inicio de sesion](prototipo_login.svg)
+
 ## 11. Anexos y referencias
 
 - Anexo A: diagrama de casos de uso.
 - Anexo B: modelo de dominio y entidad-relacion.
 - Anexo B1: diagrama visual del modelo entidad-relacion (`modelo_entidad_relacion.svg`).
+- Anexo E1: pantalla de inicio de sesion (`prototipo_login.svg`).
 - Anexo C: script PostgreSQL.
 - Anexo D: colecciones MongoDB.
 - Anexo E: prototipo de mediana fidelidad.

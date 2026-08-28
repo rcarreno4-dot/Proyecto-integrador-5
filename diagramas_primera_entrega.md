@@ -80,6 +80,8 @@ flowchart TB
 
 Archivo: `modelo_entidad_relacion.svg`.
 
+![Modelo entidad-relacion](modelo_entidad_relacion.svg)
+
 ## Notas de entrega
 
 - Estos diagramas cubren el alcance de la primera entrega: casos de uso y dominio/ER.
