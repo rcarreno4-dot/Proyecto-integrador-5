@@ -233,8 +233,8 @@ La navegacion debe usar menu lateral contextual, tablas con filtros, formularios
 
 ![Pantalla de inicio de sesion](prototipo_login.svg)
 
-Las ocho pantallas de referencia para construir el prototipo en Figma estan reunidas en `prototipo_figma.svg`.
-![Pantallas del prototipo para Figma](prototipo_figma.svg)
+Las ocho pantallas nuevas para construir el prototipo en Figma estan reunidas en `prototipo_figma_nuevo.svg`.
+![Pantallas nuevas del prototipo para Figma](prototipo_figma_nuevo.svg)
 
 ## 11. Anexos y referencias
 
