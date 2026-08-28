@@ -233,12 +233,16 @@ La navegacion debe usar menu lateral contextual, tablas con filtros, formularios
 
 ![Pantalla de inicio de sesion](prototipo_login.svg)
 
+Las ocho pantallas de referencia para construir el prototipo en Figma estan reunidas en `prototipo_figma.svg`.
+![Pantallas del prototipo para Figma](prototipo_figma.svg)
+
 ## 11. Anexos y referencias
 
 - Anexo A: diagrama de casos de uso.
 - Anexo B: modelo de dominio y entidad-relacion.
 - Anexo B1: diagrama visual del modelo entidad-relacion (`modelo_entidad_relacion.svg`).
 - Anexo E1: pantalla de inicio de sesion (`prototipo_login.svg`).
+- Anexo E2: lamina de ocho pantallas para Figma (`prototipo_figma.svg`).
 - Anexo C: script PostgreSQL.
 - Anexo D: colecciones MongoDB.
 - Anexo E: prototipo de mediana fidelidad.
