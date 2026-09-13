@@ -9,6 +9,8 @@ Guía de navegación para acceder rápidamente a cualquier parte del proyecto.
 ### Si quiero...
 
 #### Entender el Sistema
+- **Casos de uso actualizados** -> [documentos_alternos/casos_uso_gestor_practicas.md](documentos_alternos/casos_uso_gestor_practicas.md)
+- **Prototipos de media fidelidad** -> [prototipos/prototipos_casos_uso_gestor.html](prototipos/prototipos_casos_uso_gestor.html)
 - 📖 **Descripción general** → [README.md](README.md)
 - 🏗️ **Arquitectura técnica** → [Software_Gestion_Practicas/Gestion_Practicas/docs/arquitectura.md](Software_Gestion_Practicas/Gestion_Practicas/docs/arquitectura.md)
 - 📊 **Diagramas UML** → [Software_Gestion_Practicas/Gestion_Practicas/documentacion/DOCUMENTACION_UML.md](Software_Gestion_Practicas/Gestion_Practicas/documentacion/DOCUMENTACION_UML.md)

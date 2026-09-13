@@ -85,5 +85,7 @@ Archivo: `modelo_entidad_relacion.svg`.
 ## Notas de entrega
 
 - Estos diagramas cubren el alcance de la primera entrega: casos de uso y dominio/ER.
+- La nueva version de casos de uso del Gestor de Practicas esta documentada en `casos_uso_gestor_practicas.md`.
+- Los prototipos de media fidelidad para los casos de uso del diagrama estan en `../prototipos/prototipos_casos_uso_gestor.html`.
 - Componentes, secuencias y despliegue se ampliaran en el segundo avance y la entrega final.
 - El prototipo navegable esta en `prototipo_mediana_fidelidad.html`.
