@@ -12,6 +12,7 @@ Guía de navegación para acceder rápidamente a cualquier parte del proyecto.
 - **Entrega actual corregida** -> [Entrega_actual](Entrega_actual)
 - **Casos de uso actualizados** -> [Entrega_actual/Casos_uso.asta](Entrega_actual/Casos_uso.asta)
 - **Documento principal corregido** -> [Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.docx](Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.docx)
+- **Documento principal en Markdown** -> [Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.md](Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.md)
 - 📖 **Descripción general** → [README.md](README.md)
 - 🏗️ **Arquitectura técnica** → [Software_Gestion_Practicas/Gestion_Practicas/docs/arquitectura.md](Software_Gestion_Practicas/Gestion_Practicas/docs/arquitectura.md)
 - 📊 **Diagramas UML** → [Software_Gestion_Practicas/Gestion_Practicas/documentacion/DOCUMENTACION_UML.md](Software_Gestion_Practicas/Gestion_Practicas/documentacion/DOCUMENTACION_UML.md)
