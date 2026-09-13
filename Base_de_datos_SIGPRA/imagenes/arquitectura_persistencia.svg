@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#f6f7f9"/>
+  <text x="60" y="64" font-family="Arial" font-size="30" font-weight="700" fill="#172033">SIGPRA - Arquitectura de persistencia</text>
+  <text x="60" y="96" font-family="Arial" font-size="15" fill="#5f6b7a">Separacion propuesta para datos relacionales, informacion documental y soportes de archivo.</text>
+
+  <rect x="80" y="160" width="230" height="110" rx="10" fill="#ffffff" stroke="#cfd6df"/>
+  <text x="110" y="198" font-family="Arial" font-size="20" font-weight="700" fill="#172033">Aplicacion web</text>
+  <text x="110" y="228" font-family="Arial" font-size="14" fill="#5f6b7a">Usuarios por rol</text>
+  <text x="110" y="250" font-family="Arial" font-size="14" fill="#5f6b7a">Coordinador, estudiante, docente</text>
+
+  <rect x="430" y="160" width="270" height="110" rx="10" fill="#ffffff" stroke="#cfd6df"/>
+  <text x="466" y="198" font-family="Arial" font-size="20" font-weight="700" fill="#172033">API REST / Servicios</text>
+  <text x="466" y="228" font-family="Arial" font-size="14" fill="#5f6b7a">Reglas de negocio</text>
+  <text x="466" y="250" font-family="Arial" font-size="14" fill="#5f6b7a">Autorizacion y auditoria</text>
+
+  <line x1="310" y1="215" x2="430" y2="215" stroke="#2c7a7b" stroke-width="3"/>
+  <polygon points="430,215 414,207 414,223" fill="#2c7a7b"/>
+
+  <rect x="140" y="420" width="250" height="130" rx="10" fill="#e8f5f3" stroke="#2c7a7b"/>
+  <text x="176" y="460" font-family="Arial" font-size="22" font-weight="700" fill="#0f4f4f">PostgreSQL</text>
+  <text x="176" y="492" font-family="Arial" font-size="14" fill="#172033">Datos transaccionales</text>
+  <text x="176" y="516" font-family="Arial" font-size="14" fill="#172033">Integridad referencial</text>
+
+  <rect x="475" y="420" width="250" height="130" rx="10" fill="#eef3ff" stroke="#2d5dcc"/>
+  <text x="532" y="460" font-family="Arial" font-size="22" font-weight="700" fill="#234999">MongoDB</text>
+  <text x="520" y="492" font-family="Arial" font-size="14" fill="#172033">Datos documentales</text>
+  <text x="520" y="516" font-family="Arial" font-size="14" fill="#172033">Metadatos y auditoria</text>
+
+  <rect x="810" y="420" width="250" height="130" rx="10" fill="#fff4e5" stroke="#b96a00"/>
+  <text x="850" y="460" font-family="Arial" font-size="22" font-weight="700" fill="#8a4d00">Archivos</text>
+  <text x="850" y="492" font-family="Arial" font-size="14" fill="#172033">PDF, imagenes, DOCX</text>
+  <text x="850" y="516" font-family="Arial" font-size="14" fill="#172033">Soportes de practica</text>
+
+  <line x1="520" y1="270" x2="265" y2="420" stroke="#2c7a7b" stroke-width="3"/>
+  <polygon points="265,420 281,404 286,418" fill="#2c7a7b"/>
+
+  <line x1="565" y1="270" x2="600" y2="420" stroke="#2d5dcc" stroke-width="3"/>
+  <polygon points="600,420 588,402 607,400" fill="#2d5dcc"/>
+
+  <line x1="650" y1="270" x2="935" y2="420" stroke="#b96a00" stroke-width="3"/>
+  <polygon points="935,420 916,417 925,401" fill="#b96a00"/>
+
+  <text x="150" y="610" font-family="Arial" font-size="14" fill="#5f6b7a">PostgreSQL guarda referencias hacia MongoDB y hacia el almacenamiento de archivos.</text>
+  <text x="150" y="634" font-family="Arial" font-size="14" fill="#5f6b7a">MongoDB conserva estructura flexible; los archivos reales se almacenan fuera de las bases de datos.</text>
+</svg>
+

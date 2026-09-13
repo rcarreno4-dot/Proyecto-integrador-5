@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="920" viewBox="0 0 1400 920">
+  <rect width="1400" height="920" fill="#f6f7f9"/>
+  <text x="60" y="58" font-family="Arial" font-size="30" font-weight="700" fill="#172033">SIGPRA - Modelo relacional resumen</text>
+  <text x="60" y="88" font-family="Arial" font-size="15" fill="#5f6b7a">Vista resumida de las tablas principales para la persistencia transaccional.</text>
+
+  <defs>
+    <style>
+      .box { fill: #ffffff; stroke: #cfd6df; stroke-width: 1.5; }
+      .head { fill: #17324d; }
+      .title { font-family: Arial; font-size: 15px; font-weight: 700; fill: #ffffff; }
+      .body { font-family: Arial; font-size: 12px; fill: #172033; }
+      .rel { stroke: #2c7a7b; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c7a7b"/>
+    </marker>
+  </defs>
+
+  <g transform="translate(60,130)">
+    <rect class="box" width="210" height="118" rx="8"/>
+    <rect class="head" width="210" height="34" rx="8"/>
+    <text class="title" x="18" y="23">USUARIO</text>
+    <text class="body" x="18" y="56">PK id_usuario</text>
+    <text class="body" x="18" y="78">correo, password_hash</text>
+    <text class="body" x="18" y="100">rol, estado</text>
+  </g>
+
+  <g transform="translate(340,130)">
+    <rect class="box" width="210" height="118" rx="8"/>
+    <rect class="head" width="210" height="34" rx="8"/>
+    <text class="title" x="18" y="23">ESTUDIANTE</text>
+    <text class="body" x="18" y="56">PK id_estudiante</text>
+    <text class="body" x="18" y="78">FK id_usuario</text>
+    <text class="body" x="18" y="100">codigo, programa</text>
+  </g>
+
+  <g transform="translate(620,130)">
+    <rect class="box" width="230" height="118" rx="8"/>
+    <rect class="head" width="230" height="34" rx="8"/>
+    <text class="title" x="18" y="23">DOCENTE_ASESOR</text>
+    <text class="body" x="18" y="56">PK id_docente_asesor</text>
+    <text class="body" x="18" y="78">FK id_usuario</text>
+    <text class="body" x="18" y="100">cupo_maximo</text>
+  </g>
+
+  <g transform="translate(60,340)">
+    <rect class="box" width="210" height="118" rx="8"/>
+    <rect class="head" width="210" height="34" rx="8"/>
+    <text class="title" x="18" y="23">INSTITUCION</text>
+    <text class="body" x="18" y="56">PK id_institucion</text>
+    <text class="body" x="18" y="78">nombre, nit</text>
+    <text class="body" x="18" y="100">contacto</text>
+  </g>
+
+  <g transform="translate(340,340)">
+    <rect class="box" width="210" height="118" rx="8"/>
+    <rect class="head" width="210" height="34" rx="8"/>
+    <text class="title" x="18" y="23">CONVENIO</text>
+    <text class="body" x="18" y="56">PK id_convenio</text>
+    <text class="body" x="18" y="78">FK id_institucion</text>
+    <text class="body" x="18" y="100">vigencia, estado</text>
+  </g>
+
+  <g transform="translate(620,340)">
+    <rect class="box" width="210" height="118" rx="8"/>
+    <rect class="head" width="210" height="34" rx="8"/>
+    <text class="title" x="18" y="23">PLAZA_PRACTICA</text>
+    <text class="body" x="18" y="56">PK id_plaza</text>
+    <text class="body" x="18" y="78">FK id_convenio</text>
+    <text class="body" x="18" y="100">cupos, jornada</text>
+  </g>
+
+  <g transform="translate(900,130)">
+    <rect class="box" width="230" height="118" rx="8"/>
+    <rect class="head" width="230" height="34" rx="8"/>
+    <text class="title" x="18" y="23">PERIODO_PRACTICA</text>
+    <text class="body" x="18" y="56">PK id_periodo</text>
+    <text class="body" x="18" y="78">fechas, horas_minimas</text>
+    <text class="body" x="18" y="100">estado</text>
+  </g>
+
+  <g transform="translate(900,340)">
+    <rect class="box" width="230" height="118" rx="8"/>
+    <rect class="head" width="230" height="34" rx="8"/>
+    <text class="title" x="18" y="23">ASIGNACION</text>
+    <text class="body" x="18" y="56">PK id_asignacion</text>
+    <text class="body" x="18" y="78">FK estudiante, plaza</text>
+    <text class="body" x="18" y="100">FK docente, periodo</text>
+  </g>
+
+  <g transform="translate(340,610)">
+    <rect class="box" width="230" height="118" rx="8"/>
+    <rect class="head" width="230" height="34" rx="8"/>
+    <text class="title" x="18" y="23">REGISTRO_ACTIVIDAD</text>
+    <text class="body" x="18" y="56">PK id_actividad</text>
+    <text class="body" x="18" y="78">FK id_asignacion</text>
+    <text class="body" x="18" y="100">horas, estado</text>
+  </g>
+
+  <g transform="translate(640,610)">
+    <rect class="box" width="210" height="118" rx="8"/>
+    <rect class="head" width="210" height="34" rx="8"/>
+    <text class="title" x="18" y="23">EVIDENCIA</text>
+    <text class="body" x="18" y="56">PK id_evidencia</text>
+    <text class="body" x="18" y="78">FK id_actividad</text>
+    <text class="body" x="18" y="100">archivo_url, mongo_id</text>
+  </g>
+
+  <g transform="translate(940,610)">
+    <rect class="box" width="220" height="118" rx="8"/>
+    <rect class="head" width="220" height="34" rx="8"/>
+    <text class="title" x="18" y="23">EVALUACION</text>
+    <text class="body" x="18" y="56">PK id_evaluacion</text>
+    <text class="body" x="18" y="78">FK asignacion, visita</text>
+    <text class="body" x="18" y="100">puntaje_total</text>
+  </g>
+
+  <path class="rel" d="M270 189 H340"/>
+  <path class="rel" d="M270 210 C420 280 500 140 620 189"/>
+  <path class="rel" d="M270 399 H340"/>
+  <path class="rel" d="M550 399 H620"/>
+  <path class="rel" d="M550 189 C700 210 790 190 900 189"/>
+  <path class="rel" d="M830 399 H900"/>
+  <path class="rel" d="M550 189 C700 300 760 395 900 399"/>
+  <path class="rel" d="M850 189 C900 230 940 280 1015 340"/>
+  <path class="rel" d="M1015 458 C910 540 650 560 455 610"/>
+  <path class="rel" d="M570 669 H640"/>
+  <path class="rel" d="M1015 458 C1060 520 1060 560 1050 610"/>
+</svg>
+
