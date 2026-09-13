@@ -1,0 +1,88 @@
+REGISTRO DE CONFIGURACION DE POSTGRESQL - SIGPRA
+================================================
+
+Version de PostgreSQL: 17.11
+Servidor: localhost
+Puerto: 5432
+Usuario: postgres
+Base de datos: sigpra
+
+1. CREACION DE LA BASE DE DATOS
+--------------------------------
+
+Comando ejecutado:
+
+CREATE DATABASE sigpra;
+
+Resultado:
+
+CREATE DATABASE
+
+2. CONEXION A LA BASE DE DATOS
+------------------------------
+
+Comando ejecutado:
+
+\c sigpra
+
+Resultado:
+
+Ahora esta conectado a la base de datos "sigpra" con el usuario "postgres".
+
+3. CARGA DEL ESQUEMA POSTGRESQL
+-------------------------------
+
+Archivo utilizado:
+
+Base_de_datos_SIGPRA/scripts/postgresql_schema.sql
+
+Comando ejecutado:
+
+\i 'C:/Users/Fabian/OneDrive/Desktop/Proyecto/_push_tmp_Proyecto_integrador_5_20260913101941/Base_de_datos_SIGPRA/scripts/postgresql_schema.sql'
+
+Resultado:
+
+CREATE SCHEMA
+SET
+CREATE TABLE (16 tablas)
+CREATE INDEX (5 indices)
+CREATE VIEW (1 vista)
+
+4. VERIFICACION DE TABLAS
+-------------------------
+
+Comando ejecutado:
+
+\dt sigpra.*
+
+Tablas creadas en el esquema sigpra:
+
+1. asignacion
+2. convenio
+3. coordinador_practicas
+4. criterio_rubrica
+5. detalle_evaluacion
+6. docente_asesor
+7. estudiante
+8. evaluacion
+9. evidencia
+10. institucion
+11. periodo_practica
+12. plaza_practica
+13. registro_actividad
+14. rubrica
+15. usuario
+16. visita_seguimiento
+
+5. ESTADO FINAL
+---------------
+
+La base de datos sigpra fue creada correctamente.
+El esquema sigpra fue cargado correctamente.
+Se verificaron 16 tablas, 5 indices y 1 vista.
+La conexion a PostgreSQL funciona correctamente.
+
+Nota:
+La advertencia sobre el codigo de pagina de la consola de Windows (850)
+y el codigo de Windows (1252) no impide la ejecucion de PostgreSQL.
+
