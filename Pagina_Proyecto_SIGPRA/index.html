@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIGPRA - Proyecto Integrador</title>
+    <meta
+      name="description"
+      content="Pagina de presentacion del proyecto SIGPRA: propuesta, casos de uso, prototipos, arquitectura, base de datos y entregables."
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Cpath d='M17 19h30v7H17zM17 30h30v7H17zM17 41h18v7H17z' fill='white'/%3E%3Ccircle cx='45' cy='44' r='8' fill='%23f59e0b'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#inicio" aria-label="Ir al inicio">
+        <span class="brand-mark">S</span>
+        <span>
+          <strong>SIGPRA</strong>
+          <small>Proyecto Integrador</small>
+        </span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">
+        Menu
+      </button>
+      <nav id="main-nav" class="main-nav" aria-label="Navegacion principal">
+        <a href="#inicio">Inicio</a>
+        <a href="#entregables">Entregables</a>
+        <a href="#prototipo">Prototipo</a>
+        <a href="#arquitectura">Arquitectura</a>
+        <a href="#base-datos">Base de datos</a>
+        <a href="#pendientes">Pendientes</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="inicio" class="overview">
+        <div class="overview-copy">
+          <p class="eyebrow">Software Integral de Gestion de Practicas Academicas</p>
+          <h1>SIGPRA centraliza la gestion de practicas academicas en una aplicacion web por roles.</h1>
+          <p>
+            El proyecto organiza la programacion del periodo, convenios, plazas, asignaciones,
+            registro de actividades, evidencias, validacion docente, seguimiento, evaluacion y
+            consulta consolidada del proceso.
+          </p>
+          <div class="action-row">
+            <a class="button primary" href="../Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.md">Ver propuesta</a>
+            <a class="button secondary" href="https://www.figma.com/design/RZYp1EuRTjzHCWiIUrWzGB/SIGPRA---Prototipos-mediana-fidelidad">Abrir Figma</a>
+          </div>
+        </div>
+
+        <aside class="status-panel" aria-label="Estado del proyecto">
+          <div>
+            <span class="label">Estado</span>
+            <strong>Primera entrega organizada</strong>
+          </div>
+          <div>
+            <span class="label">Alcance de construccion</span>
+            <strong>RF-01 a RF-05</strong>
+          </div>
+          <div>
+            <span class="label">Tecnologias de persistencia</span>
+            <strong>PostgreSQL, MongoDB y archivos</strong>
+          </div>
+          <div>
+            <span class="label">Prototipos</span>
+            <strong>Mediana fidelidad en Figma</strong>
+          </div>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Resumen del proyecto">
+        <article>
+          <span>7</span>
+          <p>casos de uso documentados</p>
+        </article>
+        <article>
+          <span>4</span>
+          <p>roles principales del sistema</p>
+        </article>
+        <article>
+          <span>3</span>
+          <p>componentes de persistencia</p>
+        </article>
+        <article>
+          <span>8</span>
+          <p>pantallas principales en Figma</p>
+        </article>
+      </section>
+
+      <section id="entregables" class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Entregables</p>
+          <h2>Documentos principales del proyecto</h2>
+          <p>Accesos directos a los archivos actuales y a los anexos tecnicos ya organizados.</p>
+        </div>
+        <div class="resource-grid">
+          <a class="resource-card" href="../Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.docx">
+            <span>DOCX</span>
+            <strong>Propuesta corregida</strong>
+            <p>Documento principal de la primera entrega.</p>
+          </a>
+          <a class="resource-card" href="../Entrega_actual/Propuesta_SIGPRA_Primera_Entrega_corregida.md">
+            <span>MD</span>
+            <strong>Propuesta en Markdown</strong>
+            <p>Version legible desde GitHub.</p>
+          </a>
+          <a class="resource-card" href="../Entrega_actual/Casos_uso.asta">
+            <span>ASTA</span>
+            <strong>Casos de uso Astah</strong>
+            <p>Archivo editable del modelo de casos de uso.</p>
+          </a>
+          <a class="resource-card" href="../Base_de_datos_SIGPRA/Documento_Base_de_Datos_SIGPRA.md">
+            <span>BD</span>
+            <strong>Documento de base de datos</strong>
+            <p>Persistencia relacional, documental y archivos.</p>
+          </a>
+        </div>
+      </section>
+
+      <section id="casos" class="section split">
+        <div class="section-heading">
+          <p class="eyebrow">Casos de uso</p>
+          <h2>Flujo funcional cubierto</h2>
+          <p>Los prototipos y documentos se alinean con estos siete casos.</p>
+        </div>
+        <div class="usecase-list">
+          <article><strong>CU-01</strong><span>Programar periodo de practica</span></article>
+          <article><strong>CU-02</strong><span>Gestionar convenios y plazas</span></article>
+          <article><strong>CU-03</strong><span>Asignar practicante a plaza y docente asesor</span></article>
+          <article><strong>CU-04</strong><span>Registrar actividad ejecutada y soportes</span></article>
+          <article><strong>CU-05</strong><span>Validar actividades reportadas</span></article>
+          <article><strong>CU-06</strong><span>Realizar visita de acompanamiento y evaluar</span></article>
+          <article><strong>CU-07</strong><span>Consultar estado consolidado de practicas</span></article>
+        </div>
+      </section>
+
+      <section id="prototipo" class="section visual-section">
+        <div class="section-heading">
+          <p class="eyebrow">Prototipos</p>
+          <h2>Mediana fidelidad en Figma</h2>
+          <p>El archivo esta separado por paginas: flujo general y un prototipo por cada caso de uso.</p>
+        </div>
+        <div class="figma-panel">
+          <div>
+            <h3>Contenido del archivo</h3>
+            <ul class="check-list">
+              <li>Vista general del prototipo.</li>
+              <li>Flujo general de navegacion.</li>
+              <li>Pantallas CU-01 a CU-07 por separado.</li>
+              <li>Formularios, tablas, estados y acciones principales.</li>
+            </ul>
+          </div>
+          <a class="button primary" href="https://www.figma.com/design/RZYp1EuRTjzHCWiIUrWzGB/SIGPRA---Prototipos-mediana-fidelidad">Abrir prototipo</a>
+        </div>
+      </section>
+
+      <section id="arquitectura" class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Arquitectura y modelos</p>
+          <h2>Diagramas disponibles</h2>
+          <p>Imagenes actuales del proyecto y diagramas nuevos de persistencia.</p>
+        </div>
+        <div class="gallery-grid">
+          <figure>
+            <img src="../Entrega_actual/Arquitectura_SIGPRA.png" alt="Diagrama de arquitectura SIGPRA" />
+            <figcaption>Arquitectura web orientada a servicios.</figcaption>
+          </figure>
+          <figure>
+            <img src="../Entrega_actual/Modelo_Relacional_SIGPRA.png" alt="Modelo relacional SIGPRA" />
+            <figcaption>Modelo relacional completo.</figcaption>
+          </figure>
+          <figure>
+            <img src="../Base_de_datos_SIGPRA/imagenes/arquitectura_persistencia.svg" alt="Arquitectura de persistencia SIGPRA" />
+            <figcaption>Persistencia: PostgreSQL, MongoDB y archivos.</figcaption>
+          </figure>
+          <figure>
+            <img src="../Base_de_datos_SIGPRA/imagenes/modelo_relacional_resumen.svg" alt="Modelo relacional resumen SIGPRA" />
+            <figcaption>Resumen de tablas principales.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="base-datos" class="section database-section">
+        <div class="section-heading">
+          <p class="eyebrow">Base de datos</p>
+          <h2>Persistencia propuesta</h2>
+          <p>La base de datos quedo documentada en una carpeta independiente para no mezclarla con la propuesta.</p>
+        </div>
+        <div class="db-grid">
+          <article>
+            <h3>PostgreSQL</h3>
+            <p>Datos relacionales: usuarios, estudiantes, convenios, plazas, periodos, asignaciones, actividades y evaluaciones.</p>
+            <a href="../Base_de_datos_SIGPRA/scripts/postgresql_schema.sql">Ver script SQL</a>
+          </article>
+          <article>
+            <h3>MongoDB</h3>
+            <p>Datos flexibles: metadatos de evidencias, bitacoras de visitas y eventos de auditoria.</p>
+            <a href="../Base_de_datos_SIGPRA/scripts/mongodb_collections.js">Ver colecciones</a>
+          </article>
+          <article>
+            <h3>Archivos</h3>
+            <p>Soportes reales: PDF, imagenes, documentos firmados y anexos asociados a la practica.</p>
+            <a href="../Base_de_datos_SIGPRA/documentos/Almacenamiento_Archivos_SIGPRA.md">Ver reglas</a>
+          </article>
+        </div>
+      </section>
+
+      <section id="pendientes" class="section roadmap-section">
+        <div class="section-heading">
+          <p class="eyebrow">Revision de completitud</p>
+          <h2>Lo que ya esta y lo que falta para una pagina completa</h2>
+        </div>
+        <div class="roadmap">
+          <article>
+            <h3>Ya incluido</h3>
+            <ul>
+              <li>Propuesta corregida y version Markdown.</li>
+              <li>Casos de uso en Astah.</li>
+              <li>Prototipos Figma enlazados.</li>
+              <li>Diagramas de arquitectura y modelo relacional.</li>
+              <li>Documento y scripts de base de datos.</li>
+              <li>Tareas de base de datos.</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Recomendado para completar mas adelante</h3>
+            <ul>
+              <li>Capturas PNG exportadas desde Figma por cada pantalla.</li>
+              <li>Pagina o video corto de demostracion del prototipo.</li>
+              <li>Documento de instalacion cuando exista codigo funcional.</li>
+              <li>Casos de prueba y matriz de validacion por requerimiento.</li>
+              <li>Despliegue web si el docente pide una URL publica.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>SIGPRA - Proyecto Integrador</span>
+      <a href="#inicio">Volver arriba</a>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
