@@ -11,7 +11,16 @@
 - `Diagrama_Dominio_SIGPRA.png`: diagrama conceptual de dominio.
 - `Secuencia_CU-01_Programar_periodo.png` a `Secuencia_CU-07_Consolidado.png`: exportaciones de los siete diagramas de secuencia.
 - `Arquitectura_SIGPRA.png`: diagrama de arquitectura.
-- `Modelo_Relacional_SIGPRA.png`: modelo relacional.
+- `../Base_de_datos_SIGPRA/imagenes/Modelo_Entidad_Relacion_SIGPRA.png`: modelo ER alineado con el esquema PostgreSQL.
+- `../Base_de_datos_SIGPRA/imagenes/Modelo_Relacional_SIGPRA.png`: modelo relacional de las 16 tablas PostgreSQL.
+- `../Base_de_datos_SIGPRA/Diccionario_Datos_SIGPRA.md`: diccionario de tablas/columnas, colecciones MongoDB y objetos de almacenamiento de archivos.
+
+## Persistencia SIGPRA
+
+El modelado abarca los tres componentes de persistencia documentados para el
+sistema: PostgreSQL (base relacional), MongoDB (base documental) y
+almacenamiento de archivos (binarios de evidencias; no es un motor de base de
+datos). Los scripts fuente se encuentran en `../Base_de_datos_SIGPRA/`.
 
 ## Prototipo y seguimiento
 

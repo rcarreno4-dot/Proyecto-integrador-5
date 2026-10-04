@@ -45,7 +45,7 @@ Resultado:
 CREATE SCHEMA
 SET
 CREATE TABLE (16 tablas)
-CREATE INDEX (5 indices)
+CREATE INDEX (6 indices)
 CREATE VIEW (1 vista)
 
 4. VERIFICACION DE TABLAS
@@ -79,10 +79,9 @@ Tablas creadas en el esquema sigpra:
 
 La base de datos sigpra fue creada correctamente.
 El esquema sigpra fue cargado correctamente.
-Se verificaron 16 tablas, 5 indices y 1 vista.
+Se verificaron 16 tablas, 6 indices y 1 vista.
 La conexion a PostgreSQL funciona correctamente.
 
 Nota:
 La advertencia sobre el codigo de pagina de la consola de Windows (850)
 y el codigo de Windows (1252) no impide la ejecucion de PostgreSQL.
-

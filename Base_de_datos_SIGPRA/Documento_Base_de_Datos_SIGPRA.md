@@ -101,7 +101,16 @@ storage/sigpra/2026-2/asignacion-15/actividad-80/evidencia-planeacion.pdf
 ## 8. Diagramas
 
 - Arquitectura de persistencia: `imagenes/arquitectura_persistencia.svg`
-- Modelo relacional resumen: `imagenes/modelo_relacional_resumen.svg`
+- Modelo Entidad-Relacion PostgreSQL: `imagenes/Modelo_Entidad_Relacion_SIGPRA.png`
+- Modelo relacional PostgreSQL: `imagenes/Modelo_Relacional_SIGPRA.png`
+- Diccionario para PostgreSQL, MongoDB y almacenamiento de archivos: `Diccionario_Datos_SIGPRA.md`
+
+Los modelos ER y relacional describen las mismas 16 tablas PostgreSQL que
+define `scripts/postgresql_schema.sql`. MongoDB tiene su propio esquema de
+colecciones en `scripts/mongodb_collections.js`; el almacenamiento de archivos
+se especifica como objetos binarios y referencias, no como otra base de datos.
+El proyecto Astah editable, que tambien conserva los diagramas UML de la
+entrega, se encuentra en `../Entrega_actual/Proyecto_astah_SIGPRA.asta`.
 
 ## 9. Scripts
 
@@ -111,4 +120,3 @@ storage/sigpra/2026-2/asignacion-15/actividad-80/evidencia-planeacion.pdf
 ## 10. Recomendacion de implementacion
 
 Para el proyecto academico se recomienda iniciar con PostgreSQL y el almacenamiento de archivos. MongoDB se puede integrar despues para auditoria y metadatos flexibles, manteniendo desde el inicio los campos de referencia necesarios.
-
