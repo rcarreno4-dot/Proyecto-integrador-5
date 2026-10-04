@@ -3,12 +3,12 @@ const SESSION_KEY = "sigpra_mvp_session_v1";
 
 const seedData = {
   users: [
-    { id: 1, name: "Rafael Carreno", email: "coordinador@sigpra.edu.co", password: "123456", role: "COORDINADOR", initials: "RC" },
-    { id: 2, name: "Laura Gomez", email: "estudiante@sigpra.edu.co", password: "123456", role: "ESTUDIANTE", initials: "LG", code: "UDI-2026-001", semester: 8 },
-    { id: 3, name: "Martha Rodriguez", email: "docente@sigpra.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "MR" },
-    { id: 4, name: "Director Programa", email: "director@sigpra.edu.co", password: "123456", role: "DIRECTOR", initials: "DP" },
-    { id: 5, name: "Miguel Rios", email: "miguel@sigpra.edu.co", password: "123456", role: "ESTUDIANTE", initials: "MR", code: "UDI-2026-002", semester: 8 },
-    { id: 6, name: "Carlos Mendoza", email: "docente2@sigpra.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "CM" }
+    { id: 1, name: "Rafael Carreno", email: "coordinador@udi.edu.co", password: "123456", role: "COORDINADOR", initials: "RC" },
+    { id: 2, name: "Laura Gomez", email: "estudiante@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "LG", code: "UDI-2026-001", semester: 8 },
+    { id: 3, name: "Martha Rodriguez", email: "docente@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "MR" },
+    { id: 4, name: "Director Programa", email: "director@udi.edu.co", password: "123456", role: "DIRECTOR", initials: "DP" },
+    { id: 5, name: "Miguel Rios", email: "miguel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "MR", code: "UDI-2026-002", semester: 8 },
+    { id: 6, name: "Carlos Mendoza", email: "docente2@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "CM" }
   ],
   periods: [
     {
@@ -109,6 +109,7 @@ const seedData = {
 let data = loadData();
 let session = loadSession();
 let currentView = "dashboard";
+let reportFilters = { periodId: "", program: "", institutionId: "", teacherId: "" };
 
 const app = document.querySelector("#app");
 
@@ -116,7 +117,19 @@ function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return structuredClone(seedData);
   try {
-    return JSON.parse(saved);
+    const stored = JSON.parse(saved);
+    if (Array.isArray(stored.users)) {
+      let migrated = false;
+      stored.users = stored.users.map((user) => {
+        if (typeof user.email === "string" && user.email.endsWith("@sigpra.edu.co")) {
+          migrated = true;
+          return { ...user, email: user.email.replace(/@sigpra\.edu\.co$/, "@udi.edu.co") };
+        }
+        return user;
+      });
+      if (migrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    }
+    return stored;
   } catch {
     return structuredClone(seedData);
   }
@@ -201,6 +214,25 @@ function statusTag(status) {
   return `<span class="tag ${cls}">${escapeHtml(status)}</span>`;
 }
 
+function agreementStatus(agreement) {
+  const today = new Date().toISOString().slice(0, 10);
+  return agreement.status === "VIGENTE" && agreement.document && agreement.start <= today && agreement.end >= today
+    ? "VIGENTE"
+    : "INACTIVA";
+}
+
+function placeStatus(place, agreement) {
+  return agreement && agreementStatus(agreement) === "VIGENTE" && place.occupied < place.offered
+    ? "DISPONIBLE"
+    : "INACTIVA";
+}
+
+function assignmentPlaceLabel(place) {
+  const agreement = data.agreements.find((item) => item.id === place.agreementId);
+  const institution = data.institutions.find((item) => item.id === agreement?.institutionId);
+  return `${institution?.name || "Institucion"} - ${place.level} (${place.shift})`;
+}
+
 function studentUsers() {
   return data.users.filter((user) => user.role === "ESTUDIANTE");
 }
@@ -246,6 +278,17 @@ function render() {
         <div class="brand">
           <strong>SIGPRA</strong>
           <span>Gestion de practicas academicas</span>
+        </div>
+        <div class="role-switch">
+          <label for="role-switch">Ver como</label>
+          <select id="role-switch">
+            ${[
+              ["COORDINADOR", "Coordinador de Practicas"],
+              ["ESTUDIANTE", "Estudiante"],
+              ["DOCENTE_ASESOR", "Docente Asesor"],
+              ["DIRECTOR", "Director del programa"]
+            ].map(([role, label]) => `<option value="${role}" ${user.role === role ? "selected" : ""}>${label}</option>`).join("")}
+          </select>
         </div>
         <nav class="nav" aria-label="Navegacion de ${escapeHtml(roleLabel(user.role))}">
           ${nav.map((item) => `<button class="${item.id === currentView ? "active" : ""}" data-view="${item.id}">${item.label}</button>`).join("")}
@@ -296,8 +339,7 @@ function navForRole(role) {
     DOCENTE_ASESOR: [
       ...shared,
       { id: "teacher-validations", label: "Validar actividades" },
-      { id: "teacher-visits", label: "Visitas y evaluacion" },
-      { id: "reports", label: "Consolidado" }
+      { id: "teacher-visits", label: "Visitas y evaluacion" }
     ],
     DIRECTOR: [
       ...shared,
@@ -310,17 +352,17 @@ function navForRole(role) {
 
 function viewTitle(view) {
   return {
-    dashboard: "Panel principal",
-    periods: "Programar periodo de practica",
-    agreements: "Gestionar convenios y plazas",
-    assignments: "Asignar practicante",
-    reports: "Estado consolidado",
+    dashboard: "Resumen",
+    periods: "CU-01 Programar periodo de practica",
+    agreements: "CU-02 Gestionar convenios y plazas",
+    assignments: "CU-03 Asignar practicante a plaza y docente asesor",
+    reports: "CU-07 Consultar estado consolidado de practicas",
     audit: "Auditoria",
-    "student-activities": "Registrar actividades",
+    "student-activities": "CU-04 Registrar actividad ejecutada y soportes",
     "student-evidence": "Evidencias y soportes",
     "student-progress": "Avance de practica",
-    "teacher-validations": "Validar actividades reportadas",
-    "teacher-visits": "Visitas y evaluacion"
+    "teacher-validations": "CU-05 Validar actividades reportadas",
+    "teacher-visits": "CU-06 Realizar visita de acompanamiento y evaluar"
   }[view] || "SIGPRA";
 }
 
@@ -368,11 +410,15 @@ function renderLogin() {
         <p>Version funcional de demostracion con persistencia local en navegador.</p>
       </section>
       <section class="login-card">
+        <div class="brand login-brand">
+          <strong>SIGPRA</strong>
+          <span>Gestion de practicas academicas</span>
+        </div>
         <h2>Iniciar sesion</h2>
         <p class="muted">Usa una cuenta de prueba o ingresa correo y clave.</p>
         <form id="login-form" class="form-grid">
           <label class="full-field">Correo
-            <input name="email" type="email" value="coordinador@sigpra.edu.co" required />
+            <input name="email" type="email" value="coordinador@udi.edu.co" required />
           </label>
           <label class="full-field">Clave
             <input name="password" type="password" value="123456" required />
@@ -399,6 +445,7 @@ function renderDashboard(user) {
 
   if (user.role === "ESTUDIANTE") return renderStudentProgress(user, true);
   if (user.role === "DOCENTE_ASESOR") return renderTeacherHome(user);
+  if (user.role === "DIRECTOR") return renderDirectorHome();
 
   return `
     <section class="grid">
@@ -416,6 +463,33 @@ function renderDashboard(user) {
           <button class="button primary" data-view="periods">Crear periodo</button>
           <button class="button" data-view="agreements">Ver convenios</button>
           <button class="button" data-view="reports">Consolidado</button>
+        </div>
+      </article>
+    </section>
+  `;
+}
+
+function renderDirectorHome() {
+  const activeAssignments = data.assignments.filter((assignment) => assignment.status === "ACTIVA");
+  const averageProgress = activeAssignments.length
+    ? Math.round(activeAssignments.reduce((sum, assignment) => {
+      const period = data.periods.find((item) => item.id === assignment.periodId);
+      const hours = approvedHours(assignment.id) || assignment.approvedHours;
+      return sum + Math.min(100, (hours / (period?.minHours || 1)) * 100);
+    }, 0) / activeAssignments.length)
+    : 0;
+  const activeTeachers = new Set(activeAssignments.map((assignment) => assignment.teacherId)).size;
+
+  return `
+    <section class="grid">
+      ${metricCard("Programas activos", data.periods.filter((period) => period.status === "PUBLICADO").length, "Periodos publicados")}
+      ${metricCard("Estudiantes en practica", activeAssignments.length, `${activeTeachers} docentes asesores`)}
+      ${metricCard("Avance promedio", `${averageProgress}%`, "Sobre horas requeridas")}
+      <article class="card full">
+        <h2>Acciones</h2>
+        <p class="muted">Revisa el estado consolidado del periodo.</p>
+        <div class="toolbar">
+          <button class="button primary" data-view="reports">Ver consolidado de practicas</button>
         </div>
       </article>
     </section>
@@ -458,7 +532,7 @@ function renderPeriods() {
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Programa</th><th>Nivel</th><th>Periodo</th><th>Fechas</th><th>Horas</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Programa</th><th>Nivel</th><th>Periodo</th><th>Vigencia</th><th>Reporte hasta</th><th>Horas</th><th>Evaluacion</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.periods.map((period) => `
                 <tr>
@@ -466,10 +540,12 @@ function renderPeriods() {
                   <td>${escapeHtml(period.level)}</td>
                   <td>${period.year}-${period.semester}</td>
                   <td>${moneyDate(period.start)} - ${moneyDate(period.end)}</td>
+                  <td>${moneyDate(period.reportLimit)}</td>
                   <td>${period.minHours}</td>
-                  <td>${statusTag(period.status)}</td>
+                  <td>${(period.rubric || []).map((criterion) => `${escapeHtml(criterion.name)} (${criterion.weight}%)`).join("<br>") || "Sin criterios configurados"}</td>
+                  <td>${statusTag(period.status)}${period.status === "BORRADOR" ? `<br><button class="button" data-modal="period" data-id="${period.id}">Continuar borrador</button>` : ""}</td>
                 </tr>
-              `).join("")}
+              `).join("") || `<tr><td colspan="8">No hay periodos registrados.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -484,10 +560,10 @@ function renderAgreements() {
       <article class="card full">
         <div class="toolbar">
           <button class="button primary" data-modal="institution">Nueva institucion</button>
-          <button class="button" data-modal="agreement">Nuevo convenio</button>
-          <button class="button" data-modal="place">Nueva plaza</button>
+          <button class="button" data-modal="agreement-place">Registrar convenio y plazas</button>
         </div>
         <h2>Instituciones y convenios</h2>
+        <p class="muted">Los convenios vencidos o sin documento quedan inactivos; sus plazas no se ofrecen para asignacion.</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Institucion</th><th>Convenio</th><th>Vigencia</th><th>Plazas</th><th>Cupos</th><th>Estado</th></tr></thead>
@@ -495,7 +571,9 @@ function renderAgreements() {
               ${data.agreements.map((agreement) => {
                 const institution = data.institutions.find((item) => item.id === agreement.institutionId);
                 const places = data.places.filter((place) => place.agreementId === agreement.id);
-                const cupos = places.reduce((sum, place) => sum + (place.offered - place.occupied), 0);
+                const cupos = agreementStatus(agreement) === "VIGENTE"
+                  ? places.reduce((sum, place) => sum + (place.offered - place.occupied), 0)
+                  : 0;
                 return `
                   <tr>
                     <td>${escapeHtml(institution?.name)}</td>
@@ -503,10 +581,10 @@ function renderAgreements() {
                     <td>${moneyDate(agreement.start)} - ${moneyDate(agreement.end)}</td>
                     <td>${places.length}</td>
                     <td>${cupos}</td>
-                    <td>${statusTag(agreement.status)}</td>
+                    <td>${statusTag(agreementStatus(agreement))}</td>
                   </tr>
                 `;
-              }).join("")}
+              }).join("") || `<tr><td colspan="6">No hay convenios registrados.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -527,10 +605,10 @@ function renderAgreements() {
                     <td>${escapeHtml(place.shift)}</td>
                     <td>${place.occupied} / ${place.offered}</td>
                     <td>${escapeHtml(place.tutor)}</td>
-                    <td>${statusTag(place.status)}</td>
+                    <td>${statusTag(placeStatus(place, agreement))}</td>
                   </tr>
                 `;
-              }).join("")}
+              }).join("") || `<tr><td colspan="6">No hay plazas registradas.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -589,9 +667,35 @@ function renderStudentActivities(user) {
         <div class="toolbar">
           <button class="button primary" data-modal="activity">Nueva actividad</button>
         </div>
-        ${activitiesTable(activities)}
+        ${studentActivitiesTable(activities)}
       </article>
     </section>
+  `;
+}
+
+function studentActivitiesTable(activities) {
+  if (!activities.length) return `<div class="empty">No hay actividades registradas.</div>`;
+  return `
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Actividad</th><th>Horas</th><th>Soportes</th><th>Estado</th><th>Observacion</th><th>Accion</th></tr></thead>
+        <tbody>
+          ${activities.map((activity) => {
+            const evidences = data.evidences.filter((evidence) => evidence.activityId === activity.id);
+            const canEdit = ["DEVUELTA", "BORRADOR"].includes(activity.status);
+            return `<tr>
+              <td>${moneyDate(activity.date)}</td>
+              <td><strong>${escapeHtml(activity.type)}</strong><br><span class="muted">${escapeHtml(activity.description)}</span></td>
+              <td>${activity.hours}</td>
+              <td>${evidences.map((evidence) => escapeHtml(evidence.fileName)).join("<br>") || "Sin soportes"}</td>
+              <td>${statusTag(activity.status)}</td>
+              <td>${escapeHtml(activity.observation || "Sin observacion")}</td>
+              <td>${canEdit ? `<button class="button" data-modal="activity" data-id="${activity.id}">${activity.status === "DEVUELTA" ? "Corregir y reenviar" : "Completar borrador"}</button>` : "—"}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -684,8 +788,8 @@ function renderStudentProgress(user, compact = false) {
 
 function renderTeacherValidations(user) {
   const assignments = data.assignments.filter((assignment) => assignment.teacherId === user.id).map((assignment) => assignment.id);
-  const activities = data.activities.filter((activity) => assignments.includes(activity.assignmentId));
-  return `<section class="grid"><article class="card full">${activitiesTable(activities, true)}</article></section>`;
+  const activities = data.activities.filter((activity) => assignments.includes(activity.assignmentId) && activity.status === "PENDIENTE");
+  return `<section class="grid"><article class="card full"><h2>Actividades pendientes</h2>${activitiesTable(activities, true)}</article></section>`;
 }
 
 function renderTeacherVisits(user) {
@@ -698,13 +802,13 @@ function renderTeacherVisits(user) {
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Fecha</th><th>Estudiante</th><th>Modalidad</th><th>Puntaje</th><th>Observacion</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Estudiante</th><th>Modalidad</th><th>Asistencia</th><th>Concepto</th><th>Puntaje</th><th>Observacion</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.visits.filter((visit) => visit.teacherId === user.id).map((visit) => {
                 const assignment = assignments.find((item) => item.id === visit.assignmentId);
                 const d = assignmentDetails(assignment || {});
-                return `<tr><td>${moneyDate(visit.date)}</td><td>${escapeHtml(d.student?.name)}</td><td>${escapeHtml(visit.mode)}</td><td>${visit.score}</td><td>${escapeHtml(visit.observation)}</td><td>${statusTag(visit.status)}</td></tr>`;
-              }).join("") || `<tr><td colspan="6">No hay visitas registradas.</td></tr>`}
+                return `<tr><td>${moneyDate(visit.date)}</td><td>${escapeHtml(d.student?.name)}</td><td>${escapeHtml(visit.mode)}</td><td>${visit.attendance ? "Asistio" : "No asistio"}</td><td>${escapeHtml(visit.concept || "Sin evaluacion")}</td><td>${visit.score}</td><td>${escapeHtml(visit.observation)}${visit.supportFileName ? `<br><span class="muted">Soporte: ${escapeHtml(visit.supportFileName)}</span>` : ""}</td><td>${statusTag(visit.status)}</td></tr>`;
+              }).join("") || `<tr><td colspan="8">No hay visitas registradas.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -714,31 +818,98 @@ function renderTeacherVisits(user) {
 }
 
 function renderReports(user) {
-  const rows = data.assignments.map((assignment) => {
+  const visibleAssignments = data.assignments.filter((assignment) =>
+    assignment.status === "ACTIVA" && (user.role !== "DOCENTE_ASESOR" || assignment.teacherId === user.id)
+  );
+  const rows = visibleAssignments.map((assignment) => {
     const d = assignmentDetails(assignment);
     const hours = approvedHours(assignment.id) || assignment.approvedHours;
     const required = d.period?.minHours || 320;
     return { assignment, d, hours, required, percent: Math.round((hours / required) * 100) };
-  });
+  }).filter((row) =>
+    (!reportFilters.periodId || row.assignment.periodId === Number(reportFilters.periodId)) &&
+    (!reportFilters.program || row.d.period?.program === reportFilters.program) &&
+    (!reportFilters.institutionId || row.d.institution?.id === Number(reportFilters.institutionId)) &&
+    (!reportFilters.teacherId || row.assignment.teacherId === Number(reportFilters.teacherId))
+  );
+  const assignmentIds = rows.map((row) => row.assignment.id);
+  const reportActivities = data.activities.filter((item) => assignmentIds.includes(item.assignmentId));
+  const reportVisits = data.visits.filter((item) => assignmentIds.includes(item.assignmentId));
+  const pendingCount = reportActivities.filter((item) => item.status === "PENDIENTE").length;
+  const programs = [...new Set(data.periods.map((period) => period.program))];
+  const selectedFilter = (value, selected) => String(value) === String(selected) ? "selected" : "";
+  const institutionGroups = [...rows.reduce((groups, row) => {
+    const key = row.d.institution?.id || 0;
+    const group = groups.get(key) || {
+      name: row.d.institution?.name || "Sin institucion",
+      students: 0,
+      hours: 0,
+      required: 0
+    };
+    group.students += row.assignment.status === "ACTIVA" ? 1 : 0;
+    group.hours += row.hours;
+    group.required += row.required;
+    groups.set(key, group);
+    return groups;
+  }, new Map()).values()];
   return `
     <section class="grid">
       <article class="card full">
         <div class="toolbar">
           <button class="button primary" data-action="export-json">Exportar JSON</button>
           <button class="button" data-action="export-csv">Exportar CSV</button>
+          <button class="button" data-action="export-print">Imprimir / guardar como PDF</button>
         </div>
-        <div class="report-box">
+        <h2>Periodo y filtros</h2>
+        <form class="form-grid report-filters" data-submit="report-filters">
+          <label>Periodo academico<select name="periodId">
+            <option value="">Todos los periodos</option>
+            ${data.periods.map((period) => `<option value="${period.id}" ${selectedFilter(period.id, reportFilters.periodId)}>${period.year}-${period.semester}</option>`).join("")}
+          </select></label>
+          <label>Programa<select name="program">
+            <option value="">Todos</option>
+            ${programs.map((program) => `<option value="${escapeHtml(program)}" ${selectedFilter(program, reportFilters.program)}>${escapeHtml(program)}</option>`).join("")}
+          </select></label>
+          <label>Institucion receptora<select name="institutionId">
+            <option value="">Todas</option>
+            ${optionList(data.institutions, (item) => item.name, reportFilters.institutionId)}
+          </select></label>
+          <label>Docente asesor<select name="teacherId">
+            <option value="">Todos</option>
+            ${optionList(teacherUsers(), (item) => item.name, reportFilters.teacherId)}
+          </select></label>
+          <button class="button primary full-field" type="submit">Aplicar filtros</button>
+        </form>
+        ${pendingCount ? `<div class="notice warning">Consolidado parcial: ${pendingCount} actividad(es) esperan validacion.</div>` : ""}
+        <div class="report-box ${rows.length ? "" : "hidden"}">
           <article><strong>${rows.length}</strong><br><span class="muted">Practicas</span></article>
           <article><strong>${rows.reduce((sum, row) => sum + row.hours, 0)}</strong><br><span class="muted">Horas aprobadas</span></article>
-          <article><strong>${data.activities.filter((item) => item.status === "PENDIENTE").length}</strong><br><span class="muted">Pendientes</span></article>
-          <article><strong>${data.visits.length}</strong><br><span class="muted">Visitas</span></article>
+          <article><strong>${reportActivities.filter((item) => item.status === "APROBADA").length}</strong><br><span class="muted">Actividades validadas</span></article>
+          <article><strong>${reportVisits.length}</strong><br><span class="muted">Visitas realizadas</span></article>
         </div>
+        ${rows.length ? "" : `<div class="empty">No hay informacion para los filtros seleccionados. Ajusta los filtros para generar el consolidado.</div>`}
+        <div class="report-data ${rows.length ? "" : "hidden"}">
+        <h2>Consolidado por institucion</h2>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Estudiante</th><th>Institucion</th><th>Docente</th><th>Horas</th><th>Avance</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Institucion</th><th>Estudiantes activos</th><th>Horas aprobadas</th><th>Avance</th></tr></thead>
+            <tbody>
+              ${institutionGroups.map((group) => {
+                const percent = group.required ? Math.round(group.hours / group.required * 100) : 0;
+                return `<tr><td>${escapeHtml(group.name)}</td><td>${group.students}</td><td>${group.hours}</td><td>${percent}%</td></tr>`;
+              }).join("") || `<tr><td colspan="4">No hay instituciones para los filtros seleccionados.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <h2>Detalle de practicas</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Periodo</th><th>Programa</th><th>Estudiante</th><th>Institucion</th><th>Docente</th><th>Horas</th><th>Avance</th><th>Estado</th></tr></thead>
             <tbody>
               ${rows.map((row) => `
                 <tr>
+                  <td>${row.d.period ? `${row.d.period.year}-${row.d.period.semester}` : ""}</td>
+                  <td>${escapeHtml(row.d.period?.program)}</td>
                   <td>${escapeHtml(row.d.student?.name)}</td>
                   <td>${escapeHtml(row.d.institution?.name)}</td>
                   <td>${escapeHtml(row.d.teacher?.name)}</td>
@@ -746,13 +917,28 @@ function renderReports(user) {
                   <td><div class="progress"><span style="width:${Math.min(100, row.percent)}%"></span></div>${row.percent}%</td>
                   <td>${statusTag(row.assignment.status)}</td>
                 </tr>
-              `).join("")}
+              `).join("") || `<tr><td colspan="8">No hay informacion para los filtros seleccionados.</td></tr>`}
             </tbody>
           </table>
         </div>
+        </div>
+        <p class="muted">El reporte se calcula con los datos registrados para el periodo y los filtros aplicados. PDF se genera con la opcion Imprimir del navegador.</p>
       </article>
     </section>
   `;
+}
+
+function filteredReportAssignments() {
+  const user = currentUser();
+  return data.assignments.filter((assignment) => {
+    if (assignment.status !== "ACTIVA") return false;
+    if (user?.role === "DOCENTE_ASESOR" && assignment.teacherId !== user.id) return false;
+    const details = assignmentDetails(assignment);
+    return (!reportFilters.periodId || assignment.periodId === Number(reportFilters.periodId)) &&
+      (!reportFilters.program || details.period?.program === reportFilters.program) &&
+      (!reportFilters.institutionId || details.institution?.id === Number(reportFilters.institutionId)) &&
+      (!reportFilters.teacherId || assignment.teacherId === Number(reportFilters.teacherId));
+  });
 }
 
 function renderAudit() {
@@ -784,6 +970,7 @@ function modalContent(type, id) {
     period: "Nuevo periodo",
     institution: "Nueva institucion",
     agreement: "Nuevo convenio",
+    "agreement-place": "Registrar convenio y plazas",
     place: "Nueva plaza",
     assignment: "Nueva asignacion",
     activity: "Nueva actividad",
@@ -800,24 +987,40 @@ function modalContent(type, id) {
   `;
 }
 
-function optionList(items, labelFn) {
-  return items.map((item) => `<option value="${item.id}">${escapeHtml(labelFn(item))}</option>`).join("");
+function optionList(items, labelFn, selectedId = "") {
+  return items.map((item) => `<option value="${item.id}" ${Number(item.id) === Number(selectedId) && selectedId !== "" ? "selected" : ""}>${escapeHtml(labelFn(item))}</option>`).join("");
 }
 
 function modalForm(type, id) {
   const user = currentUser();
   if (type === "period") {
+    const period = id ? data.periods.find((item) => item.id === Number(id)) : null;
+    const criterion = (index, field, fallback) => escapeHtml(period?.rubric?.[index]?.[field] ?? fallback);
     return `
-      <form class="form-grid" data-submit="period">
-        <label>Programa<input name="program" value="Licenciatura en Educacion Infantil" required></label>
-        <label>Nivel<input name="level" value="VIII semestre" required></label>
-        <label>Anio<input name="year" type="number" value="2026" required></label>
-        <label>Semestre<select name="semester"><option value="1">1</option><option value="2" selected>2</option></select></label>
-        <label>Fecha inicio<input name="start" type="date" required></label>
-        <label>Fecha fin<input name="end" type="date" required></label>
-        <label>Limite reportes<input name="reportLimit" type="date" required></label>
-        <label>Horas minimas<input name="minHours" type="number" value="320" required></label>
-        <button class="button primary full-field" type="submit">Guardar periodo</button>
+      <form class="form-grid" data-submit="period" data-id="${period?.id || ""}">
+        <label>Programa academico<input name="program" value="${escapeHtml(period?.program || "Licenciatura en Educacion Infantil")}" required></label>
+        <label>Nivel de practica<input name="level" value="${escapeHtml(period?.level || "VIII semestre")}" required></label>
+        <label>Anio<input name="year" type="number" value="${period?.year || 2026}" required></label>
+        <label>Semestre<select name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
+        <label>Fecha inicio<input name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
+        <label>Fecha fin<input name="end" type="date" value="${escapeHtml(period?.end || "")}" required></label>
+        <label>Fecha limite de reporte<input name="reportLimit" type="date" value="${escapeHtml(period?.reportLimit || "")}" required></label>
+        <label>Intensidad horaria minima<input name="minHours" type="number" min="1" value="${period?.minHours || 320}" required></label>
+        <div class="full-field">
+          <h3>Criterios de evaluacion y pesos</h3>
+          <div class="form-grid">
+            <label>Criterio 1<input name="criterion1" value="${criterion(0, "name", "Cumplimiento de horas")}" required></label>
+            <label>Peso (%)<input name="weight1" type="number" min="0" max="100" value="${criterion(0, "weight", 40)}" required></label>
+            <label>Criterio 2<input name="criterion2" value="${criterion(1, "name", "Validacion de actividades")}" required></label>
+            <label>Peso (%)<input name="weight2" type="number" min="0" max="100" value="${criterion(1, "weight", 30)}" required></label>
+            <label>Criterio 3<input name="criterion3" value="${criterion(2, "name", "Visita de acompanamiento")}" required></label>
+            <label>Peso (%)<input name="weight3" type="number" min="0" max="100" value="${criterion(2, "weight", 30)}" required></label>
+          </div>
+          <p class="muted">Los pesos deben sumar exactamente 100% para publicar el periodo.</p>
+        </div>
+        <div class="full-field notice warning">No se podra publicar si las fechas no son coherentes, las horas son inferiores al minimo previo del programa o los pesos no suman 100%.</div>
+        <button class="button full-field" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
+        <button class="button primary full-field" type="submit" name="status" value="PUBLICADO">Publicar periodo</button>
       </form>`;
   }
   if (type === "institution") {
@@ -842,6 +1045,24 @@ function modalForm(type, id) {
         <button class="button primary full-field" type="submit">Guardar convenio</button>
       </form>`;
   }
+  if (type === "agreement-place") {
+    const institutions = data.institutions.filter((institution) => institution.active);
+    return `
+      <form class="form-grid" data-submit="agreement-place">
+        <label>Institucion receptora<select name="institutionId" required>${optionList(institutions, (item) => `${item.name} - ${item.contact}`)}</select></label>
+        <label>Numero de convenio<input name="number" required></label>
+        <label>Vigencia desde<input name="start" type="date" required></label>
+        <label>Vigencia hasta<input name="end" type="date" required></label>
+        <label class="full-field">Documento suscrito del convenio<input name="document" type="file" accept=".pdf,.doc,.docx" /></label>
+        <div class="full-field notice warning">El prototipo registra el nombre y los datos del archivo localmente; no carga documentos a un servidor.</div>
+        <h3 class="full-field">Plaza ofrecida</h3>
+        <label>Nivel educativo<input name="level" required></label>
+        <label>Jornada<select name="shift"><option value="MANANA">Manana</option><option value="TARDE">Tarde</option><option value="NOCHE">Noche</option><option value="MIXTA">Mixta</option></select></label>
+        <label>Cupos<input name="offered" type="number" min="1" value="2" required></label>
+        <label>Docente titular<input name="tutor" required></label>
+        <button class="button primary full-field" type="submit">Guardar convenio y plaza</button>
+      </form>`;
+  }
   if (type === "place") {
     return `
       <form class="form-grid" data-submit="place">
@@ -854,23 +1075,37 @@ function modalForm(type, id) {
       </form>`;
   }
   if (type === "assignment") {
+    const availablePlaces = data.places.filter((place) => {
+      const agreement = data.agreements.find((item) => item.id === place.agreementId);
+      return placeStatus(place, agreement) === "DISPONIBLE";
+    });
+    const availableTeachers = teacherUsers().filter((teacher) =>
+      data.assignments.filter((assignment) => assignment.teacherId === teacher.id && assignment.status === "ACTIVA").length < 6
+    );
     return `
       <form class="form-grid" data-submit="assignment">
-        <label>Estudiante<select name="studentId">${optionList(studentUsers(), (item) => `${item.name} - ${item.code || item.email}`)}</select></label>
-        <label>Docente asesor<select name="teacherId">${optionList(teacherUsers(), (item) => item.name)}</select></label>
-        <label>Plaza<select name="placeId">${optionList(data.places, (item) => `${item.level} / cupos ${item.offered - item.occupied}`)}</select></label>
-        <label>Periodo<select name="periodId">${optionList(data.periods, (item) => `${item.program} ${item.year}-${item.semester}`)}</select></label>
+        <label>Estudiante habilitado<select name="studentId" required><option value="">Seleccione un estudiante</option>${optionList(studentUsers(), (item) => `${item.name} - ${item.code || item.email}`)}</select></label>
+        <label>Periodo vigente<select name="periodId" required><option value="">Seleccione periodo</option>${optionList(data.periods.filter((period) => period.status === "PUBLICADO"), (item) => `${item.program} ${item.year}-${item.semester}`)}</select></label>
+        <label>Plaza disponible<select name="placeId" required><option value="">Seleccione plaza</option>${optionList(availablePlaces, (item) => `${assignmentPlaceLabel(item)} - ${item.offered - item.occupied} cupos`)}</select></label>
+        <label>Docente asesor disponible<select name="teacherId" required><option value="">Seleccione docente</option>${optionList(availableTeachers, (item) => `${item.name} - ${data.assignments.filter((assignment) => assignment.teacherId === item.id && assignment.status === "ACTIVA").length}/6 estudiantes`)}</select></label>
+        <label class="full-field">Motivo de reasignacion <select name="reassignmentReason"><option value="">No es una reasignacion</option><option>Solicitud de la institucion receptora</option><option>Solicitud del estudiante</option><option>Cambio de disponibilidad del docente asesor</option><option>Otro</option></select></label>
+        <div class="full-field notice warning">Si el estudiante ya tiene asignacion activa en este periodo, indica un motivo para reasignarlo. Se conserva el historial anterior.</div>
         <button class="button primary full-field" type="submit">Confirmar asignacion</button>
       </form>`;
   }
   if (type === "activity") {
+    const activity = id ? data.activities.find((item) => item.id === Number(id)) : null;
     return `
-      <form class="form-grid" data-submit="activity">
-        <label>Fecha<input name="date" type="date" required></label>
-        <label>Horas<input name="hours" type="number" min="0.5" max="24" step="0.5" required></label>
-        <label class="full-field">Tipo de actividad<input name="type" required></label>
-        <label class="full-field">Descripcion<textarea name="description" required></textarea></label>
-        <button class="button primary full-field" type="submit">Enviar a validacion</button>
+      <form class="form-grid" data-submit="activity" data-id="${id || ""}">
+        ${activity?.observation ? `<div class="notice warning full-field">Observacion del docente: ${escapeHtml(activity.observation)}</div>` : ""}
+        <label>Fecha<input name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
+        <label>Horas<input name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
+        <label class="full-field">Tipo de actividad<input name="type" value="${escapeHtml(activity?.type || "")}" required></label>
+        <label class="full-field">Descripcion<textarea name="description" required>${escapeHtml(activity?.description || "")}</textarea></label>
+        <label class="full-field">Soportes o evidencias<input name="files" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple></label>
+        <div class="notice warning full-field">El envio requiere al menos un soporte. Se permiten PDF, imagenes y documentos Office de hasta 10 MB cada uno. En este prototipo se persiste la referencia y el nombre de archivo, no el contenido binario.</div>
+        <button class="button full-field" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
+        <button class="button primary full-field" type="submit" name="status" value="PENDIENTE">Enviar a validacion</button>
       </form>`;
   }
   if (type === "evidence") {
@@ -886,64 +1121,292 @@ function modalForm(type, id) {
   }
   if (type === "validate") {
     const activity = data.activities.find((item) => item.id === Number(id));
+    const assignment = activity && data.assignments.find((item) => item.id === activity.assignmentId);
+    const evidence = data.evidences.filter((item) => item.activityId === activity?.id);
     return `
       <form class="form-grid" data-submit="validate" data-id="${id}">
-        <p class="full-field"><strong>${escapeHtml(activity?.type)}</strong><br>${escapeHtml(activity?.description)}</p>
+        <div class="full-field">
+          <p><strong>${escapeHtml(activity?.type)}</strong><br>${escapeHtml(activity?.description)}</p>
+          <p class="muted">Estudiante: ${escapeHtml(assignment && assignmentDetails(assignment).student?.name)} · Fecha: ${moneyDate(activity?.date)} · Horas: ${activity?.hours}</p>
+          <h3>Soportes</h3>
+          ${evidence.length ? `<ul>${evidence.map((item) => `<li>${escapeHtml(item.fileName)} (${escapeHtml(item.type)})</li>`).join("")}</ul>` : `<div class="empty">No se adjuntaron soportes.</div>`}
+        </div>
+        <label class="full-field"><span><input name="evidenceReviewed" type="checkbox" value="yes" style="width:auto"> He revisado los soportes obligatorios de esta actividad</span></label>
         <label>Resultado<select name="status"><option value="APROBADA">Aprobar</option><option value="DEVUELTA">Devolver</option><option value="RECHAZADA">Rechazar</option></select></label>
-        <label>Observacion<input name="observation" placeholder="Observacion para el estudiante"></label>
+        <label>Observacion / justificacion<textarea name="observation" placeholder="Obligatoria al devolver o rechazar"></textarea></label>
+        <div class="full-field notice warning">Para aprobar debes confirmar la revision de los soportes. Al devolver o rechazar, registra la justificacion para el estudiante.</div>
         <button class="button primary full-field" type="submit">Guardar validacion</button>
       </form>`;
   }
   if (type === "visit") {
-    const assignments = data.assignments.filter((item) => item.teacherId === user.id);
+    const assignments = data.assignments.filter((item) => item.teacherId === user.id && item.status === "ACTIVA");
     return `
       <form class="form-grid" data-submit="visit">
-        <label>Asignacion<select name="assignmentId">${optionList(assignments, (item) => assignmentDetails(item).student?.name || item.id)}</select></label>
+        <label>Estudiante a evaluar<select name="assignmentId" required><option value="">Seleccione estudiante</option>${optionList(assignments, (item) => `${assignmentDetails(item).student?.name} - ${assignmentDetails(item).institution?.name}`, assignments[0]?.id)}</select></label>
         <label>Fecha<input name="date" type="date" required></label>
-        <label>Modalidad<select name="mode"><option>PRESENCIAL</option><option>VIRTUAL</option><option>MIXTA</option></select></label>
-        <label>Puntaje<input name="score" type="number" min="0" max="5" step="0.1" required></label>
-        <label class="full-field">Observacion<textarea name="observation" required></textarea></label>
+        <label>Modalidad<select name="mode"><option value="PRESENCIAL">Presencial</option><option value="VIRTUAL">Remota</option><option value="MIXTA">Mixta</option></select></label>
+        <label class="full-field">Observaciones de la visita<textarea name="observation" required></textarea></label>
+        <label class="full-field"><span><input name="attendance" type="checkbox" checked style="width:auto"> El estudiante asistio a la visita programada</span></label>
+        <label class="full-field">Soporte de visita remota (si aplica)<input name="support" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></label>
+        <div class="full-field notice warning">Si la visita es remota, adjunta un soporte. Si el estudiante no asistio, se registra la inasistencia para coordinar una reprogramacion.</div>
+        <h3 class="full-field">Rubrica de evaluacion</h3>
+        <div class="form-grid full-field" id="visit-rubric">${visitRubricFields(assignments[0]?.id)}</div>
         <button class="button primary full-field" type="submit">Guardar visita y evaluacion</button>
       </form>`;
   }
   return `<div class="empty">Formulario no disponible.</div>`;
 }
 
-function handleSubmit(form) {
+function visitRubricFields(assignmentId) {
+  const assignment = data.assignments.find((item) => item.id === Number(assignmentId));
+  const period = assignment && data.periods.find((item) => item.id === assignment.periodId);
+  const rubric = period?.rubric || [];
+  if (!rubric.length) return `<div class="notice warning full-field">No existe una rubrica configurada para el periodo. El coordinador debe configurar criterios antes de registrar la evaluacion.</div>`;
+  return rubric.map((criterion, index) => `
+    <label>${escapeHtml(criterion.name)} (${criterion.weight}%)
+      <select name="score-${index}" required>
+        <option value="">Seleccione puntaje</option>
+        <option value="4">Excelente</option>
+        <option value="3">Bueno</option>
+        <option value="2">Aceptable</option>
+        <option value="1">Insuficiente</option>
+      </select>
+    </label>
+    <label>Comentario<input name="comment-${index}" placeholder="Comentario del criterio"></label>
+  `).join("");
+}
+
+function handleSubmit(form, submitter) {
   const type = form.dataset.submit;
   const formData = Object.fromEntries(new FormData(form).entries());
   const user = currentUser();
   if (type === "period") {
-    data.periods.push({ id: nextId(data.periods), ...formData, year: Number(formData.year), semester: Number(formData.semester), minHours: Number(formData.minHours), status: "PUBLICADO", rubric: [] });
-    audit("Creo un periodo de practica", "PERIODO_PRACTICA");
+    const rubric = [1, 2, 3].map((index) => ({
+      name: String(formData[`criterion${index}`]).trim(),
+      weight: Number(formData[`weight${index}`])
+    }));
+    const minimumForProgram = Math.max(0, ...data.periods
+      .filter((period) => period.id !== Number(form.dataset.id) && period.status === "PUBLICADO" &&
+        period.program.toLowerCase() === String(formData.program).trim().toLowerCase())
+      .map((period) => Number(period.minHours)));
+    const periodStatus = submitter?.value || "PUBLICADO";
+    const existingPeriod = form.dataset.id ? data.periods.find((period) => period.id === Number(form.dataset.id)) : null;
+    if (new Date(`${formData.start}T00:00:00`) > new Date(`${formData.end}T00:00:00`) ||
+      new Date(`${formData.reportLimit}T00:00:00`) < new Date(`${formData.end}T00:00:00`)) {
+      toast("Verifica las fechas: el inicio debe preceder al fin y el limite de reporte no puede ser anterior al fin.");
+      return;
+    }
+    if (data.periods.some((period) => period.id !== existingPeriod?.id &&
+      period.program.toLowerCase() === String(formData.program).trim().toLowerCase() &&
+      period.year === Number(formData.year) && period.semester === Number(formData.semester))) {
+      toast("Ya existe un periodo para ese programa, ano y semestre.");
+      return;
+    }
+    if (existingPeriod && existingPeriod.status !== "BORRADOR") {
+      toast("Solo se pueden editar periodos guardados como borrador.");
+      return;
+    }
+    if (periodStatus === "PUBLICADO" && Number(formData.minHours) < minimumForProgram) {
+      toast(`Las horas minimas no pueden ser inferiores al minimo anterior del programa (${minimumForProgram}).`);
+      return;
+    }
+    if (periodStatus === "PUBLICADO" && rubric.reduce((sum, criterion) => sum + criterion.weight, 0) !== 100) {
+      toast("No se puede publicar: los pesos de evaluacion deben sumar 100%.");
+      return;
+    }
+    const periodRecord = existingPeriod || { id: nextId(data.periods) };
+    Object.assign(periodRecord, {
+      program: String(formData.program).trim(),
+      level: String(formData.level).trim(),
+      year: Number(formData.year),
+      semester: Number(formData.semester),
+      start: formData.start,
+      end: formData.end,
+      reportLimit: formData.reportLimit,
+      minHours: Number(formData.minHours),
+      status: periodStatus,
+      rubric
+    });
+    if (!existingPeriod) data.periods.push(periodRecord);
+    audit(existingPeriod ? `${periodStatus === "PUBLICADO" ? "Publico" : "Actualizo"} un periodo en borrador` : "Creo un periodo de practica", "PERIODO_PRACTICA");
   }
   if (type === "institution") {
     data.institutions.push({ id: nextId(data.institutions), ...formData, active: true });
     audit("Registro una institucion", "INSTITUCION");
   }
   if (type === "agreement") {
-    data.agreements.push({ id: nextId(data.agreements), institutionId: Number(formData.institutionId), number: formData.number, start: formData.start, end: formData.end, document: formData.document, status: "VIGENTE" });
+    if (formData.start > formData.end) {
+      toast("La fecha de inicio del convenio debe ser anterior a su fecha de vencimiento.");
+      return;
+    }
+    const agreement = {
+      id: nextId(data.agreements),
+      institutionId: Number(formData.institutionId),
+      number: String(formData.number).trim(),
+      start: formData.start,
+      end: formData.end,
+      document: String(formData.document).trim(),
+      status: formData.document && formData.end >= new Date().toISOString().slice(0, 10) ? "VIGENTE" : "INACTIVA"
+    };
+    data.agreements.push(agreement);
     audit("Registro un convenio", "CONVENIO");
+  }
+  if (type === "agreement-place") {
+    const document = form.querySelector('[name="document"]').files[0];
+    if (formData.start > formData.end) {
+      toast("La fecha de inicio del convenio debe ser anterior a su fecha de vencimiento.");
+      return;
+    }
+    if (data.agreements.some((agreement) => agreement.number.toLowerCase() === String(formData.number).trim().toLowerCase())) {
+      toast("Ya existe un convenio con ese numero.");
+      return;
+    }
+    const agreementId = nextId(data.agreements);
+    const agreement = {
+      id: agreementId,
+      institutionId: Number(formData.institutionId),
+      number: String(formData.number).trim(),
+      start: formData.start,
+      end: formData.end,
+      document: document?.name || "",
+      status: document && formData.start <= new Date().toISOString().slice(0, 10) &&
+        formData.end >= new Date().toISOString().slice(0, 10) ? "VIGENTE" : "INACTIVA"
+    };
+    data.agreements.push(agreement);
+    data.places.push({
+      id: nextId(data.places),
+      agreementId,
+      level: String(formData.level).trim(),
+      shift: formData.shift,
+      offered: Number(formData.offered),
+      occupied: 0,
+      tutor: String(formData.tutor).trim(),
+      status: agreement.status === "VIGENTE" ? "DISPONIBLE" : "INACTIVA"
+    });
+    audit("Registro un convenio y sus plazas", "CONVENIO_PLAZA");
   }
   if (type === "place") {
     data.places.push({ id: nextId(data.places), agreementId: Number(formData.agreementId), level: formData.level, shift: formData.shift, offered: Number(formData.offered), occupied: 0, tutor: formData.tutor, status: "DISPONIBLE" });
     audit("Registro una plaza de practica", "PLAZA_PRACTICA");
   }
   if (type === "assignment") {
+    const studentId = Number(formData.studentId);
+    const teacherId = Number(formData.teacherId);
+    const placeId = Number(formData.placeId);
+    const periodId = Number(formData.periodId);
+    const activeAssignment = data.assignments.find((assignment) =>
+      assignment.studentId === studentId && assignment.periodId === periodId && assignment.status === "ACTIVA"
+    );
     const id = nextId(data.assignments);
-    const place = data.places.find((item) => item.id === Number(formData.placeId));
-    if (place && place.occupied >= place.offered) {
-      toast("La plaza seleccionada no tiene cupos disponibles.");
+    const place = data.places.find((item) => item.id === placeId);
+    const agreement = data.agreements.find((item) => item.id === place?.agreementId);
+    const teacherLoad = data.assignments.filter((assignment) =>
+      assignment.teacherId === teacherId && assignment.status === "ACTIVA" && assignment.id !== activeAssignment?.id
+    ).length;
+    if (!data.users.some((item) => item.id === studentId && item.role === "ESTUDIANTE") ||
+      !data.users.some((item) => item.id === teacherId && item.role === "DOCENTE_ASESOR") ||
+      !data.periods.some((item) => item.id === periodId && item.status === "PUBLICADO")) {
+      toast("Selecciona un estudiante, docente asesor y periodo publicado validos.");
       return;
     }
-    data.assignments.push({ id, studentId: Number(formData.studentId), teacherId: Number(formData.teacherId), placeId: Number(formData.placeId), periodId: Number(formData.periodId), date: new Date().toISOString().slice(0, 10), status: "ACTIVA", approvedHours: 0 });
-    if (place) place.occupied += 1;
-    audit("Creo una asignacion de practica", "ASIGNACION");
+    if (!place || placeStatus(place, agreement) !== "DISPONIBLE") {
+      toast("La plaza no tiene cupos o el convenio no esta vigente y documentado.");
+      return;
+    }
+    if (teacherLoad >= 6) {
+      toast("El docente asesor ya alcanzo el maximo de seis estudiantes asignados.");
+      return;
+    }
+    if (activeAssignment && !formData.reassignmentReason) {
+      toast("El estudiante ya tiene una asignacion activa en este periodo. Selecciona un motivo para reasignarlo.");
+      return;
+    }
+    if (activeAssignment) {
+      const previousPlace = data.places.find((item) => item.id === activeAssignment.placeId);
+      activeAssignment.status = "CANCELADA";
+      activeAssignment.reassignmentReason = String(formData.reassignmentReason);
+      if (previousPlace) previousPlace.occupied = Math.max(0, previousPlace.occupied - 1);
+    }
+    data.assignments.push({
+      id,
+      studentId,
+      teacherId,
+      placeId,
+      periodId,
+      date: new Date().toISOString().slice(0, 10),
+      status: "ACTIVA",
+      approvedHours: 0,
+      reassignedFrom: activeAssignment?.id || null,
+      reassignmentReason: activeAssignment ? String(formData.reassignmentReason) : ""
+    });
+    place.occupied += 1;
+    audit(activeAssignment ? "Reasigno un estudiante conservando el historial" : "Creo una asignacion de practica", "ASIGNACION");
+    const details = assignmentDetails(data.assignments[data.assignments.length - 1]);
+    audit(`Asignacion preparada para ${details.student?.name}, docente ${details.teacher?.name} e institucion ${details.institution?.name}; verificar notificacion externa`, "NOTIFICACION");
   }
   if (type === "activity") {
     const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
-    data.activities.push({ id: nextId(data.activities), assignmentId: assignment.id, date: formData.date, type: formData.type, description: formData.description, hours: Number(formData.hours), status: "PENDIENTE", observation: "" });
-    audit("Registro una actividad", "REGISTRO_ACTIVIDAD");
+    const submitStatus = submitter?.value || "PENDIENTE";
+    const date = String(formData.date);
+    const hours = Number(formData.hours);
+    const period = assignment && data.periods.find((item) => item.id === assignment.periodId);
+    const existing = form.dataset.id ? data.activities.find((item) => item.id === Number(form.dataset.id)) : null;
+    const files = Array.from(form.querySelector('[name="files"]').files);
+    const allowedExtensions = new Set(["pdf", "jpg", "jpeg", "png", "doc", "docx"]);
+    if (!assignment || !period) {
+      toast("No hay una asignacion activa para registrar esta actividad.");
+      return;
+    }
+    if (existing && (existing.assignmentId !== assignment.id || !["DEVUELTA", "BORRADOR"].includes(existing.status))) {
+      toast("Solo puedes corregir tus actividades devueltas o completar borradores.");
+      return;
+    }
+    if (date < period.start || date > period.end || date > period.reportLimit) {
+      toast(`La fecha debe estar dentro del periodo ${moneyDate(period.start)} - ${moneyDate(period.end)} y antes del cierre de reportes.`);
+      return;
+    }
+    if (!Number.isFinite(hours) || hours < 0.5 || hours > 24) {
+      toast("Las horas deben ser un valor entre 0.5 y 24.");
+      return;
+    }
+    if (submitStatus === "PENDIENTE" && files.length === 0 && !data.evidences.some((evidence) => evidence.activityId === existing?.id)) {
+      toast("Adjunta al menos un soporte antes de enviar la actividad a validacion.");
+      return;
+    }
+    const invalidFile = files.find((file) => {
+      const extension = file.name.split(".").pop()?.toLowerCase() || "";
+      return !allowedExtensions.has(extension) || file.size > 10 * 1024 * 1024;
+    });
+    if (invalidFile) {
+      toast(`El archivo ${invalidFile.name} no es valido. Usa PDF, JPG, PNG, DOC o DOCX de hasta 10 MB.`);
+      return;
+    }
+    const activity = existing || {
+      id: nextId(data.activities),
+      assignmentId: assignment.id,
+      observation: ""
+    };
+    activity.date = date;
+    activity.type = String(formData.type).trim();
+    activity.description = String(formData.description).trim();
+    activity.hours = hours;
+    activity.status = submitStatus;
+    if (existing) activity.observation = "";
+    else data.activities.push(activity);
+    for (const file of files) {
+      const extension = file.name.split(".").pop()?.toUpperCase() || "ARCHIVO";
+      const evidenceId = nextId(data.evidences);
+      data.evidences.push({
+        id: evidenceId,
+        activityId: activity.id,
+        fileName: file.name,
+        type: extension,
+        url: `storage/sigpra/assignment-${assignment.id}/activity-${activity.id}/${encodeURIComponent(file.name)}`,
+        status: "CARGADA",
+        mongoId: `ev-local-${String(evidenceId).padStart(3, "0")}`
+      });
+    }
+    audit(submitStatus === "BORRADOR" ? "Guardo actividad como borrador" : existing ? "Reenvio actividad corregida" : "Registro una actividad", "REGISTRO_ACTIVIDAD");
   }
   if (type === "evidence") {
     const id = nextId(data.evidences);
@@ -952,15 +1415,99 @@ function handleSubmit(form) {
   }
   if (type === "validate") {
     const activity = data.activities.find((item) => item.id === Number(form.dataset.id));
+    const assignment = activity && data.assignments.find((item) => item.id === activity.assignmentId);
+    const evidence = data.evidences.filter((item) => item.activityId === activity?.id);
+    if (!activity || !assignment || assignment.teacherId !== user.id || activity.status !== "PENDIENTE") {
+      toast("La actividad ya no esta pendiente o no pertenece a tus estudiantes asignados.");
+      return;
+    }
+    if (formData.status === "APROBADA" && (!formData.evidenceReviewed || evidence.length === 0)) {
+      toast("Para aprobar, confirma la revision y verifica que la actividad tenga al menos un soporte.");
+      return;
+    }
+    if (["DEVUELTA", "RECHAZADA"].includes(String(formData.status)) && !String(formData.observation).trim()) {
+      toast("Escribe la observacion obligatoria al devolver o rechazar una actividad.");
+      return;
+    }
     activity.status = formData.status;
-    activity.observation = formData.observation || (formData.status === "APROBADA" ? "Actividad aprobada." : "Requiere ajuste.");
-    const assignment = data.assignments.find((item) => item.id === activity.assignmentId);
+    activity.observation = String(formData.observation || (formData.status === "APROBADA" ? "Actividad aprobada." : "")).trim();
+    activity.validatedBy = user.id;
+    activity.validatedAt = new Date().toISOString();
+    evidence.forEach((item) => { item.status = formData.status === "APROBADA" ? "VALIDADA" : item.status; });
     assignment.approvedHours = approvedHours(assignment.id);
     audit(`Valido actividad como ${formData.status}`, "REGISTRO_ACTIVIDAD");
   }
   if (type === "visit") {
-    data.visits.push({ id: nextId(data.visits), assignmentId: Number(formData.assignmentId), teacherId: user.id, date: formData.date, mode: formData.mode, attendance: true, observation: formData.observation, score: Number(formData.score), status: "REGISTRADA" });
+    const assignment = data.assignments.find((item) => item.id === Number(formData.assignmentId) &&
+      item.teacherId === user.id && item.status === "ACTIVA");
+    const period = assignment && data.periods.find((item) => item.id === assignment.periodId);
+    const rubric = period?.rubric || [];
+    const support = form.querySelector('[name="support"]').files[0];
+    if (!assignment || !period) {
+      toast("Selecciona una asignacion activa propia para registrar la visita.");
+      return;
+    }
+    if (formData.date < period.start || formData.date > period.end) {
+      toast("La fecha de la visita debe estar dentro del periodo de practica.");
+      return;
+    }
+    if (!rubric.length) {
+      toast("No se puede guardar la evaluacion porque el periodo no tiene una rubrica configurada.");
+      return;
+    }
+    const ratings = rubric.map((criterion, index) => ({
+      criterion: criterion.name,
+      weight: Number(criterion.weight),
+      score: Number(formData[`score-${index}`]),
+      comment: String(formData[`comment-${index}`] || "").trim()
+    }));
+    if (ratings.some((rating) => !Number.isFinite(rating.score) || rating.score < 1 || rating.score > 4) ||
+      rubric.reduce((sum, criterion) => sum + Number(criterion.weight), 0) !== 100) {
+      toast("Completa todos los criterios y verifica que la rubrica del periodo sume 100%.");
+      return;
+    }
+    if (formData.mode === "VIRTUAL" && !support) {
+      toast("Adjunta el soporte requerido para una visita remota.");
+      return;
+    }
+    if (support && (support.size > 10 * 1024 * 1024 ||
+      !["pdf", "jpg", "jpeg", "png", "doc", "docx"].includes(support.name.split(".").pop()?.toLowerCase() || ""))) {
+      toast("El soporte debe ser PDF, imagen, DOC o DOCX de hasta 10 MB.");
+      return;
+    }
+    const weightedScore = ratings.reduce((sum, rating) => sum + rating.score * rating.weight, 0) / 100;
+    const concept = weightedScore >= 3.5 ? "Excelente" : weightedScore >= 2.5 ? "Bueno" : weightedScore >= 1.5 ? "Aceptable" : "Insuficiente";
+    data.visits.push({
+      id: nextId(data.visits),
+      assignmentId: assignment.id,
+      teacherId: user.id,
+      date: formData.date,
+      mode: formData.mode,
+      attendance: form.querySelector('[name="attendance"]').checked,
+      observation: String(formData.observation).trim(),
+      score: Math.round(weightedScore * 100) / 100,
+      concept,
+      rubric: ratings,
+      supportFileName: support?.name || "",
+      status: "REGISTRADA"
+    });
     audit("Registro visita y evaluacion", "VISITA_SEGUIMIENTO");
+    if (!form.querySelector('[name="attendance"]').checked) {
+      audit("Registro inasistencia del estudiante y requiere reprogramacion", "VISITA_SEGUIMIENTO");
+    }
+  }
+  if (type === "report-filters") {
+    reportFilters = {
+      periodId: String(formData.periodId || ""),
+      program: String(formData.program || ""),
+      institutionId: String(formData.institutionId || ""),
+      teacherId: String(formData.teacherId || "")
+    };
+    audit(`Aplico filtros al consolidado (${JSON.stringify(reportFilters)})`, "CONSULTA_CONSOLIDADA");
+    saveData();
+    toast("Filtros aplicados; consolidado actualizado.");
+    render();
+    return;
   }
   saveData();
   document.querySelector(".modal-backdrop")?.remove();
@@ -976,13 +1523,14 @@ function exportJson() {
 
 function exportCsv() {
   const header = ["estudiante", "institucion", "docente", "horas_aprobadas", "estado"];
-  const rows = data.assignments.map((assignment) => {
+  const assignments = filteredReportAssignments();
+  const rows = assignments.map((assignment) => {
     const d = assignmentDetails(assignment);
     return [d.student?.name, d.institution?.name, d.teacher?.name, approvedHours(assignment.id) || assignment.approvedHours, assignment.status];
   });
   const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
   downloadFile("sigpra-consolidado.csv", csv, "text/csv");
-  audit("Exporto consolidado CSV", "REPORTE");
+  audit(`Exporto consolidado CSV (${JSON.stringify(reportFilters)})`, "REPORTE");
   saveData();
 }
 
@@ -1012,8 +1560,27 @@ document.addEventListener("submit", (event) => {
   }
   if (event.target.dataset.submit) {
     event.preventDefault();
-    handleSubmit(event.target);
+    handleSubmit(event.target, event.submitter);
   }
+});
+
+document.addEventListener("change", (event) => {
+  if (event.target.matches('[data-submit="visit"] [name="assignmentId"]')) {
+    const rubric = event.target.closest("form").querySelector("#visit-rubric");
+    rubric.innerHTML = visitRubricFields(event.target.value);
+    return;
+  }
+  if (event.target.id !== "role-switch") return;
+  const role = event.target.value;
+  const user = data.users.find((item) => item.role === role);
+  if (!user) {
+    toast("No hay una cuenta de demostracion disponible para ese rol.");
+    render();
+    return;
+  }
+  currentView = "dashboard";
+  saveSession(user);
+  render();
 });
 
 document.addEventListener("click", (event) => {
@@ -1057,6 +1624,11 @@ document.addEventListener("click", (event) => {
   }
   if (action.dataset.action === "export-json") exportJson();
   if (action.dataset.action === "export-csv") exportCsv();
+  if (action.dataset.action === "export-print") {
+    audit(`Preparo impresion PDF del consolidado (${JSON.stringify(reportFilters)})`, "REPORTE");
+    saveData();
+    window.print();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
