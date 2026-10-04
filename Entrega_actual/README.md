@@ -25,4 +25,5 @@ datos). Los scripts fuente se encuentran en `../Base_de_datos_SIGPRA/`.
 ## Prototipo y seguimiento
 
 - `Prototipos_Figma_SIGPRA.md`: enlace al prototipo de mediana fidelidad en Figma.
+- `Vistas_actuales_SIGPRA/`: capturas de las vistas actuales de la aplicacion para CU-01 a CU-07.
 - `Acta_segumiento_blank.docx` y `Actas de seguimiento/`: formatos y actas de seguimiento.

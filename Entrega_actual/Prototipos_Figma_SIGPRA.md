@@ -19,6 +19,15 @@ El archivo de Figma contiene las siguientes paginas:
 - CU-05 Validar actividades reportadas.
 - CU-06 Realizar visita de acompanamiento y evaluar.
 - CU-07 Consultar estado consolidado de practicas.
+- Vistas actuales SIGPRA: capturas de las pantallas actuales de la aplicacion para CU-01 a CU-07.
+
+## Capturas de las vistas actuales
+
+Las capturas tambien se incluyen en el repositorio, en `Vistas_actuales_SIGPRA/`:
+
+- `CU-01.png` a `CU-07.png`: vistas de la aplicacion correspondientes a cada caso de uso.
+
+Son imagenes estaticas de la aplicacion, no un prototipo interactivo. El archivo de Figma conserva los prototipos y las capturas reunidas en una pagina independiente.
 
 ## Nota para revision
 
