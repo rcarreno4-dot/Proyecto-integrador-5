@@ -811,3 +811,45 @@ input[type="radio"] {
     padding: 0;
   }
 }
+
+.stack {
+  display: grid;
+  gap: 18px;
+}
+
+.topbar > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar .subtitle {
+  order: -1;
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.userbox .muted {
+  display: none;
+}
+
+.content {
+  max-width: 1252px;
+}
+
+.workflow-form {
+  max-width: none;
+}
+
+.workflow-form > .card {
+  box-shadow: none;
+}
+
+.workflow-form [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .topbar > div:first-child {
+    align-items: flex-start;
+  }
+}

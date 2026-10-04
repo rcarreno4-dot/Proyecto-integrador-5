@@ -302,7 +302,7 @@ function render() {
       <main class="content">
         <header class="topbar">
           <div>
-            <h1>${escapeHtml(viewTitle(currentView))}</h1>
+            <h1>${escapeHtml(viewTitle(currentView, user.role))}</h1>
             <p class="subtitle">${escapeHtml(viewSubtitle(currentView, user.role))}</p>
           </div>
           <div class="userbox">
@@ -324,17 +324,17 @@ function navForRole(role) {
   const map = {
     COORDINADOR: [
       ...shared,
-      { id: "periods", label: "Periodos" },
+      { id: "periods", label: "Periodos de practica" },
       { id: "agreements", label: "Convenios y plazas" },
       { id: "assignments", label: "Asignaciones" },
-      { id: "reports", label: "Consolidado" },
-      { id: "audit", label: "Auditoria" }
+      { id: "reports", label: "Consolidado" }
     ],
     ESTUDIANTE: [
       ...shared,
-      { id: "student-activities", label: "Actividades" },
+      { id: "student-activities", label: "Mi bitacora" },
       { id: "student-evidence", label: "Evidencias" },
-      { id: "student-progress", label: "Mi avance" }
+      { id: "student-validations", label: "Validaciones" },
+      { id: "student-progress", label: "Reportes" }
     ],
     DOCENTE_ASESOR: [
       ...shared,
@@ -343,16 +343,22 @@ function navForRole(role) {
     ],
     DIRECTOR: [
       ...shared,
-      { id: "reports", label: "Consolidado" },
-      { id: "audit", label: "Auditoria" }
+      { id: "reports", label: "Consolidado" }
     ]
   };
   return map[role] || shared;
 }
 
-function viewTitle(view) {
+function viewTitle(view, role) {
+  if (view === "dashboard" && role !== "COORDINADOR") {
+    return {
+      ESTUDIANTE: "Resumen de practica",
+      DOCENTE_ASESOR: "Resumen de seguimiento",
+      DIRECTOR: "Resumen del programa"
+    }[role] || "Resumen";
+  }
   return {
-    dashboard: "Resumen",
+    dashboard: "Resumen de coordinacion",
     periods: "CU-01 Programar periodo de practica",
     agreements: "CU-02 Gestionar convenios y plazas",
     assignments: "CU-03 Asignar practicante a plaza y docente asesor",
@@ -360,6 +366,7 @@ function viewTitle(view) {
     audit: "Auditoria",
     "student-activities": "CU-04 Registrar actividad ejecutada y soportes",
     "student-evidence": "Evidencias y soportes",
+    "student-validations": "Estado de validaciones",
     "student-progress": "Avance de practica",
     "teacher-validations": "CU-05 Validar actividades reportadas",
     "teacher-visits": "CU-06 Realizar visita de acompanamiento y evaluar"
@@ -368,7 +375,7 @@ function viewTitle(view) {
 
 function viewSubtitle(view, role) {
   return {
-    dashboard: `Sesion activa como ${roleLabel(role)}.`,
+    dashboard: `Panel de ${role === "COORDINADOR" ? "coordinacion" : role === "DOCENTE_ASESOR" ? "seguimiento" : role === "DIRECTOR" ? "direccion" : "estudiante"}`,
     periods: "Define fechas, horas minimas y criterios de evaluacion.",
     agreements: "Administra instituciones receptoras, convenios y cupos.",
     assignments: "Vincula estudiante, plaza, docente asesor y periodo.",
@@ -377,6 +384,7 @@ function viewSubtitle(view, role) {
     "student-activities": "Registra actividades ejecutadas y horas reportadas.",
     "student-evidence": "Asocia soportes a las actividades reportadas.",
     "student-progress": "Consulta tu avance frente al periodo asignado.",
+    "student-validations": "Consulta el resultado de las actividades revisadas por tu docente asesor.",
     "teacher-validations": "Aprueba, devuelve o rechaza actividades de estudiantes asignados.",
     "teacher-visits": "Registra visitas de acompanamiento y evaluaciones."
   }[view] || "";
@@ -392,6 +400,7 @@ function renderView(user) {
     audit: renderAudit,
     "student-activities": () => renderStudentActivities(user),
     "student-evidence": () => renderStudentEvidence(user),
+    "student-validations": () => renderStudentValidations(user),
     "student-progress": () => renderStudentProgress(user),
     "teacher-validations": () => renderTeacherValidations(user),
     "teacher-visits": () => renderTeacherVisits(user)
@@ -438,31 +447,47 @@ function renderLogin() {
 }
 
 function renderDashboard(user) {
-  const totalAssignments = data.assignments.length;
-  const pending = data.activities.filter((activity) => activity.status === "PENDIENTE").length;
-  const approved = data.activities.filter((activity) => activity.status === "APROBADA").reduce((sum, item) => sum + Number(item.hours), 0);
-  const places = data.places.reduce((sum, place) => sum + (place.offered - place.occupied), 0);
-
   if (user.role === "ESTUDIANTE") return renderStudentProgress(user, true);
   if (user.role === "DOCENTE_ASESOR") return renderTeacherHome(user);
   if (user.role === "DIRECTOR") return renderDirectorHome();
 
+  const publishedPeriods = data.periods.filter((period) => period.status === "PUBLICADO");
+  const activeAgreements = data.agreements.filter((agreement) => agreementStatus(agreement) === "VIGENTE");
+  const activePeriod = [...publishedPeriods].sort((left, right) =>
+    `${right.year}-${right.semester}`.localeCompare(`${left.year}-${left.semester}`)
+  )[0];
+  const unassignedStudents = activePeriod
+    ? studentUsers().filter((student) => !data.assignments.some((assignment) =>
+      assignment.studentId === student.id && assignment.periodId === activePeriod.id && assignment.status === "ACTIVA"
+    )).length
+    : studentUsers().length;
+
   return `
     <section class="grid">
-      ${metricCard("Practicas activas", totalAssignments, "Asignaciones registradas")}
-      ${metricCard("Horas aprobadas", approved, "Horas validadas por docentes")}
-      ${metricCard("Pendientes", pending, "Actividades por validar")}
-      ${metricCard("Cupos disponibles", places, "Plazas abiertas")}
+      ${metricCard("Periodos publicados", publishedPeriods.length, activePeriod ? `${activePeriod.year}-${activePeriod.semester} activo` : "No hay periodos activos")}
+      ${metricCard("Convenios vigentes", activeAgreements.length, `${activeAgreements.filter((agreement) => {
+        const daysUntilEnd = (new Date(`${agreement.end}T00:00:00`) - new Date()) / 86400000;
+        return daysUntilEnd >= 0 && daysUntilEnd <= 30;
+      }).length} por vencer este mes`)}
+      ${metricCard("Asignaciones pendientes", unassignedStudents, "Estudiantes por asignar")}
       <article class="card wide">
-        <h2>Ultimas asignaciones</h2>
-        ${assignmentsTable(data.assignments.slice(0, 5))}
+        <h2>Periodo activo</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Programa</th><th>Nivel</th><th>Vigencia</th><th>Estado</th></tr></thead>
+            <tbody>
+              ${activePeriod
+                ? `<tr><td>${escapeHtml(activePeriod.program)}</td><td>${escapeHtml(activePeriod.level)}</td><td>${moneyDate(activePeriod.start)} - ${moneyDate(activePeriod.end)}</td><td>${statusTag(activePeriod.status)}</td></tr>`
+                : `<tr><td colspan="4">No hay periodos publicados.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
       </article>
       <article class="card">
-        <h2>Acciones rapidas</h2>
+        <h2>Acciones</h2>
+        <p class="muted">Continua la gestion del periodo.</p>
         <div class="toolbar">
-          <button class="button primary" data-view="periods">Crear periodo</button>
-          <button class="button" data-view="agreements">Ver convenios</button>
-          <button class="button" data-view="reports">Consolidado</button>
+          <button class="button primary" data-view="assignments">Asignar practicantes</button>
         </div>
       </article>
     </section>
@@ -524,12 +549,15 @@ function metricCard(label, value, helper) {
 
 function renderPeriods() {
   return `
-    <section class="grid">
+    <section class="stack">
       <article class="card full">
-        <div class="toolbar">
-          <button class="button primary" data-modal="period">Nuevo periodo</button>
-          <button class="button" data-action="reset-demo">Restaurar datos demo</button>
-        </div>
+        <h2>Paso 1-2: Programa y configuracion previa</h2>
+        <p class="muted">Selecciona el programa y el nivel de practica que se van a programar.</p>
+        <h2>Paso 3-4: Fechas, intensidad horaria y criterios de evaluacion</h2>
+        ${modalForm("period")}
+      </article>
+      <article class="card full">
+        <h2>Periodos registrados</h2>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Programa</th><th>Nivel</th><th>Periodo</th><th>Vigencia</th><th>Reporte hasta</th><th>Horas</th><th>Evaluacion</th><th>Estado</th></tr></thead>
@@ -556,14 +584,19 @@ function renderPeriods() {
 
 function renderAgreements() {
   return `
-    <section class="grid">
+    <section class="stack">
       <article class="card full">
         <div class="toolbar">
           <button class="button primary" data-modal="institution">Nueva institucion</button>
-          <button class="button" data-modal="agreement-place">Registrar convenio y plazas</button>
         </div>
-        <h2>Instituciones y convenios</h2>
+        <h2>Paso 1: Institucion receptora</h2>
+        <p class="muted">Selecciona una institucion registrada o crea una nueva.</p>
+        <h2>Paso 2-3: Convenio y plazas ofrecidas</h2>
         <p class="muted">Los convenios vencidos o sin documento quedan inactivos; sus plazas no se ofrecen para asignacion.</p>
+        ${modalForm("agreement-place")}
+      </article>
+      <article class="card full">
+        <h2>Convenios y plazas registrados</h2>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Institucion</th><th>Convenio</th><th>Vigencia</th><th>Plazas</th><th>Cupos</th><th>Estado</th></tr></thead>
@@ -619,15 +652,147 @@ function renderAgreements() {
 
 function renderAssignments() {
   return `
-    <section class="grid">
+    <section class="stack">
       <article class="card full">
-        <div class="toolbar">
-          <button class="button primary" data-modal="assignment">Nueva asignacion</button>
-        </div>
+        <h2>1. Estudiante practicante</h2>
+        <p class="muted">Periodo vigente: selecciona al estudiante habilitado para iniciar la asignacion.</p>
+        <h2>2. Plaza de practica</h2>
+        <h2>3. Docente asesor</h2>
+        <h2>4. Resumen de la asignacion</h2>
+        ${assignmentWorkflowForm()}
+      </article>
+      <article class="card full">
+        <h2>Asignaciones registradas</h2>
         ${assignmentsTable(data.assignments)}
       </article>
     </section>
   `;
+}
+
+function assignmentWorkflowForm() {
+  const publishedPeriods = data.periods.filter((period) => period.status === "PUBLICADO");
+  const availablePlaces = data.places.filter((place) => {
+    const agreement = data.agreements.find((item) => item.id === place.agreementId);
+    return placeStatus(place, agreement) === "DISPONIBLE";
+  });
+  const availableTeachers = teacherUsers().filter((teacher) =>
+    data.assignments.filter((assignment) =>
+      assignment.teacherId === teacher.id && assignment.status === "ACTIVA"
+    ).length < 6
+  );
+  const activePeriod = [...publishedPeriods].sort((left, right) =>
+    `${right.year}-${right.semester}`.localeCompare(`${left.year}-${left.semester}`)
+  )[0];
+
+  if (!publishedPeriods.length) {
+    return `<div class="empty">Publica un periodo antes de crear asignaciones.</div>`;
+  }
+
+  return `
+    <form class="form-grid workflow-form" data-submit="assignment">
+      <label class="full-field">Estudiante habilitado
+        <select name="studentId" required>
+          <option value="">-- Seleccione un estudiante --</option>
+          ${studentUsers().map((student) => `<option value="${student.id}">${escapeHtml(student.name)} - ${escapeHtml(student.code || student.email)}</option>`).join("")}
+        </select>
+      </label>
+      <div class="full-field" id="assignment-student-details" hidden></div>
+      <label class="full-field">Periodo vigente
+        <select name="periodId" required>
+          ${publishedPeriods.map((period) => `<option value="${period.id}" ${period.id === activePeriod?.id ? "selected" : ""}>${escapeHtml(period.year)}-${escapeHtml(period.semester)} (${escapeHtml(period.program)} - ${escapeHtml(period.level)})</option>`).join("")}
+        </select>
+      </label>
+      <div class="full-field notice warning" id="assignment-reassignment" hidden>
+        <strong>Asignacion activa encontrada.</strong> Para cambiar la plaza o el docente, selecciona el motivo de la reasignacion.
+        <label>Motivo de la reasignacion
+          <select name="reassignmentReason">
+            <option value="">-- Seleccione un motivo --</option>
+            <option>Solicitud de la institucion receptora</option>
+            <option>Solicitud del estudiante</option>
+            <option>Cambio de disponibilidad del docente asesor</option>
+            <option>Otro</option>
+          </select>
+        </label>
+      </div>
+      <label class="full-field">Plaza de practica disponible
+        <select name="placeId" required>
+          <option value="">-- Seleccione una plaza --</option>
+          ${availablePlaces.map((place) => {
+            const agreement = data.agreements.find((item) => item.id === place.agreementId);
+            const institution = data.institutions.find((item) => item.id === agreement?.institutionId);
+            return `<option value="${place.id}">${escapeHtml(institution?.name)} - ${escapeHtml(place.level)} (${place.offered - place.occupied} cupos)</option>`;
+          }).join("")}
+        </select>
+      </label>
+      <div class="full-field" id="assignment-place-details" hidden></div>
+      <label class="full-field">Docente asesor disponible
+        <select name="teacherId" required>
+          <option value="">-- Seleccione un docente --</option>
+          ${availableTeachers.map((teacher) => {
+            const load = data.assignments.filter((assignment) =>
+              assignment.teacherId === teacher.id && assignment.status === "ACTIVA"
+            ).length;
+            return `<option value="${teacher.id}">${escapeHtml(teacher.name)} - ${load} de 6 estudiantes asignados</option>`;
+          }).join("")}
+        </select>
+      </label>
+      <article class="card full">
+        <h3>Resumen de la asignacion</h3>
+        <div id="assignment-summary" class="empty">Selecciona estudiante, plaza y docente para revisar la asignacion.</div>
+      </article>
+      <button class="button primary full-field" type="submit">Confirmar asignacion</button>
+    </form>
+  `;
+}
+
+function updateAssignmentWorkflow(form) {
+  const studentId = Number(form.elements.studentId.value);
+  const periodId = Number(form.elements.periodId.value);
+  const placeId = Number(form.elements.placeId.value);
+  const teacherId = Number(form.elements.teacherId.value);
+  const student = data.users.find((item) => item.id === studentId && item.role === "ESTUDIANTE");
+  const period = data.periods.find((item) => item.id === periodId);
+  const place = data.places.find((item) => item.id === placeId);
+  const agreement = data.agreements.find((item) => item.id === place?.agreementId);
+  const institution = data.institutions.find((item) => item.id === agreement?.institutionId);
+  const teacher = data.users.find((item) => item.id === teacherId && item.role === "DOCENTE_ASESOR");
+  const activeAssignment = data.assignments.find((item) =>
+    item.studentId === studentId && item.periodId === periodId && item.status === "ACTIVA"
+  );
+  const studentDetails = form.querySelector("#assignment-student-details");
+  const placeDetails = form.querySelector("#assignment-place-details");
+  const summary = form.querySelector("#assignment-summary");
+  const reassignment = form.querySelector("#assignment-reassignment");
+  const reason = form.elements.reassignmentReason;
+
+  studentDetails.hidden = !student;
+  studentDetails.innerHTML = student
+    ? `<table><tbody><tr><th>Programa</th><td>${escapeHtml(period?.program || "No especificado")}</td><th>Semestre</th><td>${escapeHtml(student.semester || "No especificado")}</td></tr><tr><th>Estado</th><td><span class="tag ok">Habilitado</span></td><th>Horas requeridas</th><td>${period?.minHours || "No definidas"}</td></tr></tbody></table>`
+    : "";
+
+  reassignment.hidden = !activeAssignment;
+  reason.required = Boolean(activeAssignment);
+  if (!activeAssignment) reason.value = "";
+  if (activeAssignment) {
+    const previous = assignmentDetails(activeAssignment);
+    reassignment.querySelector("strong").nextSibling.textContent =
+      ` Este estudiante ya esta asignado en el periodo ${period?.year}-${period?.semester} a ${previous.institution?.name || "una institucion"} con ${previous.teacher?.name || "un docente asesor"}.`;
+  }
+
+  placeDetails.hidden = !place;
+  placeDetails.innerHTML = place
+    ? `<table><tbody><tr><th>Institucion</th><td>${escapeHtml(institution?.name || "")}</td><th>Convenio</th><td>${escapeHtml(agreement?.number || "")}</td></tr><tr><th>Nivel / jornada</th><td>${escapeHtml(place.level)} - ${escapeHtml(place.shift)}</td><th>Cupos</th><td>${place.offered - place.occupied} disponibles de ${place.offered}</td></tr></tbody></table>`
+    : "";
+
+  const selectedStudent = form.elements.studentId.selectedOptions[0]?.textContent;
+  const selectedPlace = form.elements.placeId.selectedOptions[0]?.textContent;
+  const selectedTeacher = form.elements.teacherId.selectedOptions[0]?.textContent;
+  const selectedPeriod = form.elements.periodId.selectedOptions[0]?.textContent;
+  const hasSelection = student && period && place && teacher;
+  summary.classList.toggle("empty", !hasSelection);
+  summary.innerHTML = hasSelection
+    ? `<table><tbody><tr><th>Estudiante</th><td>${escapeHtml(selectedStudent)}</td></tr><tr><th>Plaza / institucion</th><td>${escapeHtml(selectedPlace)}</td></tr><tr><th>Docente asesor</th><td>${escapeHtml(selectedTeacher)}</td></tr><tr><th>Periodo</th><td>${escapeHtml(selectedPeriod)}</td></tr><tr><th>Tipo</th><td>${activeAssignment ? "Reasignacion" : "Nueva asignacion"}</td></tr></tbody></table>`
+    : "Selecciona estudiante, plaza y docente para revisar la asignacion.";
 }
 
 function assignmentsTable(assignments) {
@@ -662,11 +827,14 @@ function renderStudentActivities(user) {
   const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
   const activities = assignment ? data.activities.filter((activity) => activity.assignmentId === assignment.id) : [];
   return `
-    <section class="grid">
+    <section class="stack">
       <article class="card full">
-        <div class="toolbar">
-          <button class="button primary" data-modal="activity">Nueva actividad</button>
-        </div>
+        <h2>Nueva bitacora (CU-04)</h2>
+        <p class="muted">Registra la actividad realizada, las horas y sus soportes. Puedes guardar un borrador o enviarlo al docente asesor.</p>
+        ${assignment ? modalForm("activity") : `<div class="empty">Necesitas una asignacion activa para registrar actividades.</div>`}
+      </article>
+      <article class="card full">
+        <h2>Actividades registradas</h2>
         ${studentActivitiesTable(activities)}
       </article>
     </section>
@@ -733,11 +901,13 @@ function renderStudentEvidence(user) {
   const activityIds = activities.map((activity) => activity.id);
   const evidences = data.evidences.filter((evidence) => activityIds.includes(evidence.activityId));
   return `
-    <section class="grid">
+    <section class="stack">
       <article class="card full">
-        <div class="toolbar">
-          <button class="button primary" data-modal="evidence">Registrar evidencia</button>
-        </div>
+        <h2>Registrar soporte o evidencia</h2>
+        <p class="muted">Selecciona la actividad y adjunta el archivo que la respalda.</p>
+        ${assignment ? modalForm("evidence") : `<div class="empty">Necesitas una asignacion activa para adjuntar evidencias.</div>`}
+      </article>
+      <article class="card full">
         <div class="table-wrap">
           <table>
             <thead><tr><th>Archivo</th><th>Actividad</th><th>Tipo</th><th>Referencia</th><th>Estado</th></tr></thead>
@@ -746,6 +916,38 @@ function renderStudentEvidence(user) {
                 const activity = data.activities.find((item) => item.id === evidence.activityId);
                 return `<tr><td>${escapeHtml(evidence.fileName)}</td><td>${escapeHtml(activity?.type)}</td><td>${escapeHtml(evidence.type)}</td><td>${escapeHtml(evidence.mongoId)}</td><td>${statusTag(evidence.status)}</td></tr>`;
               }).join("") || `<tr><td colspan="5">No hay evidencias registradas.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  `;
+}
+
+function renderStudentValidations(user) {
+  const assignmentIds = data.assignments
+    .filter((assignment) => assignment.studentId === user.id)
+    .map((assignment) => assignment.id);
+  const activities = data.activities.filter((activity) =>
+    assignmentIds.includes(activity.assignmentId) && activity.status !== "BORRADOR"
+  );
+  return `
+    <section class="grid">
+      <article class="card full">
+        <h2>Estado de validaciones</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Actividad</th><th>Fecha</th><th>Horas</th><th>Resultado</th><th>Observacion</th></tr></thead>
+            <tbody>
+              ${activities.map((activity) => `
+                <tr>
+                  <td>${escapeHtml(activity.type)}</td>
+                  <td>${moneyDate(activity.date)}</td>
+                  <td>${activity.hours}</td>
+                  <td>${statusTag(activity.status)}</td>
+                  <td>${escapeHtml(activity.observation || "Sin observacion")}</td>
+                </tr>
+              `).join("") || `<tr><td colspan="5">Aun no hay actividades enviadas a validacion.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -789,17 +991,21 @@ function renderStudentProgress(user, compact = false) {
 function renderTeacherValidations(user) {
   const assignments = data.assignments.filter((assignment) => assignment.teacherId === user.id).map((assignment) => assignment.id);
   const activities = data.activities.filter((activity) => assignments.includes(activity.assignmentId) && activity.status === "PENDIENTE");
-  return `<section class="grid"><article class="card full"><h2>Actividades pendientes</h2>${activitiesTable(activities, true)}</article></section>`;
+  return `<section class="stack"><article class="card full"><h2>Paso 1-2: Actividades pendientes</h2><p class="muted">Selecciona una actividad para revisar su descripcion, horas y soportes.</p>${activitiesTable(activities, true)}</article></section>`;
 }
 
 function renderTeacherVisits(user) {
   const assignments = data.assignments.filter((assignment) => assignment.teacherId === user.id);
   return `
-    <section class="grid">
+    <section class="stack">
       <article class="card full">
-        <div class="toolbar">
-          <button class="button primary" data-modal="visit">Registrar visita</button>
-        </div>
+        <h2>Paso 2-4: Estudiante a evaluar</h2>
+        <h2>Paso 5: Registro de la visita</h2>
+        <h2>Paso 6-8: Rubrica de evaluacion</h2>
+        ${assignments.length ? modalForm("visit") : `<div class="empty">No tienes estudiantes asignados para realizar visitas.</div>`}
+      </article>
+      <article class="card full">
+        <h2>Visitas registradas</h2>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Fecha</th><th>Estudiante</th><th>Modalidad</th><th>Asistencia</th><th>Concepto</th><th>Puntaje</th><th>Observacion</th><th>Estado</th></tr></thead>
@@ -996,10 +1202,20 @@ function modalForm(type, id) {
   if (type === "period") {
     const period = id ? data.periods.find((item) => item.id === Number(id)) : null;
     const criterion = (index, field, fallback) => escapeHtml(period?.rubric?.[index]?.[field] ?? fallback);
+    const programs = [...new Set([
+      "Ingenieria de Sistemas",
+      "Licenciatura en Pedagogia",
+      ...data.periods.map((item) => item.program)
+    ])];
+    const levels = [...new Set([
+      "Practica I",
+      "Practica II",
+      ...data.periods.map((item) => item.level)
+    ])];
     return `
-      <form class="form-grid" data-submit="period" data-id="${period?.id || ""}">
-        <label>Programa academico<input name="program" value="${escapeHtml(period?.program || "Licenciatura en Educacion Infantil")}" required></label>
-        <label>Nivel de practica<input name="level" value="${escapeHtml(period?.level || "VIII semestre")}" required></label>
+      <form class="form-grid workflow-form" data-submit="period" data-id="${period?.id || ""}">
+        <label>Programa academico<select name="program" required>${programs.map((program) => `<option ${program === (period?.program || programs[0]) ? "selected" : ""}>${escapeHtml(program)}</option>`).join("")}</select></label>
+        <label>Nivel de practica<select name="level" required>${levels.map((level) => `<option ${level === (period?.level || levels[0]) ? "selected" : ""}>${escapeHtml(level)}</option>`).join("")}</select></label>
         <label>Anio<input name="year" type="number" value="${period?.year || 2026}" required></label>
         <label>Semestre<select name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
         <label>Fecha inicio<input name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
@@ -1096,11 +1312,14 @@ function modalForm(type, id) {
   if (type === "activity") {
     const activity = id ? data.activities.find((item) => item.id === Number(id)) : null;
     return `
-      <form class="form-grid" data-submit="activity" data-id="${id || ""}">
+      <form class="form-grid workflow-form" data-submit="activity" data-id="${id || ""}">
         ${activity?.observation ? `<div class="notice warning full-field">Observacion del docente: ${escapeHtml(activity.observation)}</div>` : ""}
-        <label>Fecha<input name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
-        <label>Horas<input name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
-        <label class="full-field">Tipo de actividad<input name="type" value="${escapeHtml(activity?.type || "")}" required></label>
+        <label>Fecha de la actividad<input name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
+        <label>Horas ejecutadas<input name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
+        <label class="full-field">Tipo de actividad
+          <input name="type" list="activity-types" value="${escapeHtml(activity?.type || "")}" required>
+          <datalist id="activity-types"><option>Planeacion de clase</option><option>Refuerzo pedagogico</option><option>Reunion con docente titular</option></datalist>
+        </label>
         <label class="full-field">Descripcion<textarea name="description" required>${escapeHtml(activity?.description || "")}</textarea></label>
         <label class="full-field">Soportes o evidencias<input name="files" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple></label>
         <div class="notice warning full-field">El envio requiere al menos un soporte. Se permiten PDF, imagenes y documentos Office de hasta 10 MB cada uno. En este prototipo se persiste la referencia y el nombre de archivo, no el contenido binario.</div>
@@ -1112,10 +1331,10 @@ function modalForm(type, id) {
     const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
     const activities = assignment ? data.activities.filter((item) => item.assignmentId === assignment.id) : [];
     return `
-      <form class="form-grid" data-submit="evidence">
-        <label>Actividad<select name="activityId">${optionList(activities, (item) => `${item.date} - ${item.type}`)}</select></label>
-        <label>Tipo<select name="type"><option>PDF</option><option>JPG</option><option>PNG</option><option>DOCX</option></select></label>
-        <label class="full-field">Nombre del archivo<input name="fileName" placeholder="planeacion_clase.pdf" required></label>
+      <form class="form-grid workflow-form" data-submit="evidence">
+        <label class="full-field">Actividad<select name="activityId" required>${optionList(activities, (item) => `${item.date} - ${item.type}`)}</select></label>
+        <label class="full-field">Soporte o evidencia<input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required></label>
+        <div class="notice warning full-field">En esta version se guarda el nombre y la referencia del archivo en el navegador, no el contenido binario.</div>
         <button class="button primary full-field" type="submit">Registrar evidencia</button>
       </form>`;
   }
@@ -1141,8 +1360,9 @@ function modalForm(type, id) {
   if (type === "visit") {
     const assignments = data.assignments.filter((item) => item.teacherId === user.id && item.status === "ACTIVA");
     return `
-      <form class="form-grid" data-submit="visit">
+      <form class="form-grid workflow-form" data-submit="visit">
         <label>Estudiante a evaluar<select name="assignmentId" required><option value="">Seleccione estudiante</option>${optionList(assignments, (item) => `${assignmentDetails(item).student?.name} - ${assignmentDetails(item).institution?.name}`, assignments[0]?.id)}</select></label>
+        <div class="full-field" id="visit-assignment-details">${visitAssignmentDetails(assignments[0]?.id)}</div>
         <label>Fecha<input name="date" type="date" required></label>
         <label>Modalidad<select name="mode"><option value="PRESENCIAL">Presencial</option><option value="VIRTUAL">Remota</option><option value="MIXTA">Mixta</option></select></label>
         <label class="full-field">Observaciones de la visita<textarea name="observation" required></textarea></label>
@@ -1155,6 +1375,21 @@ function modalForm(type, id) {
       </form>`;
   }
   return `<div class="empty">Formulario no disponible.</div>`;
+}
+
+function visitAssignmentDetails(assignmentId) {
+  const assignment = data.assignments.find((item) => item.id === Number(assignmentId));
+  if (!assignment) return `<div class="empty">Selecciona un estudiante asignado para ver la informacion de su practica.</div>`;
+  const details = assignmentDetails(assignment);
+  const activities = data.activities.filter((activity) => activity.assignmentId === assignment.id);
+  const evidence = data.evidences.filter((item) => activities.some((activity) => activity.id === item.activityId));
+  return `
+    <div class="notice">
+      <strong>Institucion receptora:</strong> ${escapeHtml(details.institution?.name || "No registrada")}<br>
+      <strong>Actividades reportadas:</strong> ${activities.length}<br>
+      <strong>Evidencias disponibles:</strong> ${evidence.map((item) => escapeHtml(item.fileName)).join(", ") || "Ninguna"}
+    </div>
+  `;
 }
 
 function visitRubricFields(assignmentId) {
@@ -1409,8 +1644,19 @@ function handleSubmit(form, submitter) {
     audit(submitStatus === "BORRADOR" ? "Guardo actividad como borrador" : existing ? "Reenvio actividad corregida" : "Registro una actividad", "REGISTRO_ACTIVIDAD");
   }
   if (type === "evidence") {
+    const file = form.querySelector('[name="file"]').files[0];
+    const activity = data.activities.find((item) => item.id === Number(formData.activityId));
+    const assignment = activity && data.assignments.find((item) =>
+      item.id === activity.assignmentId && item.studentId === user.id && item.status === "ACTIVA"
+    );
+    const extension = file?.name.split(".").pop()?.toLowerCase() || "";
+    if (!file || !assignment || !["pdf", "jpg", "jpeg", "png", "doc", "docx"].includes(extension) ||
+      file.size > 10 * 1024 * 1024) {
+      toast("Selecciona una actividad propia y un archivo permitido de hasta 10 MB.");
+      return;
+    }
     const id = nextId(data.evidences);
-    data.evidences.push({ id, activityId: Number(formData.activityId), fileName: formData.fileName, type: formData.type, url: `storage/sigpra/evidencia-${id}-${formData.fileName}`, status: "CARGADA", mongoId: `ev-local-${String(id).padStart(3, "0")}` });
+    data.evidences.push({ id, activityId: activity.id, fileName: file.name, type: extension.toUpperCase(), url: `storage/sigpra/evidencia-${id}-${encodeURIComponent(file.name)}`, status: "CARGADA", mongoId: `ev-local-${String(id).padStart(3, "0")}` });
     audit("Registro una evidencia", "EVIDENCIA");
   }
   if (type === "validate") {
@@ -1566,8 +1812,16 @@ document.addEventListener("submit", (event) => {
 
 document.addEventListener("change", (event) => {
   if (event.target.matches('[data-submit="visit"] [name="assignmentId"]')) {
-    const rubric = event.target.closest("form").querySelector("#visit-rubric");
+    const form = event.target.closest("form");
+    const rubric = form.querySelector("#visit-rubric");
+    const details = form.querySelector("#visit-assignment-details");
     rubric.innerHTML = visitRubricFields(event.target.value);
+    details.innerHTML = visitAssignmentDetails(event.target.value);
+    return;
+  }
+  const assignmentForm = event.target.closest('[data-submit="assignment"]');
+  if (assignmentForm) {
+    updateAssignmentWorkflow(assignmentForm);
     return;
   }
   if (event.target.id !== "role-switch") return;
