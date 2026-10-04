@@ -1,15 +1,19 @@
 # Entrega actual - SIGPRA
 
-Esta carpeta contiene la version vigente de la primera entrega del proyecto SIGPRA.
+## Documento principal
 
-## Contenido
+- `Propuesta_SIGPRA_Segunda_Entrega.docx`: propuesta, análisis de requerimientos, fichas de casos de uso, modelos de datos, prototipo y referencias.
 
-- `Propuesta_SIGPRA_Primera_Entrega_corregida.docx`: documento principal corregido.
-- `Propuesta_SIGPRA_Primera_Entrega_corregida.md`: version en Markdown del documento principal.
-- `Casos_uso.asta`: archivo editable de Astah con los casos de uso.
-- `Arquitectura_SIGPRA.png`: diagrama de arquitectura web/SOA.
-- `Modelo_Relacional_SIGPRA.png`: modelo relacional en formato horizontal.
-- `Modelo_Relacional_SIGPRA_vertical.png`: modelo relacional en formato vertical para mejor lectura.
-- `Prototipos_Figma_SIGPRA.md`: enlace documentado a los prototipos de mediana fidelidad en Figma.
+## Modelos y diagramas
 
-Los archivos de esta carpeta reemplazan versiones sueltas o anteriores que pudieron quedar en otras ubicaciones del repositorio.
+- `Proyecto_astah.asta`: modelo Astah base.
+- `Proyecto_astah_SIGPRA_Dominio.asta`: copia editable del modelo base con el paquete `SIGPRA - Modelo de dominio` y el diagrama conceptual de dominio actualizado.
+- `Diagrama_Dominio_SIGPRA.png`: vista exportada del nuevo diagrama de dominio.
+- `Casos_de_uso.png`: diagrama de casos de uso.
+- `Arquitectura_SIGPRA.png`: diagrama de arquitectura.
+- `Modelo_Relacional_SIGPRA.png`: modelo relacional.
+
+## Prototipo y seguimiento
+
+- `Prototipos_Figma_SIGPRA.md`: enlace al prototipo de mediana fidelidad en Figma.
+- `Acta_segumiento_blank.docx` y `Actas de seguimiento/`: formatos y actas de seguimiento.
