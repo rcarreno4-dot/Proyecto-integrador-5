@@ -848,6 +848,86 @@ input[type="radio"] {
   display: none !important;
 }
 
+.guided-workflow {
+  max-width: none;
+}
+
+.guided-workflow > .workflow-step {
+  box-shadow: none;
+}
+
+.guided-workflow > .workflow-step[hidden] {
+  display: none !important;
+}
+
+.guided-workflow .workflow-step h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.assignment-workflow {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.assignment-step {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+}
+
+.assignment-step h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.assignment-period {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.step-number {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--blue);
+  background: #e8f0ff;
+  font-size: 15px;
+}
+
+.assignment-step .muted {
+  margin: -6px 0 0;
+}
+
+.assignment-history {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.assignment-history summary {
+  padding: 14px 18px;
+  color: var(--blue);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.assignment-history[open] {
+  padding-bottom: 12px;
+}
+
+.assignment-history .table-wrap,
+.assignment-history .empty {
+  margin: 0 16px;
+}
+
 @media (max-width: 760px) {
   .topbar > div:first-child {
     align-items: flex-start;

@@ -1,6 +1,18 @@
 const STORAGE_KEY = "sigpra_mvp_data_v1";
 const SESSION_KEY = "sigpra_mvp_session_v1";
 
+const additionalDemoStudents = [
+  { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8 },
+  { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8 },
+  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 }
+];
+
+const additionalDemoPlaces = [
+  { id: 3, agreementId: 1, level: "Practica pedagogica VIII", shift: "TARDE", offered: 4, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" },
+  { id: 4, agreementId: 1, level: "Practica pedagogica VIII", shift: "MIXTA", offered: 3, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" },
+  { id: 5, agreementId: 2, level: "Practica pedagogica VIII", shift: "MANANA", offered: 5, occupied: 0, tutor: "Paula Vargas", status: "DISPONIBLE" }
+];
+
 const seedData = {
   users: [
     { id: 1, name: "Rafael Carreno", email: "coordinador@udi.edu.co", password: "123456", role: "COORDINADOR", initials: "RC" },
@@ -8,7 +20,8 @@ const seedData = {
     { id: 3, name: "Martha Rodriguez", email: "docente@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "MR" },
     { id: 4, name: "Director Programa", email: "director@udi.edu.co", password: "123456", role: "DIRECTOR", initials: "DP" },
     { id: 5, name: "Miguel Rios", email: "miguel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "MR", code: "UDI-2026-002", semester: 8 },
-    { id: 6, name: "Carlos Mendoza", email: "docente2@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "CM" }
+    { id: 6, name: "Carlos Mendoza", email: "docente2@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "CM" },
+    ...additionalDemoStudents
   ],
   periods: [
     {
@@ -56,7 +69,8 @@ const seedData = {
   ],
   places: [
     { id: 1, agreementId: 1, level: "Practica pedagogica VIII", shift: "MANANA", offered: 12, occupied: 1, tutor: "Sandra Perez", status: "DISPONIBLE" },
-    { id: 2, agreementId: 2, level: "Practica pedagogica VIII", shift: "TARDE", offered: 6, occupied: 1, tutor: "Paula Vargas", status: "DISPONIBLE" }
+    { id: 2, agreementId: 2, level: "Practica pedagogica VIII", shift: "TARDE", offered: 6, occupied: 1, tutor: "Paula Vargas", status: "DISPONIBLE" },
+    ...additionalDemoPlaces
   ],
   assignments: [
     { id: 1, studentId: 2, teacherId: 3, placeId: 1, periodId: 1, date: "2026-08-20", status: "ACTIVA", approvedHours: 96 },
@@ -127,6 +141,22 @@ function loadData() {
         }
         return user;
       });
+      for (const student of additionalDemoStudents) {
+        if (!stored.users.some((user) => user.email === student.email)) {
+          stored.users.push({ ...student, id: nextId(stored.users) });
+          migrated = true;
+        }
+      }
+      if (Array.isArray(stored.places)) {
+        for (const place of additionalDemoPlaces) {
+          if (!stored.places.some((item) =>
+            item.agreementId === place.agreementId && item.level === place.level && item.shift === place.shift
+          )) {
+            stored.places.push({ ...place, id: nextId(stored.places) });
+            migrated = true;
+          }
+        }
+      }
       if (migrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     }
     return stored;
@@ -170,6 +200,23 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function updateGuidedWorkflow(form) {
+  let previousStepComplete = true;
+  for (const step of form.querySelectorAll("[data-workflow-step]")) {
+    step.hidden = !previousStepComplete;
+    const controls = step.querySelectorAll("input, select, textarea");
+    controls.forEach((control) => {
+      if (!control.hasAttribute("data-original-disabled")) {
+        control.dataset.originalDisabled = String(control.disabled);
+      }
+      control.disabled = !previousStepComplete || control.dataset.originalDisabled === "true";
+    });
+    const requiredControls = [...controls].filter((control) => control.required);
+    previousStepComplete = previousStepComplete &&
+      requiredControls.every((control) => control.checkValidity());
+  }
 }
 
 function moneyDate(value) {
@@ -317,6 +364,7 @@ function render() {
       </main>
     </div>
   `;
+  app.querySelectorAll("form[data-guided-workflow]").forEach(updateGuidedWorkflow);
 }
 
 function navForRole(role) {
@@ -620,9 +668,8 @@ function renderPeriods() {
   return `
     <section class="stack">
       <article class="card full">
-        <h2>Paso 1-2: Programa y configuracion previa</h2>
-        <p class="muted">Selecciona el programa y el nivel de practica que se van a programar.</p>
-        <h2>Paso 3-4: Fechas, intensidad horaria y criterios de evaluacion</h2>
+        <h2>Programar periodo de practica</h2>
+        <p class="muted">Completa cada etapa en orden para definir el programa, la vigencia y los criterios de evaluacion.</p>
         ${modalForm("period")}
       </article>
       <article class="card full">
@@ -658,10 +705,8 @@ function renderAgreements() {
         <div class="toolbar">
           <button class="button primary" data-modal="institution">Nueva institucion</button>
         </div>
-        <h2>Paso 1: Institucion receptora</h2>
-        <p class="muted">Selecciona una institucion registrada o crea una nueva.</p>
-        <h2>Paso 2-3: Convenio y plazas ofrecidas</h2>
-        <p class="muted">Los convenios vencidos o sin documento quedan inactivos; sus plazas no se ofrecen para asignacion.</p>
+        <h2>Registrar convenio y plaza</h2>
+        <p class="muted">Selecciona una institucion y completa en orden el convenio y la plaza ofrecida. Los convenios vencidos o sin documento quedan inactivos y sus plazas no se ofrecen para asignacion.</p>
         ${modalForm("agreement-place")}
       </article>
       <article class="card full">
@@ -720,20 +765,14 @@ function renderAgreements() {
 }
 
 function renderAssignments() {
+  const assignments = data.assignments;
   return `
     <section class="stack">
-      <article class="card full">
-        <h2>1. Estudiante practicante</h2>
-        <p class="muted">Periodo vigente: selecciona al estudiante habilitado para iniciar la asignacion.</p>
-        <h2>2. Plaza de practica</h2>
-        <h2>3. Docente asesor</h2>
-        <h2>4. Resumen de la asignacion</h2>
-        ${assignmentWorkflowForm()}
-      </article>
-      <article class="card full">
-        <h2>Asignaciones registradas</h2>
-        ${assignmentsTable(data.assignments)}
-      </article>
+      ${assignmentWorkflowForm()}
+      <details class="assignment-history">
+        <summary>Asignaciones registradas (${assignments.length})</summary>
+        ${assignmentsTable(assignments)}
+      </details>
     </section>
   `;
 }
@@ -758,63 +797,84 @@ function assignmentWorkflowForm() {
   }
 
   return `
-    <form class="form-grid workflow-form" data-submit="assignment">
-      <label class="full-field">Estudiante habilitado
-        <select name="studentId" required>
-          <option value="">-- Seleccione un estudiante --</option>
-          ${studentUsers().map((student) => `<option value="${student.id}">${escapeHtml(student.name)} - ${escapeHtml(student.code || student.email)}</option>`).join("")}
-        </select>
-      </label>
-      <div class="full-field" id="assignment-student-details" hidden></div>
-      <label class="full-field">Periodo vigente
-        <select name="periodId" required>
-          ${publishedPeriods.map((period) => `<option value="${period.id}" ${period.id === activePeriod?.id ? "selected" : ""}>${escapeHtml(period.year)}-${escapeHtml(period.semester)} (${escapeHtml(period.program)} - ${escapeHtml(period.level)})</option>`).join("")}
-        </select>
-      </label>
-      <div class="full-field notice warning" id="assignment-reassignment" hidden>
-        <strong>Asignacion activa encontrada.</strong> Para cambiar la plaza o el docente, selecciona el motivo de la reasignacion.
-        <label>Motivo de la reasignacion
-          <select name="reassignmentReason">
-            <option value="">-- Seleccione un motivo --</option>
-            <option>Solicitud de la institucion receptora</option>
-            <option>Solicitud del estudiante</option>
-            <option>Cambio de disponibilidad del docente asesor</option>
-            <option>Otro</option>
+    <form class="form-grid workflow-form assignment-workflow" data-submit="assignment">
+      <article class="card full assignment-step" id="assignment-step-student">
+        <h2><span class="step-number">1</span> Estudiante practicante</h2>
+        <p class="assignment-period">Periodo vigente: <strong>${escapeHtml(activePeriod.year)}-${escapeHtml(activePeriod.semester)}</strong> (${escapeHtml(activePeriod.program)} - ${escapeHtml(activePeriod.level)})</p>
+        <input type="hidden" name="periodId" value="${activePeriod.id}" />
+        <label class="full-field">Estudiante habilitado
+          <select name="studentId" required>
+            <option value="">-- Seleccione un estudiante --</option>
+            ${studentUsers().map((student) => `<option value="${student.id}">${escapeHtml(student.name)} - ${escapeHtml(student.code || student.email)}</option>`).join("")}
           </select>
         </label>
-      </div>
-      <label class="full-field">Plaza de practica disponible
-        <select name="placeId" required>
-          <option value="">-- Seleccione una plaza --</option>
-          ${availablePlaces.map((place) => {
-            const agreement = data.agreements.find((item) => item.id === place.agreementId);
-            const institution = data.institutions.find((item) => item.id === agreement?.institutionId);
-            return `<option value="${place.id}">${escapeHtml(institution?.name)} - ${escapeHtml(place.level)} (${place.offered - place.occupied} cupos)</option>`;
-          }).join("")}
-        </select>
-      </label>
-      <div class="full-field" id="assignment-place-details" hidden></div>
-      <label class="full-field">Docente asesor disponible
-        <select name="teacherId" required>
-          <option value="">-- Seleccione un docente --</option>
-          ${availableTeachers.map((teacher) => {
-            const load = data.assignments.filter((assignment) =>
-              assignment.teacherId === teacher.id && assignment.status === "ACTIVA"
-            ).length;
-            return `<option value="${teacher.id}">${escapeHtml(teacher.name)} - ${load} de 6 estudiantes asignados</option>`;
-          }).join("")}
-        </select>
-      </label>
-      <article class="card full">
-        <h3>Resumen de la asignacion</h3>
-        <div id="assignment-summary" class="empty">Selecciona estudiante, plaza y docente para revisar la asignacion.</div>
+        <div class="full-field" id="assignment-student-details" hidden></div>
+        <div class="full-field notice warning" id="assignment-reassignment" hidden>
+          <strong>Asignacion activa encontrada.</strong> Para cambiar la plaza o el docente, selecciona el motivo de la reasignacion.
+          <label>Motivo de la reasignacion
+            <select name="reassignmentReason">
+              <option value="">-- Seleccione un motivo --</option>
+              <option>Solicitud de la institucion receptora</option>
+              <option>Solicitud del estudiante</option>
+              <option>Cambio de disponibilidad del docente asesor</option>
+              <option>Otro</option>
+            </select>
+          </label>
+        </div>
       </article>
-      <button class="button primary full-field" type="submit">Confirmar asignacion</button>
+      <article class="card full assignment-step" id="assignment-step-place" hidden>
+        <h2><span class="step-number">2</span> Plaza de practica</h2>
+        <p class="muted">Solo se muestran plazas con cupo disponible y convenio vigente.</p>
+        <label class="full-field">Plaza disponible
+          <select name="placeId" ${availablePlaces.length ? "" : "disabled"}>
+            <option value="">-- Seleccione una plaza --</option>
+            ${availablePlaces.map((place) => {
+              const agreement = data.agreements.find((item) => item.id === place.agreementId);
+              const institution = data.institutions.find((item) => item.id === agreement?.institutionId);
+              return `<option value="${place.id}">${escapeHtml(institution?.name)} - ${escapeHtml(place.level)} (${place.offered - place.occupied} cupos)</option>`;
+            }).join("")}
+          </select>
+        </label>
+        ${availablePlaces.length ? "" : `<div class="empty full-field">No hay plazas con cupos disponibles y convenios vigentes para este periodo.</div>`}
+        <div class="full-field" id="assignment-place-details" hidden></div>
+      </article>
+      <article class="card full assignment-step" id="assignment-step-teacher" hidden>
+        <h2><span class="step-number">3</span> Docente asesor</h2>
+        <p class="muted">Selecciona un docente con disponibilidad en el periodo.</p>
+        <label class="full-field">Docente asesor disponible
+          <select name="teacherId" ${availableTeachers.length ? "" : "disabled"}>
+            <option value="">-- Seleccione un docente --</option>
+            ${availableTeachers.map((teacher) => {
+              const load = data.assignments.filter((assignment) =>
+                assignment.teacherId === teacher.id && assignment.status === "ACTIVA"
+              ).length;
+              return `<option value="${teacher.id}">${escapeHtml(teacher.name)} - ${load} de 6 estudiantes asignados</option>`;
+            }).join("")}
+          </select>
+        </label>
+        ${availableTeachers.length ? "" : `<div class="empty full-field">No hay docentes asesores con disponibilidad de asignacion.</div>`}
+      </article>
+      <article class="card full assignment-step" id="assignment-step-summary" hidden>
+        <h2><span class="step-number">4</span> Resumen de la asignacion</h2>
+        <div id="assignment-summary" class="empty">Revisa los datos seleccionados antes de confirmar.</div>
+        <div class="toolbar">
+          <button class="button" type="button" data-action="reset-assignment-workflow">Limpiar seleccion</button>
+          <button class="button primary" type="submit">Confirmar asignacion</button>
+        </div>
+      </article>
     </form>
   `;
 }
 
-function updateAssignmentWorkflow(form) {
+function updateAssignmentWorkflow(form, changedField = "") {
+  if (changedField === "periodId" || changedField === "studentId") {
+    form.elements.placeId.value = "";
+    form.elements.teacherId.value = "";
+    form.elements.reassignmentReason.value = "";
+  } else if (changedField === "placeId") {
+    form.elements.teacherId.value = "";
+  }
+
   const studentId = Number(form.elements.studentId.value);
   const periodId = Number(form.elements.periodId.value);
   const placeId = Number(form.elements.placeId.value);
@@ -833,6 +893,14 @@ function updateAssignmentWorkflow(form) {
   const summary = form.querySelector("#assignment-summary");
   const reassignment = form.querySelector("#assignment-reassignment");
   const reason = form.elements.reassignmentReason;
+  const placeField = form.elements.placeId;
+  const teacherField = form.elements.teacherId;
+  const stepPlace = form.querySelector("#assignment-step-place");
+  const stepTeacher = form.querySelector("#assignment-step-teacher");
+  const stepSummary = form.querySelector("#assignment-step-summary");
+  const hasStudentAndPeriod = Boolean(student && period);
+  const hasPlace = Boolean(hasStudentAndPeriod && place);
+  const hasTeacher = Boolean(hasPlace && teacher);
 
   studentDetails.hidden = !student;
   studentDetails.innerHTML = student
@@ -848,20 +916,25 @@ function updateAssignmentWorkflow(form) {
       ` Este estudiante ya esta asignado en el periodo ${period?.year}-${period?.semester} a ${previous.institution?.name || "una institucion"} con ${previous.teacher?.name || "un docente asesor"}.`;
   }
 
+  stepPlace.hidden = !hasStudentAndPeriod;
+  placeField.required = hasStudentAndPeriod && !placeField.disabled;
   placeDetails.hidden = !place;
   placeDetails.innerHTML = place
     ? `<table><tbody><tr><th>Institucion</th><td>${escapeHtml(institution?.name || "")}</td><th>Convenio</th><td>${escapeHtml(agreement?.number || "")}</td></tr><tr><th>Nivel / jornada</th><td>${escapeHtml(place.level)} - ${escapeHtml(place.shift)}</td><th>Cupos</th><td>${place.offered - place.occupied} disponibles de ${place.offered}</td></tr></tbody></table>`
     : "";
 
-  const selectedStudent = form.elements.studentId.selectedOptions[0]?.textContent;
-  const selectedPlace = form.elements.placeId.selectedOptions[0]?.textContent;
-  const selectedTeacher = form.elements.teacherId.selectedOptions[0]?.textContent;
-  const selectedPeriod = form.elements.periodId.selectedOptions[0]?.textContent;
-  const hasSelection = student && period && place && teacher;
-  summary.classList.toggle("empty", !hasSelection);
-  summary.innerHTML = hasSelection
+  stepTeacher.hidden = !hasPlace;
+  teacherField.required = hasPlace && !teacherField.disabled;
+  stepSummary.hidden = !hasTeacher;
+
+  const selectedStudent = form.elements.studentId.selectedOptions[0]?.textContent || student?.name || "";
+  const selectedPlace = form.elements.placeId.selectedOptions[0]?.textContent || "";
+  const selectedTeacher = form.elements.teacherId.selectedOptions[0]?.textContent || "";
+  const selectedPeriod = period ? `${period.year}-${period.semester} (${period.program} - ${period.level})` : "";
+  summary.classList.toggle("empty", !hasTeacher);
+  summary.innerHTML = hasTeacher
     ? `<table><tbody><tr><th>Estudiante</th><td>${escapeHtml(selectedStudent)}</td></tr><tr><th>Plaza / institucion</th><td>${escapeHtml(selectedPlace)}</td></tr><tr><th>Docente asesor</th><td>${escapeHtml(selectedTeacher)}</td></tr><tr><th>Periodo</th><td>${escapeHtml(selectedPeriod)}</td></tr><tr><th>Tipo</th><td>${activeAssignment ? "Reasignacion" : "Nueva asignacion"}</td></tr></tbody></table>`
-    : "Selecciona estudiante, plaza y docente para revisar la asignacion.";
+    : "Revisa los datos seleccionados antes de confirmar.";
 }
 
 function assignmentsTable(assignments) {
@@ -1061,7 +1134,7 @@ function renderStudentProgress(user, compact = false) {
 function renderTeacherValidations(user) {
   const assignments = data.assignments.filter((assignment) => assignment.teacherId === user.id).map((assignment) => assignment.id);
   const activities = data.activities.filter((activity) => assignments.includes(activity.assignmentId) && activity.status === "PENDIENTE");
-  return `<section class="stack"><article class="card full"><h2>Paso 1-2: Actividades pendientes</h2><p class="muted">Selecciona una actividad para revisar su descripcion, horas y soportes.</p>${activitiesTable(activities, true)}</article></section>`;
+  return `<section class="stack"><article class="card full"><h2>Actividades pendientes</h2><p class="muted">Selecciona una actividad para revisar su descripcion, horas y soportes.</p>${activitiesTable(activities, true)}</article></section>`;
 }
 
 function renderTeacherVisits(user) {
@@ -1069,9 +1142,8 @@ function renderTeacherVisits(user) {
   return `
     <section class="stack">
       <article class="card full">
-        <h2>Paso 2-4: Estudiante a evaluar</h2>
-        <h2>Paso 5: Registro de la visita</h2>
-        <h2>Paso 6-8: Rubrica de evaluacion</h2>
+        <h2>Registrar visita y evaluacion</h2>
+        <p class="muted">Selecciona al practicante y completa los datos de la visita antes de diligenciar la rubrica.</p>
         ${assignments.length ? modalForm("visit") : `<div class="empty">No tienes estudiantes asignados para realizar visitas.</div>`}
       </article>
       <article class="card full">
@@ -1239,6 +1311,7 @@ function openModal(type, id = null) {
   modal.className = "modal-backdrop";
   modal.innerHTML = `<section class="modal">${modalContent(type, id)}</section>`;
   document.body.appendChild(modal);
+  modal.querySelectorAll("form[data-guided-workflow]").forEach(updateGuidedWorkflow);
 }
 
 function modalContent(type, id) {
@@ -1283,17 +1356,33 @@ function modalForm(type, id) {
       ...data.periods.map((item) => item.level)
     ])];
     return `
-      <form class="form-grid workflow-form" data-submit="period" data-id="${period?.id || ""}">
-        <label>Programa academico<select name="program" required>${programs.map((program) => `<option ${program === (period?.program || programs[0]) ? "selected" : ""}>${escapeHtml(program)}</option>`).join("")}</select></label>
-        <label>Nivel de practica<select name="level" required>${levels.map((level) => `<option ${level === (period?.level || levels[0]) ? "selected" : ""}>${escapeHtml(level)}</option>`).join("")}</select></label>
-        <label>Anio<input name="year" type="number" value="${period?.year || 2026}" required></label>
-        <label>Semestre<select name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
-        <label>Fecha inicio<input name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
-        <label>Fecha fin<input name="end" type="date" value="${escapeHtml(period?.end || "")}" required></label>
-        <label>Fecha limite de reporte<input name="reportLimit" type="date" value="${escapeHtml(period?.reportLimit || "")}" required></label>
-        <label>Intensidad horaria minima<input name="minHours" type="number" min="1" value="${period?.minHours || 320}" required></label>
-        <div class="full-field">
-          <h3>Criterios de evaluacion y pesos</h3>
+      <form class="form-grid workflow-form guided-workflow" data-guided-workflow data-submit="period" data-id="${period?.id || ""}">
+        <article class="card full workflow-step" data-workflow-step>
+          <h3><span class="step-number">1</span> Programa y configuracion previa</h3>
+          <label>Programa academico
+            <select name="program" required>
+              <option value="">-- Seleccione un programa --</option>
+              ${programs.map((program) => `<option value="${escapeHtml(program)}" ${program === period?.program ? "selected" : ""}>${escapeHtml(program)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Nivel de practica
+            <select name="level" required>
+              <option value="">-- Seleccione un nivel --</option>
+              ${levels.map((level) => `<option value="${escapeHtml(level)}" ${level === period?.level ? "selected" : ""}>${escapeHtml(level)}</option>`).join("")}
+            </select>
+          </label>
+          <label>Anio<input name="year" type="number" value="${period?.year || 2026}" required></label>
+          <label>Semestre<select name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">2</span> Fechas e intensidad horaria</h3>
+          <label>Fecha inicio<input name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
+          <label>Fecha fin<input name="end" type="date" value="${escapeHtml(period?.end || "")}" required></label>
+          <label>Fecha limite de reporte<input name="reportLimit" type="date" value="${escapeHtml(period?.reportLimit || "")}" required></label>
+          <label>Intensidad horaria minima<input name="minHours" type="number" min="1" value="${period?.minHours || 320}" required></label>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">3</span> Criterios de evaluacion y publicacion</h3>
           <div class="form-grid">
             <label>Criterio 1<input name="criterion1" value="${criterion(0, "name", "Cumplimiento de horas")}" required></label>
             <label>Peso (%)<input name="weight1" type="number" min="0" max="100" value="${criterion(0, "weight", 40)}" required></label>
@@ -1303,10 +1392,12 @@ function modalForm(type, id) {
             <label>Peso (%)<input name="weight3" type="number" min="0" max="100" value="${criterion(2, "weight", 30)}" required></label>
           </div>
           <p class="muted">Los pesos deben sumar exactamente 100% para publicar el periodo.</p>
-        </div>
-        <div class="full-field notice warning">No se podra publicar si las fechas no son coherentes, las horas son inferiores al minimo previo del programa o los pesos no suman 100%.</div>
-        <button class="button full-field" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
-        <button class="button primary full-field" type="submit" name="status" value="PUBLICADO">Publicar periodo</button>
+          <div class="notice warning">No se podra publicar si las fechas no son coherentes, las horas son inferiores al minimo previo del programa o los pesos no suman 100%.</div>
+          <div class="toolbar">
+            <button class="button" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
+            <button class="button primary" type="submit" name="status" value="PUBLICADO">Publicar periodo</button>
+          </div>
+        </article>
       </form>`;
   }
   if (type === "institution") {
@@ -1334,19 +1425,33 @@ function modalForm(type, id) {
   if (type === "agreement-place") {
     const institutions = data.institutions.filter((institution) => institution.active);
     return `
-      <form class="form-grid" data-submit="agreement-place">
-        <label>Institucion receptora<select name="institutionId" required>${optionList(institutions, (item) => `${item.name} - ${item.contact}`)}</select></label>
-        <label>Numero de convenio<input name="number" required></label>
-        <label>Vigencia desde<input name="start" type="date" required></label>
-        <label>Vigencia hasta<input name="end" type="date" required></label>
-        <label class="full-field">Documento suscrito del convenio<input name="document" type="file" accept=".pdf,.doc,.docx" /></label>
-        <div class="full-field notice warning">El prototipo registra el nombre y los datos del archivo localmente; no carga documentos a un servidor.</div>
-        <h3 class="full-field">Plaza ofrecida</h3>
-        <label>Nivel educativo<input name="level" required></label>
-        <label>Jornada<select name="shift"><option value="MANANA">Manana</option><option value="TARDE">Tarde</option><option value="NOCHE">Noche</option><option value="MIXTA">Mixta</option></select></label>
-        <label>Cupos<input name="offered" type="number" min="1" value="2" required></label>
-        <label>Docente titular<input name="tutor" required></label>
-        <button class="button primary full-field" type="submit">Guardar convenio y plaza</button>
+      <form class="form-grid guided-workflow" data-guided-workflow data-submit="agreement-place">
+        <article class="card full workflow-step" data-workflow-step>
+          <h3><span class="step-number">1</span> Institucion receptora</h3>
+          <p class="muted">Selecciona la institucion donde se ofrecera la practica.</p>
+          <label>Institucion receptora
+            <select name="institutionId" required>
+              <option value="">-- Seleccione una institucion --</option>
+              ${optionList(institutions, (item) => `${item.name} - ${item.contact}`)}
+            </select>
+          </label>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">2</span> Convenio</h3>
+          <label>Numero de convenio<input name="number" required></label>
+          <label>Vigencia desde<input name="start" type="date" required></label>
+          <label>Vigencia hasta<input name="end" type="date" required></label>
+          <label class="full-field">Documento suscrito del convenio<input name="document" type="file" accept=".pdf,.doc,.docx" /></label>
+          <div class="notice warning full-field">El prototipo registra el nombre y los datos del archivo localmente; no carga documentos a un servidor.</div>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">3</span> Plaza ofrecida</h3>
+          <label>Nivel educativo<input name="level" required></label>
+          <label>Jornada<select name="shift"><option value="MANANA">Manana</option><option value="TARDE">Tarde</option><option value="NOCHE">Noche</option><option value="MIXTA">Mixta</option></select></label>
+          <label>Cupos<input name="offered" type="number" min="1" value="2" required></label>
+          <label>Docente titular<input name="tutor" required></label>
+          <button class="button primary full-field" type="submit">Guardar convenio y plaza</button>
+        </article>
       </form>`;
   }
   if (type === "place") {
@@ -1382,30 +1487,51 @@ function modalForm(type, id) {
   if (type === "activity") {
     const activity = id ? data.activities.find((item) => item.id === Number(id)) : null;
     return `
-      <form class="form-grid workflow-form" data-submit="activity" data-id="${id || ""}">
+      <form class="form-grid guided-workflow" data-guided-workflow data-submit="activity" data-id="${id || ""}">
         ${activity?.observation ? `<div class="notice warning full-field">Observacion del docente: ${escapeHtml(activity.observation)}</div>` : ""}
-        <label>Fecha de la actividad<input name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
-        <label>Horas ejecutadas<input name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
-        <label class="full-field">Tipo de actividad
-          <input name="type" list="activity-types" value="${escapeHtml(activity?.type || "")}" required>
-          <datalist id="activity-types"><option>Planeacion de clase</option><option>Refuerzo pedagogico</option><option>Reunion con docente titular</option></datalist>
-        </label>
-        <label class="full-field">Descripcion<textarea name="description" required>${escapeHtml(activity?.description || "")}</textarea></label>
-        <label class="full-field">Soportes o evidencias<input name="files" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple></label>
-        <div class="notice warning full-field">El envio requiere al menos un soporte. Se permiten PDF, imagenes y documentos Office de hasta 10 MB cada uno. En este prototipo se persiste la referencia y el nombre de archivo, no el contenido binario.</div>
-        <button class="button full-field" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
-        <button class="button primary full-field" type="submit" name="status" value="PENDIENTE">Enviar a validacion</button>
+        <article class="card full workflow-step" data-workflow-step>
+          <h3><span class="step-number">1</span> Datos de la actividad</h3>
+          <label>Fecha de la actividad<input name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
+          <label>Horas ejecutadas<input name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
+          <label class="full-field">Tipo de actividad
+            <input name="type" list="activity-types" value="${escapeHtml(activity?.type || "")}" required>
+            <datalist id="activity-types"><option>Planeacion de clase</option><option>Refuerzo pedagogico</option><option>Reunion con docente titular</option></datalist>
+          </label>
+          <label class="full-field">Descripcion<textarea name="description" required>${escapeHtml(activity?.description || "")}</textarea></label>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">2</span> Soportes y envio</h3>
+          <label class="full-field">Soportes o evidencias<input name="files" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple></label>
+          <div class="notice warning full-field">El envio requiere al menos un soporte. Se permiten PDF, imagenes y documentos Office de hasta 10 MB cada uno. En este prototipo se persiste la referencia y el nombre de archivo, no el contenido binario.</div>
+          <div class="toolbar">
+            <button class="button" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
+            <button class="button primary" type="submit" name="status" value="PENDIENTE">Enviar a validacion</button>
+          </div>
+        </article>
       </form>`;
   }
   if (type === "evidence") {
     const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
     const activities = assignment ? data.activities.filter((item) => item.assignmentId === assignment.id) : [];
     return `
-      <form class="form-grid workflow-form" data-submit="evidence">
-        <label class="full-field">Actividad<select name="activityId" required>${optionList(activities, (item) => `${item.date} - ${item.type}`)}</select></label>
-        <label class="full-field">Soporte o evidencia<input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required></label>
-        <div class="notice warning full-field">En esta version se guarda el nombre y la referencia del archivo en el navegador, no el contenido binario.</div>
-        <button class="button primary full-field" type="submit">Registrar evidencia</button>
+      <form class="form-grid guided-workflow" data-guided-workflow data-submit="evidence">
+        <article class="card full workflow-step" data-workflow-step>
+          <h3><span class="step-number">1</span> Seleccionar actividad</h3>
+          ${activities.length ? `
+            <label class="full-field">Actividad
+              <select name="activityId" required>
+                <option value="">-- Seleccione una actividad --</option>
+                ${optionList(activities, (item) => `${item.date} - ${item.type}`)}
+              </select>
+            </label>
+          ` : `<div class="empty">No hay actividades asociadas a tu asignacion activa.</div>`}
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">2</span> Adjuntar soporte</h3>
+          <label class="full-field">Soporte o evidencia<input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required></label>
+          <div class="notice warning full-field">En esta version se guarda el nombre y la referencia del archivo en el navegador, no el contenido binario.</div>
+          <button class="button primary full-field" type="submit">Registrar evidencia</button>
+        </article>
       </form>`;
   }
   if (type === "validate") {
@@ -1413,35 +1539,54 @@ function modalForm(type, id) {
     const assignment = activity && data.assignments.find((item) => item.id === activity.assignmentId);
     const evidence = data.evidences.filter((item) => item.activityId === activity?.id);
     return `
-      <form class="form-grid" data-submit="validate" data-id="${id}">
-        <div class="full-field">
-          <p><strong>${escapeHtml(activity?.type)}</strong><br>${escapeHtml(activity?.description)}</p>
-          <p class="muted">Estudiante: ${escapeHtml(assignment && assignmentDetails(assignment).student?.name)} · Fecha: ${moneyDate(activity?.date)} · Horas: ${activity?.hours}</p>
-          <h3>Soportes</h3>
-          ${evidence.length ? `<ul>${evidence.map((item) => `<li>${escapeHtml(item.fileName)} (${escapeHtml(item.type)})</li>`).join("")}</ul>` : `<div class="empty">No se adjuntaron soportes.</div>`}
-        </div>
-        <label class="full-field"><span><input name="evidenceReviewed" type="checkbox" value="yes" style="width:auto"> He revisado los soportes obligatorios de esta actividad</span></label>
-        <label>Resultado<select name="status"><option value="APROBADA">Aprobar</option><option value="DEVUELTA">Devolver</option><option value="RECHAZADA">Rechazar</option></select></label>
-        <label>Observacion / justificacion<textarea name="observation" placeholder="Obligatoria al devolver o rechazar"></textarea></label>
-        <div class="full-field notice warning">Para aprobar debes confirmar la revision de los soportes. Al devolver o rechazar, registra la justificacion para el estudiante.</div>
-        <button class="button primary full-field" type="submit">Guardar validacion</button>
+      <form class="form-grid guided-workflow" data-guided-workflow data-submit="validate" data-id="${id}">
+        <article class="card full workflow-step" data-workflow-step>
+          <h3><span class="step-number">1</span> Revisar actividad y soportes</h3>
+          <div>
+            <p><strong>${escapeHtml(activity?.type)}</strong><br>${escapeHtml(activity?.description)}</p>
+            <p class="muted">Estudiante: ${escapeHtml(assignment && assignmentDetails(assignment).student?.name)} · Fecha: ${moneyDate(activity?.date)} · Horas: ${activity?.hours}</p>
+            <h4>Soportes adjuntos</h4>
+            ${evidence.length ? `<ul>${evidence.map((item) => `<li>${escapeHtml(item.fileName)} (${escapeHtml(item.type)})</li>`).join("")}</ul>` : `<div class="empty">No se adjuntaron soportes.</div>`}
+          </div>
+          <label class="full-field"><span><input name="evidenceReviewed" type="checkbox" value="yes" required style="width:auto"> Confirmo que revise los soportes disponibles para esta actividad</span></label>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">2</span> Registrar decision y justificacion</h3>
+          <label>Resultado<select name="status"><option value="APROBADA">Aprobar</option><option value="DEVUELTA">Devolver</option><option value="RECHAZADA">Rechazar</option></select></label>
+          <label>Observacion / justificacion<textarea name="observation" placeholder="Obligatoria al devolver o rechazar"></textarea></label>
+          <div class="notice warning full-field">Al devolver o rechazar, registra la justificacion para el estudiante.</div>
+          <button class="button primary full-field" type="submit">Guardar validacion</button>
+        </article>
       </form>`;
   }
   if (type === "visit") {
     const assignments = data.assignments.filter((item) => item.teacherId === user.id && item.status === "ACTIVA");
     return `
-      <form class="form-grid workflow-form" data-submit="visit">
-        <label>Estudiante a evaluar<select name="assignmentId" required><option value="">Seleccione estudiante</option>${optionList(assignments, (item) => `${assignmentDetails(item).student?.name} - ${assignmentDetails(item).institution?.name}`, assignments[0]?.id)}</select></label>
-        <div class="full-field" id="visit-assignment-details">${visitAssignmentDetails(assignments[0]?.id)}</div>
-        <label>Fecha<input name="date" type="date" required></label>
-        <label>Modalidad<select name="mode"><option value="PRESENCIAL">Presencial</option><option value="VIRTUAL">Remota</option><option value="MIXTA">Mixta</option></select></label>
-        <label class="full-field">Observaciones de la visita<textarea name="observation" required></textarea></label>
-        <label class="full-field"><span><input name="attendance" type="checkbox" checked style="width:auto"> El estudiante asistio a la visita programada</span></label>
-        <label class="full-field">Soporte de visita remota (si aplica)<input name="support" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></label>
-        <div class="full-field notice warning">Si la visita es remota, adjunta un soporte. Si el estudiante no asistio, se registra la inasistencia para coordinar una reprogramacion.</div>
-        <h3 class="full-field">Rubrica de evaluacion</h3>
-        <div class="form-grid full-field" id="visit-rubric">${visitRubricFields(assignments[0]?.id)}</div>
-        <button class="button primary full-field" type="submit">Guardar visita y evaluacion</button>
+      <form class="form-grid guided-workflow" data-guided-workflow data-submit="visit">
+        <article class="card full workflow-step" data-workflow-step>
+          <h3><span class="step-number">1</span> Seleccionar practicante</h3>
+          <label>Estudiante a evaluar
+            <select name="assignmentId" required>
+              <option value="">-- Seleccione estudiante --</option>
+              ${optionList(assignments, (item) => `${assignmentDetails(item).student?.name} - ${assignmentDetails(item).institution?.name}`)}
+            </select>
+          </label>
+          <div id="visit-assignment-details">${visitAssignmentDetails("")}</div>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">2</span> Completar datos de la visita</h3>
+          <label>Fecha<input name="date" type="date" required></label>
+          <label>Modalidad<select name="mode"><option value="PRESENCIAL">Presencial</option><option value="VIRTUAL">Remota</option><option value="MIXTA">Mixta</option></select></label>
+          <label class="full-field">Observaciones de la visita<textarea name="observation" required></textarea></label>
+          <label class="full-field"><span><input name="attendance" type="checkbox" checked style="width:auto"> El estudiante asistio a la visita programada</span></label>
+          <label class="full-field">Soporte de visita remota (si aplica)<input name="support" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></label>
+          <div class="notice warning full-field">Si la visita es remota, adjunta un soporte. Si el estudiante no asistio, se registra la inasistencia para coordinar una reprogramacion.</div>
+        </article>
+        <article class="card full workflow-step" data-workflow-step hidden>
+          <h3><span class="step-number">3</span> Evaluar con la rubrica</h3>
+          <div class="form-grid" id="visit-rubric">${visitRubricFields("")}</div>
+          <button class="button primary full-field" type="submit">Guardar visita y evaluacion</button>
+        </article>
       </form>`;
   }
   return `<div class="empty">Formulario no disponible.</div>`;
@@ -1880,18 +2025,26 @@ document.addEventListener("submit", (event) => {
   }
 });
 
+document.addEventListener("input", (event) => {
+  const guidedForm = event.target.closest("form[data-guided-workflow]");
+  if (guidedForm) updateGuidedWorkflow(guidedForm);
+});
+
 document.addEventListener("change", (event) => {
+  const guidedForm = event.target.closest("form[data-guided-workflow]");
+  if (guidedForm) updateGuidedWorkflow(guidedForm);
   if (event.target.matches('[data-submit="visit"] [name="assignmentId"]')) {
     const form = event.target.closest("form");
     const rubric = form.querySelector("#visit-rubric");
     const details = form.querySelector("#visit-assignment-details");
     rubric.innerHTML = visitRubricFields(event.target.value);
     details.innerHTML = visitAssignmentDetails(event.target.value);
+    updateGuidedWorkflow(form);
     return;
   }
   const assignmentForm = event.target.closest('[data-submit="assignment"]');
-  if (assignmentForm) {
-    updateAssignmentWorkflow(assignmentForm);
+  if (assignmentForm?.classList.contains("assignment-workflow")) {
+    updateAssignmentWorkflow(assignmentForm, event.target.name);
     return;
   }
   if (event.target.id !== "role-switch") return;
@@ -1932,6 +2085,17 @@ document.addEventListener("click", (event) => {
 
   const action = event.target.closest("[data-action]");
   if (!action) return;
+
+  if (action.dataset.action === "reset-assignment-workflow") {
+    const form = action.closest('[data-submit="assignment"]');
+    form.elements.studentId.value = "";
+    form.elements.placeId.value = "";
+    form.elements.teacherId.value = "";
+    form.elements.reassignmentReason.value = "";
+    updateAssignmentWorkflow(form, "studentId");
+    form.elements.studentId.focus();
+    return;
+  }
 
   if (action.dataset.action === "logout") {
     saveSession(null);
