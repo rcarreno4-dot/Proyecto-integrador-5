@@ -6,10 +6,10 @@
 
 ## Modelos y diagramas
 
-- `Proyecto_astah.asta`: modelo Astah base.
-- `Proyecto_astah_SIGPRA_Dominio.asta`: copia editable del modelo base con el paquete `SIGPRA - Modelo de dominio` y el diagrama conceptual de dominio actualizado.
-- `Diagrama_Dominio_SIGPRA.png`: vista exportada del nuevo diagrama de dominio.
+- `Proyecto_astah_SIGPRA.asta`: modelo editable de Astah con los diagramas de casos de uso, clases, dominio y secuencia para los CU-01 a CU-07.
 - `Casos_de_uso.png`: diagrama de casos de uso.
+- `Diagrama_Dominio_SIGPRA.png`: diagrama conceptual de dominio.
+- `Secuencia_CU-01_Programar_periodo.png` a `Secuencia_CU-07_Consolidado.png`: exportaciones de los siete diagramas de secuencia.
 - `Arquitectura_SIGPRA.png`: diagrama de arquitectura.
 - `Modelo_Relacional_SIGPRA.png`: modelo relacional.
 
