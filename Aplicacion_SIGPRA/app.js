@@ -291,7 +291,7 @@ function render() {
           </select>
         </div>
         <nav class="nav" aria-label="Navegacion de ${escapeHtml(roleLabel(user.role))}">
-          ${nav.map((item) => `<button class="${item.id === currentView ? "active" : ""}" data-view="${item.id}">${item.label}</button>`).join("")}
+          ${renderNavigation(nav)}
         </nav>
         <div class="sidebar-footer">
           <strong>${escapeHtml(user.name)}</strong>
@@ -320,33 +320,99 @@ function render() {
 }
 
 function navForRole(role) {
-  const shared = [{ id: "dashboard", label: "Inicio" }];
+  const shared = [{ id: "dashboard", label: "Inicio", group: "Principal", description: "Resumen de tus tareas y accesos frecuentes." }];
   const map = {
     COORDINADOR: [
       ...shared,
-      { id: "periods", label: "Periodos de practica" },
-      { id: "agreements", label: "Convenios y plazas" },
-      { id: "assignments", label: "Asignaciones" },
-      { id: "reports", label: "Consolidado" }
+      { id: "periods", label: "Periodos de practica", group: "Preparar practicas", description: "Configura fechas, horas y criterios para cada periodo." },
+      { id: "agreements", label: "Convenios y plazas", group: "Preparar practicas", description: "Organiza instituciones, convenios y cupos disponibles." },
+      { id: "assignments", label: "Asignaciones", group: "Seguimiento", description: "Consulta y organiza las practicas de los estudiantes." },
+      { id: "reports", label: "Consolidado", group: "Seguimiento", description: "Filtra el avance y consulta resultados de las practicas." },
+      { id: "audit", label: "Auditoria", group: "Seguimiento", description: "Revisa el historial de acciones registradas." }
     ],
     ESTUDIANTE: [
       ...shared,
-      { id: "student-activities", label: "Mi bitacora" },
-      { id: "student-evidence", label: "Evidencias" },
-      { id: "student-validations", label: "Validaciones" },
-      { id: "student-progress", label: "Reportes" }
+      { id: "student-progress", label: "Mi avance", group: "Mi practica", description: "Consulta tus horas aprobadas y el estado de tu practica." },
+      { id: "student-activities", label: "Mi bitacora", group: "Mi practica", description: "Registra el trabajo realizado y reporta tus horas." },
+      { id: "student-evidence", label: "Evidencias", group: "Mi practica", description: "Adjunta y consulta los soportes de tus actividades." },
+      { id: "student-validations", label: "Validaciones", group: "Mi practica", description: "Consulta las respuestas y observaciones de tu docente." }
     ],
     DOCENTE_ASESOR: [
       ...shared,
-      { id: "teacher-validations", label: "Validar actividades" },
-      { id: "teacher-visits", label: "Visitas y evaluacion" }
+      { id: "teacher-validations", label: "Validar actividades", group: "Seguimiento", description: "Revisa soportes y responde a los reportes pendientes." },
+      { id: "teacher-visits", label: "Visitas y evaluacion", group: "Seguimiento", description: "Registra acompanamientos y evaluaciones." }
     ],
     DIRECTOR: [
       ...shared,
-      { id: "reports", label: "Consolidado" }
+      { id: "reports", label: "Consolidado", group: "Consulta", description: "Consulta el avance general de las practicas." },
+      { id: "audit", label: "Auditoria", group: "Consulta", description: "Revisa las acciones registradas en el sistema." }
     ]
   };
   return map[role] || shared;
+}
+
+function renderNavigation(nav) {
+  let currentGroup = "";
+  return nav.map((item) => {
+    const heading = item.group !== currentGroup
+      ? `<span class="nav-heading">${escapeHtml(item.group)}</span>`
+      : "";
+    currentGroup = item.group;
+    return `${heading}<button class="${item.id === currentView ? "active" : ""}" data-view="${item.id}" ${item.id === currentView ? 'aria-current="page"' : ""}>${escapeHtml(item.label)}</button>`;
+  }).join("");
+}
+
+function countLabel(count, singular, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function moduleSummary(view, user) {
+  if (view === "periods") return countLabel(data.periods.length, "periodo", "periodos");
+  if (view === "agreements") return `${countLabel(data.institutions.length, "institucion", "instituciones")} · ${countLabel(data.places.length, "plaza", "plazas")}`;
+  if (view === "assignments") return countLabel(data.assignments.filter((item) => item.status === "ACTIVA").length, "practica activa", "practicas activas");
+  if (view === "reports") return countLabel(data.assignments.filter((item) => item.status === "ACTIVA").length, "practica para consultar", "practicas para consultar");
+  if (view === "audit") return countLabel(data.audit.length, "evento registrado", "eventos registrados");
+  if (view === "student-activities" || view === "student-evidence" || view === "student-validations" || view === "student-progress") {
+    const assignmentIds = data.assignments.filter((item) => item.studentId === user.id).map((item) => item.id);
+    const activities = data.activities.filter((item) => assignmentIds.includes(item.assignmentId));
+    if (view === "student-activities") return countLabel(activities.length, "actividad", "actividades");
+    if (view === "student-validations") return countLabel(activities.filter((item) => item.status !== "BORRADOR").length, "actividad enviada", "actividades enviadas");
+    if (view === "student-evidence") {
+      const activityIds = activities.map((item) => item.id);
+      return countLabel(data.evidences.filter((item) => activityIds.includes(item.activityId)).length, "evidencia cargada", "evidencias cargadas");
+    }
+    const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
+    const period = data.periods.find((item) => item.id === assignment?.periodId);
+    const hours = assignment ? approvedHours(assignment.id) || assignment.approvedHours : 0;
+    return assignment ? `${Math.min(100, Math.round((hours / (period?.minHours || 320)) * 100))}% de avance` : "Sin practica activa";
+  }
+  if (view === "teacher-validations") return countLabel(pendingActivitiesForTeacher(user.id).length, "actividad por revisar", "actividades por revisar");
+  if (view === "teacher-visits") return countLabel(data.visits.filter((item) => item.teacherId === user.id).length, "visita registrada", "visitas registradas");
+  return "";
+}
+
+function renderModuleCards(user) {
+  const modules = navForRole(user.role).filter((item) => item.id !== "dashboard");
+  return `
+    <section class="module-section" aria-labelledby="modules-heading">
+      <div class="module-section-heading">
+        <h2 id="modules-heading">Modulos de trabajo</h2>
+        <p>Selecciona una opcion para ir directamente a la tarea que necesitas.</p>
+      </div>
+      <div class="module-grid">
+        ${modules.map((item) => `
+          <button class="module-card" type="button" data-view="${item.id}">
+            <span class="module-card-heading">
+              <strong>${escapeHtml(item.label)}</strong>
+              <span aria-hidden="true">→</span>
+            </span>
+            <span class="module-card-description">${escapeHtml(item.description)}</span>
+            <span class="module-card-summary">${escapeHtml(moduleSummary(item.id, user))}</span>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `;
 }
 
 function viewTitle(view, role) {
@@ -449,7 +515,7 @@ function renderLogin() {
 function renderDashboard(user) {
   if (user.role === "ESTUDIANTE") return renderStudentProgress(user, true);
   if (user.role === "DOCENTE_ASESOR") return renderTeacherHome(user);
-  if (user.role === "DIRECTOR") return renderDirectorHome();
+  if (user.role === "DIRECTOR") return renderDirectorHome(user);
 
   const publishedPeriods = data.periods.filter((period) => period.status === "PUBLICADO");
   const activeAgreements = data.agreements.filter((agreement) => agreementStatus(agreement) === "VIGENTE");
@@ -491,10 +557,11 @@ function renderDashboard(user) {
         </div>
       </article>
     </section>
+    ${renderModuleCards(user)}
   `;
 }
 
-function renderDirectorHome() {
+function renderDirectorHome(user) {
   const activeAssignments = data.assignments.filter((assignment) => assignment.status === "ACTIVA");
   const averageProgress = activeAssignments.length
     ? Math.round(activeAssignments.reduce((sum, assignment) => {
@@ -518,6 +585,7 @@ function renderDirectorHome() {
         </div>
       </article>
     </section>
+    ${renderModuleCards(user)}
   `;
 }
 
@@ -534,6 +602,7 @@ function renderTeacherHome(user) {
         ${activitiesTable(pending, true)}
       </article>
     </section>
+    ${renderModuleCards(user)}
   `;
 }
 
@@ -958,7 +1027,7 @@ function renderStudentValidations(user) {
 
 function renderStudentProgress(user, compact = false) {
   const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
-  if (!assignment) return `<div class="empty">No tienes una asignacion activa.</div>`;
+  if (!assignment) return `<div class="empty">No tienes una asignacion activa.</div>${compact ? renderModuleCards(user) : ""}`;
   const d = assignmentDetails(assignment);
   const hours = approvedHours(assignment.id) || assignment.approvedHours;
   const required = d.period?.minHours || 320;
@@ -985,6 +1054,7 @@ function renderStudentProgress(user, compact = false) {
       </article>
       ${compact ? "" : `<article class="card full"><h2>Historial</h2>${activitiesTable(activities)}</article>`}
     </section>
+    ${compact ? renderModuleCards(user) : ""}
   `;
 }
 

@@ -18,6 +18,7 @@ Abrir `index.html` en el navegador.
 ## Funcionalidades incluidas
 
 - Inicio de sesion por rol.
+- Navegacion agrupada por etapa y accesos directos a los modulos disponibles para cada rol, con resumen de tareas y registros.
 - CU-01: crear periodos como borrador o publicarlos tras validar fechas, horas minimas y pesos de evaluacion.
 - CU-02: registrar instituciones, convenios y plazas; convenios sin documento o fuera de vigencia quedan inactivos.
 - CU-03: asignar estudiantes a plazas vigentes y docentes con disponibilidad, con control de cupos y reasignacion con historial.
