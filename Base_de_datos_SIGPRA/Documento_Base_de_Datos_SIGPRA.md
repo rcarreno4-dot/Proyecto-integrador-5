@@ -110,7 +110,7 @@ define `scripts/postgresql_schema.sql`. MongoDB tiene su propio esquema de
 colecciones en `scripts/mongodb_collections.js`; el almacenamiento de archivos
 se especifica como objetos binarios y referencias, no como otra base de datos.
 El proyecto Astah editable, que tambien conserva los diagramas UML de la
-entrega, se encuentra en `../Entrega_actual/Proyecto_astah_SIGPRA.asta`.
+entrega, se encuentra en `../Entrega_actual/Diagramas UML/Clases y modelos editables/Proyecto_astah_SIGPRA.asta`.
 
 ## 9. Scripts
 
