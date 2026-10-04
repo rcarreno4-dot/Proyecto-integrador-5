@@ -15,7 +15,7 @@ No reemplaza la propuesta ni modifica los documentos existentes. Su objetivo es 
 - `imagenes/arquitectura_persistencia.svg`: diagrama de arquitectura de persistencia.
 - `imagenes/Modelo_Entidad_Relacion_SIGPRA.png`: modelo ER alineado con el DDL PostgreSQL.
 - `imagenes/Modelo_Relacional_SIGPRA.png`: vista relacional de las 16 tablas PostgreSQL.
-- `../Entrega_actual/Proyecto_astah_SIGPRA.asta`: proyecto editable que conserva los diagramas UML y las vistas del modelo PostgreSQL.
+- `../Entrega_actual/Diagramas UML/Clases y modelos editables/Proyecto_astah_SIGPRA.asta`: proyecto editable que conserva los diagramas UML y las vistas del modelo PostgreSQL.
 
 ## Decision de persistencia
 

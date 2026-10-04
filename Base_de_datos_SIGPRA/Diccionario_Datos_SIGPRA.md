@@ -17,7 +17,7 @@ referenciales propias de PostgreSQL.
 
 - Modelo Entidad-Relacion PostgreSQL: `imagenes/Modelo_Entidad_Relacion_SIGPRA.png`.
 - Modelo relacional PostgreSQL: `imagenes/Modelo_Relacional_SIGPRA.png`.
-- Modelo editable completo: `../Entrega_actual/Proyecto_astah_SIGPRA.asta`.
+- Modelo editable completo: `../Entrega_actual/Diagramas UML/Clases y modelos editables/Proyecto_astah_SIGPRA.asta`.
 - DDL PostgreSQL: `scripts/postgresql_schema.sql`.
 - Colecciones MongoDB: `scripts/mongodb_collections.js`.
 - Convenciones de almacenamiento de archivos:
