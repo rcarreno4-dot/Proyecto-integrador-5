@@ -53,6 +53,8 @@ El almacenamiento de archivos conserva el binario real. La base relacional y la 
 - Una institucion puede tener varios convenios.
 - Un convenio puede tener varias plazas.
 - Una asignacion vincula estudiante, plaza, docente asesor y periodo.
+- Se conserva el historial de reasignaciones, con maximo una asignacion activa por estudiante y periodo.
+- La fecha limite de reportes es igual o posterior al fin del periodo.
 - Una asignacion puede tener muchos registros de actividad.
 - Una actividad puede tener varias evidencias.
 - Una asignacion puede tener varias visitas.

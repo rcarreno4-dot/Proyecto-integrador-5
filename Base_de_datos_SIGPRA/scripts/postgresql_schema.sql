@@ -91,7 +91,7 @@ CREATE TABLE periodo_practica (
     estado VARCHAR(20) NOT NULL DEFAULT 'CONFIGURACION'
         CHECK (estado IN ('CONFIGURACION', 'PUBLICADO', 'CERRADO')),
     CHECK (fecha_fin >= fecha_inicio),
-    CHECK (fecha_limite_reportes <= fecha_fin)
+    CHECK (fecha_limite_reportes >= fecha_fin)
 );
 
 CREATE TABLE rubrica (
@@ -119,8 +119,7 @@ CREATE TABLE asignacion (
     fecha_asignacion DATE NOT NULL DEFAULT CURRENT_DATE,
     estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVA'
         CHECK (estado IN ('ACTIVA', 'REASIGNADA', 'CERRADA', 'CANCELADA')),
-    horas_aprobadas NUMERIC(7,2) NOT NULL DEFAULT 0 CHECK (horas_aprobadas >= 0),
-    UNIQUE (id_estudiante, id_periodo)
+    horas_aprobadas NUMERIC(7,2) NOT NULL DEFAULT 0 CHECK (horas_aprobadas >= 0)
 );
 
 CREATE TABLE registro_actividad (
@@ -184,6 +183,8 @@ CREATE TABLE detalle_evaluacion (
 CREATE INDEX idx_convenio_institucion ON convenio(id_institucion);
 CREATE INDEX idx_plaza_convenio_estado ON plaza_practica(id_convenio, estado);
 CREATE INDEX idx_asignacion_periodo_estado ON asignacion(id_periodo, estado);
+CREATE UNIQUE INDEX idx_asignacion_activa_estudiante_periodo
+    ON asignacion(id_estudiante, id_periodo) WHERE estado = 'ACTIVA';
 CREATE INDEX idx_actividad_asignacion_estado ON registro_actividad(id_asignacion, estado);
 CREATE INDEX idx_evidencia_actividad ON evidencia(id_actividad);
 CREATE INDEX idx_visita_asignacion ON visita_seguimiento(id_asignacion);

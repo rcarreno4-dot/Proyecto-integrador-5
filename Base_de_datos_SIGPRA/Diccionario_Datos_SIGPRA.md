@@ -52,8 +52,9 @@ Las entidades y relaciones implementadas son:
 | `criterio_rubrica` | `detalle_evaluacion` | 1 a N |
 
 Cada asignacion pertenece a un estudiante, una plaza, un docente asesor y un
-periodo. La restriccion `UNIQUE (id_estudiante, id_periodo)` evita mas de una
-asignacion del mismo estudiante dentro del mismo periodo.
+periodo. El indice unico parcial `idx_asignacion_activa_estudiante_periodo`
+permite conservar asignaciones anteriores y evita mas de una asignacion
+`ACTIVA` del mismo estudiante dentro del mismo periodo.
 
 ## Modelo relacional y diccionario PostgreSQL
 
@@ -163,7 +164,7 @@ valor por defecto, la columna no tiene uno en el DDL.
 | | semestre | INTEGER | NO | NO | 1 o 2 | Semestre académico del año |
 | | fecha_inicio | DATE | NO | NO | NO | Fecha inicial del período |
 | | fecha_fin | DATE | NO | NO | Igual o posterior a fecha_inicio | Fecha final del período |
-| | fecha_limite_reportes | DATE | NO | NO | No posterior a fecha_fin | Fecha límite para entrega de reportes |
+| | fecha_limite_reportes | DATE | NO | NO | Igual o posterior a fecha_fin | Fecha límite para entrega de reportes |
 | | horas_minimas | INTEGER | NO | NO | Mayor que 0 | Horas requeridas para aprobar el período |
 | | estado | VARCHAR(20) | NO | NO | Default 'CONFIGURACION'; CONFIGURACION, PUBLICADO o CERRADO | Estado del proceso de prácticas |
 
@@ -195,11 +196,11 @@ valor por defecto, la columna no tiene uno en el DDL.
 
 | Clave primaria | Nombre de campo | Tipo de datos | Valor nulo | Único | Condición | Descripción |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| PK | id_asignacion | BIGSERIAL | NO | SI | UQ Compuesta (id_estudiante, id_periodo) | Identificador único de la asignación |
-| FK | id_estudiante | BIGINT | NO | NO | UQ Compuesta (id_estudiante, id_periodo) | Clave foránea referenciando a estudiante |
+| PK | id_asignacion | BIGSERIAL | NO | SI | NO | Identificador único de la asignación |
+| FK | id_estudiante | BIGINT | NO | NO | Índice único parcial junto con id_periodo cuando estado = 'ACTIVA' | Clave foránea referenciando a estudiante |
 | FK | id_plaza | BIGINT | NO | NO | NO | Clave foránea referenciando a plaza_practica |
 | FK | id_docente_asesor | BIGINT | NO | NO | NO | Clave foránea referenciando a docente_asesor |
-| FK | id_periodo | BIGINT | NO | NO | UQ Compuesta (id_estudiante, id_periodo) | Clave foránea referenciando a periodo_practica |
+| FK | id_periodo | BIGINT | NO | NO | Índice único parcial junto con id_estudiante cuando estado = 'ACTIVA' | Clave foránea referenciando a periodo_practica |
 | | fecha_asignacion | DATE | NO | NO | Default CURRENT_DATE | Fecha de registro de la asignación |
 | | estado | VARCHAR(20) | NO | NO | Default 'ACTIVA'; ACTIVA, REASIGNADA, CERRADA o CANCELADA | Estado del vínculo de práctica |
 | | horas_aprobadas | NUMERIC(7,2) | NO | NO | Default 0; Mayor o igual a 0 | Acumulado de horas validadas |
@@ -286,34 +287,38 @@ Base: `sigpra_documental`. MongoDB conserva documentos JSON/BSON y sus
 referencias a identificadores PostgreSQL; dichas referencias no son claves
 foraneas validadas automaticamente entre motores.
 
+En las tablas MongoDB, `Opcional = SI` significa que el campo puede omitirse.
+Un valor `null` explicito solo es valido cuando el validador BSON incluye
+`null`. `REF` identifica una referencia logica a PostgreSQL, no una FK.
+
 ## 17. Colección `evidencias_documentales` (MongoDB — `sigpra_documental`)
 
 **Descripción:** Almacenamiento no relacional de metadatos y referencias documentales de evidencias.
 
-| Clave primaria | Nombre de campo | Tipo BSON | Valor nulo | Único | Condición | Descripción |
+| Clave / referencia | Nombre de campo | Tipo BSON | Opcional | Único | Condición | Descripción |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | PK | _id | ObjectId | NO | SI | NO | Identificador único generado por MongoDB |
-| FK | actividad_id | long | NO | NO | Índice simple aplicados | Referencia a `registro_actividad.id_actividad` |
-| FK | evidencia_relacional_id | long | SI | NO | Índice simple aplicados | Referencia a `evidencia.id_evidencia` |
+| REF | actividad_id | long | NO | NO | Índice simple aplicado | Referencia a `registro_actividad.id_actividad` |
+| REF | evidencia_relacional_id | long | SI | NO | Índice simple aplicado | Referencia a `evidencia.id_evidencia` |
 | | nombre_archivo | string | NO | NO | NO | Nombre del archivo subido |
 | | archivo_url | string | NO | NO | NO | Ruta o enlace al almacenamiento de archivos |
 | | tipo_soporte | string | NO | NO | Índice compuesto con `creado_en` (desc) | Clasificación funcional de la evidencia |
 | | mime_type | string | SI | NO | NO | Tipo MIME del archivo |
 | | hash_archivo | string | SI | NO | NO | Hash de integridad del archivo |
 | | metadatos | object | SI | NO | NO | Documento con datos flexibles de la evidencia |
-| FK | creado_por_usuario_id | long | SI | NO | NO | Referencia a `usuario.id_usuario` |
+| REF | creado_por_usuario_id | long | SI | NO | NO | Referencia a `usuario.id_usuario` |
 | | creado_en | date | NO | NO | Índice compuesto con `tipo_soporte` | Fecha de creación del registro |
 
 ## 18. Colección `bitacoras_visita` (MongoDB — `sigpra_documental`)
 
 **Descripción:** Contenido extendido, compromisos y anexos de las visitas de seguimiento.
 
-| Clave primaria | Nombre de campo | Tipo BSON | Valor nulo | Único | Condición | Descripción |
+| Clave / referencia | Nombre de campo | Tipo BSON | Opcional | Único | Condición | Descripción |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | PK | _id | ObjectId | NO | SI | NO | Identificador único generado por MongoDB |
-| FK | visita_id | long | NO | SI | Índice único | Referencia a `visita_seguimiento.id_visita` |
-| FK | asignacion_id | long | NO | NO | Índice compuesto con `creado_en` (desc) | Referencia a `asignacion.id_asignacion` |
-| FK | docente_asesor_id | long | SI | NO | NO | Referencia a `docente_asesor.id_docente_asesor` |
+| REF | visita_id | long | NO | SI | Índice único | Referencia a `visita_seguimiento.id_visita` |
+| REF | asignacion_id | long | NO | NO | Índice compuesto con `creado_en` (desc) | Referencia a `asignacion.id_asignacion` |
+| REF | docente_asesor_id | long | SI | NO | NO | Referencia a `docente_asesor.id_docente_asesor` |
 | | observaciones | string | NO | NO | NO | Detalle extendido de la visita |
 | | compromisos | array | SI | NO | NO | Arreglo con los compromisos acordados |
 | | anexos | array | SI | NO | NO | Arreglo de referencias a anexos en almacenamiento |
@@ -323,11 +328,11 @@ foraneas validadas automaticamente entre motores.
 
 **Descripción:** Registro unificado de auditoría de eventos y trazabilidad del sistema.
 
-| Clave primaria | Nombre de campo | Tipo BSON | Valor nulo | Único | Condición | Descripción |
+| Clave / referencia | Nombre de campo | Tipo BSON | Opcional | Único | Condición | Descripción |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | PK | _id | ObjectId | NO | SI | NO | Identificador único generado por MongoDB |
 | | evento | string | NO | NO | NO | Acción o evento auditado |
-| FK | usuario_id | long | NO | NO | Índice compuesto con `fecha_evento` (desc) | Referencia a `usuario.id_usuario` |
+| REF | usuario_id | long | NO | NO | Índice compuesto con `fecha_evento` (desc) | Referencia a `usuario.id_usuario` |
 | | rol | string | SI | NO | NO | Rol que poseía el usuario al momento del evento |
 | | entidad | string | SI | NO | Índice compuesto con `entidad_id` | Tipo de objeto o entidad afectada |
 | | entidad_id | long | SI | NO | Índice compuesto con `entidad` | Identificador del objeto o entidad afectada |
@@ -359,9 +364,9 @@ referencia principal y puede mantener en MongoDB metadatos variables.
 | Control de acceso | Políticas de servicio | NO | NO | Restringido por rol y por asignación | Permisos de lectura/escritura del objeto |
 
 Las rutas son referencias ilustrativas, no prueba de que el servicio de archivos
-ya este desplegado. La aplicacion demostrativa actual persiste datos y
-referencias en `localStorage`; no almacena el binario ni se conecta aun a
-PostgreSQL o MongoDB.
+ya este desplegado. La aplicacion demostrativa actual guarda el estado en un
+archivo JSON del servidor Express y conserva una copia en `localStorage` como
+respaldo; no almacena el binario ni se conecta aun a PostgreSQL o MongoDB.
 
 ## Trazabilidad con los otros componentes
 
