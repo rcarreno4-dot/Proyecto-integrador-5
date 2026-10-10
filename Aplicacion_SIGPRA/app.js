@@ -1,5 +1,10 @@
 const STORAGE_KEY = "sigpra_mvp_data_v1";
 const SESSION_KEY = "sigpra_mvp_session_v1";
+const API_BASE = "/api";
+
+let apiEnabled = false;
+let apiStatusText = "Modo local";
+let syncTimer = null;
 
 const additionalDemoStudents = [
   { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8 },
@@ -167,6 +172,81 @@ function loadData() {
 
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  syncDataWithApi();
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Error de API" }));
+    throw new Error(error.message || "Error de API");
+  }
+  return response.json();
+}
+
+async function initializeApi() {
+  try {
+    await apiRequest("/health");
+    const [state, periods, agreements, assignments] = await Promise.all([
+      apiRequest("/state"),
+      apiRequest("/periods"),
+      apiRequest("/agreements"),
+      apiRequest("/assignments")
+    ]);
+    if (state?.data) {
+      data = {
+        ...state.data,
+        periods: periods.periods,
+        institutions: agreements.institutions,
+        agreements: agreements.agreements,
+        places: agreements.places,
+        assignments: assignments.assignments
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    apiEnabled = true;
+    apiStatusText = "API Express conectada";
+  } catch {
+    apiEnabled = false;
+    apiStatusText = "Modo local";
+  }
+  render();
+}
+
+function syncDataWithApi() {
+  if (!apiEnabled) return;
+  window.clearTimeout(syncTimer);
+  syncTimer = window.setTimeout(async () => {
+    try {
+      await apiRequest("/state", {
+        method: "PUT",
+        body: JSON.stringify(data)
+      });
+      apiStatusText = "API Express sincronizada";
+    } catch {
+      apiEnabled = false;
+      apiStatusText = "Modo local";
+      render();
+    }
+  }, 250);
+}
+
+async function loginWithApi(email, password) {
+  if (!apiEnabled) {
+    return data.users.find((item) => item.email === email && item.password === password) || null;
+  }
+  try {
+    const result = await apiRequest("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password })
+    });
+    return data.users.find((item) => item.id === result.user.id) || result.user;
+  } catch {
+    return null;
+  }
 }
 
 function loadSession() {
@@ -343,6 +423,7 @@ function render() {
         <div class="sidebar-footer">
           <strong>${escapeHtml(user.name)}</strong>
           <p class="muted">${escapeHtml(roleLabel(user.role))}</p>
+          <p class="api-status">${escapeHtml(apiStatusText)}</p>
           <button class="button" data-action="logout">Cerrar sesion</button>
         </div>
       </aside>
@@ -530,7 +611,7 @@ function renderLogin() {
           <h1>SIGPRA</h1>
           <p>Aplicacion web para gestionar practicas academicas: periodos, convenios, asignaciones, evidencias, validacion, visitas y reportes.</p>
         </div>
-        <p>Version funcional de demostracion con persistencia local en navegador.</p>
+        <p>Version funcional con backend Node, Express, TypeScript y APIs MVC. ${escapeHtml(apiStatusText)}.</p>
       </section>
       <section class="login-card">
         <div class="brand login-brand">
@@ -2005,11 +2086,11 @@ function downloadFile(name, content, type) {
   URL.revokeObjectURL(url);
 }
 
-document.addEventListener("submit", (event) => {
+document.addEventListener("submit", async (event) => {
   if (event.target.id === "login-form") {
     event.preventDefault();
     const formData = Object.fromEntries(new FormData(event.target).entries());
-    const user = data.users.find((item) => item.email === formData.email && item.password === formData.password);
+    const user = await loginWithApi(String(formData.email), String(formData.password));
     if (!user) {
       toast("Correo o clave incorrectos.");
       return;
@@ -2060,10 +2141,11 @@ document.addEventListener("change", (event) => {
   render();
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const login = event.target.closest("[data-login]");
   if (login) {
-    const user = data.users.find((item) => item.email === login.dataset.login);
+    const demoUser = data.users.find((item) => item.email === login.dataset.login);
+    const user = await loginWithApi(login.dataset.login, demoUser?.password || "123456");
     saveSession(user);
     currentView = "dashboard";
     render();
@@ -2123,4 +2205,4 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") document.querySelector(".modal-backdrop")?.remove();
 });
 
-render();
+initializeApi();

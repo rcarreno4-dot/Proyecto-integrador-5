@@ -1,10 +1,50 @@
 # Aplicacion SIGPRA
 
 Aplicacion web funcional tipo MVP para el producto final de SIGPRA.
+Incluye frontend web y backend API REST con Node.js, Express, TypeScript y organizacion MVC.
 
 ## Como abrir
 
-Abrir `index.html` en el navegador.
+### Opcion recomendada con API
+
+```bash
+npm install
+npm run dev
+```
+
+Luego abrir:
+
+```text
+http://localhost:3000
+```
+
+### Opcion local de respaldo
+
+Abrir `index.html` en el navegador. En este modo la aplicacion funciona con `localStorage`, sin servidor.
+
+## Backend MVC
+
+La capa backend se encuentra en `src/`:
+
+| Carpeta | Responsabilidad |
+| --- | --- |
+| `src/controllers` | Recibe peticiones HTTP y responde JSON. |
+| `src/services` | Ejecuta reglas de negocio de autenticacion, periodos, convenios, asignaciones y reportes. |
+| `src/models` | Define tipos TypeScript, datos demo y persistencia JSON local. |
+| `src/routes` | Agrupa las rutas REST expuestas por Express. |
+
+## APIs implementadas
+
+| API | Metodo | Uso en la aplicacion |
+| --- | --- | --- |
+| `/api/health` | GET | Verifica conexion del frontend con Express. |
+| `/api/state` | GET | Carga el estado inicial desde el backend. |
+| `/api/state` | PUT | Sincroniza cambios realizados en la interfaz. |
+| `/api/auth/login` | POST | Valida inicio de sesion por rol. |
+| `/api/periods` | GET/POST | Expone periodos de practica. |
+| `/api/agreements` | GET/POST | Expone instituciones, convenios y plazas. |
+| `/api/assignments` | GET/POST | Expone asignaciones de practicantes. |
+| `/api/reports/consolidated` | GET | Entrega consolidado de practicas. |
 
 ## Usuarios de prueba
 
@@ -33,8 +73,9 @@ Abrir `index.html` en el navegador.
 - CU-07: consultar consolidado con filtros por periodo, programa, institucion y docente; exportar CSV o imprimir/guardar como PDF desde el navegador.
 - Registro de evidencias como metadatos.
 - Exportacion de datos en JSON.
-- Persistencia local en navegador con `localStorage`.
+- Consumo de APIs Express para carga, login, periodos, convenios, asignaciones y sincronizacion.
+- Persistencia local en navegador con `localStorage` como respaldo.
 
 ## Alcance tecnico
 
-Esta version funciona sin servidor para que pueda demostrarse de inmediato. Los datos y el nombre/tipo de los archivos se guardan localmente en el navegador; los archivos binarios y las notificaciones no se envian a terceros. El selector "Ver como" facilita la demostracion y no representa control de acceso de produccion. Para produccion, el siguiente paso es conectar la interfaz a una API REST con PostgreSQL, MongoDB y almacenamiento de archivos, usando los scripts incluidos en `Base_de_datos_SIGPRA`.
+Esta version funciona con un backend API REST en Node.js/Express/TypeScript y tambien conserva modo local de respaldo para demostracion inmediata. Los datos se sincronizan contra una persistencia JSON local del servidor; los archivos binarios y las notificaciones no se envian a terceros. El selector "Ver como" facilita la demostracion y no representa control de acceso de produccion. Para produccion, el siguiente paso es reemplazar la persistencia JSON por PostgreSQL, MongoDB y almacenamiento de archivos, usando los scripts incluidos en `Base_de_datos_SIGPRA`.

@@ -27,3 +27,19 @@ datos). Los scripts fuente se encuentran en `../Base_de_datos_SIGPRA/`.
 - `Prototipos_Figma_SIGPRA.md`: enlace al prototipo de mediana fidelidad en Figma.
 - `Vistas_actuales_SIGPRA/`: capturas de las vistas actuales de la aplicacion para CU-01 a CU-07.
 - `Acta_segumiento_blank.docx` y `Actas de seguimiento/`: formatos y actas de seguimiento.
+
+## Aplicacion web y APIs
+
+- `../Aplicacion_SIGPRA/`: prototipo funcional web con backend Node.js, Express y TypeScript.
+- La aplicacion esta organizada con arquitectura MVC en `../Aplicacion_SIGPRA/src/`.
+- APIs principales: autenticacion, periodos, convenios/plazas, asignaciones, consolidado y sincronizacion de estado.
+- `Anexo_APIs_MVC_SIGPRA.md`: rutas consumidas por la interfaz, ejecucion y alcance real de la persistencia.
+- Ejecucion recomendada:
+
+```bash
+cd ../Aplicacion_SIGPRA
+npm install
+npm run dev
+```
+
+Luego abrir `http://localhost:3000`.
