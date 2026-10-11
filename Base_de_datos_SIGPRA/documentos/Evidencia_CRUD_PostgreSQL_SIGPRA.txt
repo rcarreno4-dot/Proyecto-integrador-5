@@ -1,0 +1,119 @@
+﻿SIGPRA - Evidencia de montaje y pruebas CRUD PostgreSQL
+Fecha de ejecucion: 2026-10-11 11:34:54
+Base de datos: sigpra
+Usuario: postgres
+Script: C:\Users\Fabian\OneDrive\Desktop\Actual proyecto5\Proyecto-integrador-5\Base_de_datos_SIGPRA\scripts\pruebas_crud_basicas.sql
+
+Timing is on.
+============================================================
+SIGPRA - INICIO DE PRUEBAS CRUD
+============================================================
+SET
+Time: 4,240 ms
+BEGIN
+Time: 0,630 ms
+DELETE 0
+Time: 56,035 ms
+DELETE 0
+Time: 0,687 ms
+DELETE 0
+Time: 7,138 ms
+DELETE 0
+Time: 8,020 ms
+
+1. CREATE - insercion de datos de prueba
+INSERT 0 1
+Time: 4,527 ms
+INSERT 0 1
+Time: 2,621 ms
+INSERT 0 1
+Time: 5,930 ms
+INSERT 0 1
+Time: 2,432 ms
+
+2. READ - consulta de los registros creados
+ id_institucion |             nombre             |      nit       | telefono | responsable_contacto | activa 
+----------------+--------------------------------+----------------+----------+----------------------+--------
+              2 | Institucion Prueba CRUD SIGPRA | CRUD-TEST-2026 | 6000000  | Contacto Inicial     | t
+(1 row)
+
+Time: 0,738 ms
+ id_usuario | nombres |  apellidos  |          correo          |     rol     | estado 
+------------+---------+-------------+--------------------------+-------------+--------
+          2 | Usuario | Prueba CRUD | crud.sigpra@prueba.local | COORDINADOR | ACTIVO
+(1 row)
+
+Time: 0,642 ms
+ id_convenio |  numero_convenio   | fecha_inicio | fecha_fin  | estado  |          institucion           
+-------------+--------------------+--------------+------------+---------+--------------------------------
+           2 | CONV-CRUD-2026-001 | 2026-01-15   | 2026-12-15 | VIGENTE | Institucion Prueba CRUD SIGPRA
+(1 row)
+
+Time: 0,763 ms
+ id_plaza | nivel_practica | jornada | cupos_ofrecidos | cupos_ocupados |   estado   |  numero_convenio   
+----------+----------------+---------+-----------------+----------------+------------+--------------------
+        2 | PRACTICA I     | MANANA  |               3 |              0 | DISPONIBLE | CONV-CRUD-2026-001
+(1 row)
+
+Time: 0,867 ms
+
+3. UPDATE - modificacion de datos
+UPDATE 1
+Time: 1,321 ms
+UPDATE 1
+Time: 0,895 ms
+UPDATE 1
+Time: 1,125 ms
+UPDATE 1
+Time: 1,681 ms
+
+Verificacion posterior al UPDATE
+             nombre             |      nit       | telefono | responsable_contacto 
+--------------------------------+----------------+----------+----------------------
+ Institucion Prueba CRUD SIGPRA | CRUD-TEST-2026 | 6111111  | Contacto Actualizado
+(1 row)
+
+Time: 0,602 ms
+          correo          |     rol     |  estado  
+--------------------------+-------------+----------
+ crud.sigpra@prueba.local | COORDINADOR | INACTIVO
+(1 row)
+
+Time: 0,620 ms
+  numero_convenio   | fecha_fin  | estado  
+--------------------+------------+---------
+ CONV-CRUD-2026-001 | 2027-01-31 | VIGENTE
+(1 row)
+
+Time: 0,616 ms
+ nivel_practica | cupos_ofrecidos | cupos_ocupados |   estado   
+----------------+-----------------+----------------+------------
+ PRACTICA I     |               5 |              0 | DISPONIBLE
+(1 row)
+
+Time: 0,786 ms
+
+4. DELETE - eliminacion en orden de dependencias
+DELETE 1
+Time: 9,384 ms
+DELETE 1
+Time: 1,540 ms
+DELETE 1
+Time: 1,244 ms
+DELETE 1
+Time: 18,556 ms
+
+5. VERIFICACION FINAL - todos los conteos deben ser 0
+ instituciones_prueba | usuarios_prueba | convenios_prueba | plazas_prueba 
+----------------------+-----------------+------------------+---------------
+                    0 |               0 |                0 |             0
+(1 row)
+
+Time: 3,771 ms
+COMMIT
+Time: 2,183 ms
+
+============================================================
+SIGPRA - FIN DE PRUEBAS CRUD
+Si no hubo errores y los conteos finales son 0, la prueba termino correctamente.
+============================================================

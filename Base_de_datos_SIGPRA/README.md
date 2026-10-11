@@ -9,8 +9,13 @@ No reemplaza la propuesta ni modifica los documentos existentes. Su objetivo es 
 - `Documento_Base_de_Datos_SIGPRA.md`: documento principal de base de datos.
 - `Diccionario_Datos_SIGPRA.md`: diccionario relacional PostgreSQL y diccionarios de MongoDB y almacenamiento de archivos.
 - `scripts/postgresql_schema.sql`: script inicial para la base relacional PostgreSQL.
+- `scripts/pruebas_crud_basicas.sql`: prueba CRUD reproducible sobre tablas basicas.
+- `scripts/ejecutar_pruebas_crud_postgresql.ps1`: ejecutor PowerShell que guarda la evidencia CRUD.
 - `scripts/migracion_2026_10_reglas_asignacion_periodo.sql`: adapta una base ya creada a las reglas de plazo de reporte y reasignacion.
 - `scripts/mongodb_collections.js`: script inicial para colecciones MongoDB.
+- `documentos/Montaje_y_Pruebas_CRUD_PostgreSQL_SIGPRA.md`: seccion lista para documentar el montaje y las pruebas CRUD.
+- `documentos/Pruebas_CRUD_PostgreSQL_SIGPRA.md`: guia de ejecucion y criterios de aceptacion de la prueba CRUD.
+- `documentos/Evidencia_CRUD_PostgreSQL_SIGPRA.txt`: salida real esperada de PostgreSQL despues de ejecutar la prueba CRUD.
 - `documentos/Almacenamiento_Archivos_SIGPRA.md`: reglas para soportes y evidencias cargadas.
 - `documentos/Tareas_Base_de_Datos_SIGPRA.md`: tareas sugeridas para construir y validar la persistencia.
 - `imagenes/arquitectura_persistencia.svg`: diagrama de arquitectura de persistencia.
