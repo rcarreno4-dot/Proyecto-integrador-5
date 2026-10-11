@@ -109,7 +109,15 @@ export interface AuditEvent {
   entity: string;
 }
 
+export interface AcademicProgram {
+  id: number;
+  name: string;
+  levels: string[];
+  active: boolean;
+}
+
 export interface SigpraData {
+  programs: AcademicProgram[];
   users: User[];
   periods: Period[];
   institutions: Institution[];

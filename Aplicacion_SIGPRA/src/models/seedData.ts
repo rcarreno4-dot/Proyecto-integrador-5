@@ -12,6 +12,11 @@ export const seedData: SigpraData = {
     { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8 },
     { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 }
   ],
+  programs: [
+    { id: 1, name: "Ingenieria de Sistemas", levels: ["Practica profesional"], active: true },
+    { id: 2, name: "Licenciatura en Pedagogia", levels: ["Practica I", "Practica II"], active: true },
+    { id: 3, name: "Licenciatura en Educacion Infantil", levels: ["VIII semestre"], active: true }
+  ],
   periods: [
     {
       id: 1,
