@@ -330,9 +330,11 @@ function moneyDate(value) {
 }
 
 function toast(message) {
-  document.querySelector(".toast")?.remove();
+  document.querySelector(".sigpra-toast")?.remove();
   const node = document.createElement("div");
-  node.className = "toast";
+  node.className = "sigpra-toast";
+  node.setAttribute("role", "status");
+  node.setAttribute("aria-live", "polite");
   node.textContent = message;
   document.body.appendChild(node);
   setTimeout(() => node.remove(), 3200);
@@ -363,7 +365,7 @@ function statusTag(status) {
   const warn = ["PENDIENTE", "CONFIGURACION", "DEVUELTA", "BORRADOR"];
   const bad = ["RECHAZADA", "VENCIDO", "CANCELADA", "INACTIVA"];
   const cls = ok.includes(status) ? "ok" : warn.includes(status) ? "warn" : bad.includes(status) ? "bad" : "";
-  return `<span class="tag ${cls}">${escapeHtml(status)}</span>`;
+  return `<span class="badge rounded-pill tag ${cls}">${escapeHtml(status)}</span>`;
 }
 
 function agreementStatus(agreement) {
@@ -433,7 +435,7 @@ function render() {
         </div>
         <div class="role-switch">
           <label for="role-switch">Ver como</label>
-          <select id="role-switch">
+          <select class="form-select" id="role-switch">
             ${[
               ["COORDINADOR", "Coordinador de Practicas"],
               ["ESTUDIANTE", "Estudiante"],
@@ -442,14 +444,14 @@ function render() {
             ].map(([role, label]) => `<option value="${role}" ${user.role === role ? "selected" : ""}>${label}</option>`).join("")}
           </select>
         </div>
-        <nav class="nav" aria-label="Navegacion de ${escapeHtml(roleLabel(user.role))}">
+        <nav class="nav nav-pills" aria-label="Navegacion de ${escapeHtml(roleLabel(user.role))}">
           ${renderNavigation(nav)}
         </nav>
         <div class="sidebar-footer">
           <strong>${escapeHtml(user.name)}</strong>
           <p class="muted">${escapeHtml(roleLabel(user.role))}</p>
           <p class="api-status">${escapeHtml(apiStatusText)}</p>
-          <button class="button" data-action="logout">Cerrar sesion</button>
+          <button class="btn btn-outline-secondary button" data-action="logout">Cerrar sesion</button>
         </div>
       </aside>
       <main class="content">
@@ -512,7 +514,7 @@ function renderNavigation(nav) {
       ? `<span class="nav-heading">${escapeHtml(item.group)}</span>`
       : "";
     currentGroup = item.group;
-    return `${heading}<button class="${item.id === currentView ? "active" : ""}" data-view="${item.id}" ${item.id === currentView ? 'aria-current="page"' : ""}>${escapeHtml(item.label)}</button>`;
+    return `${heading}<button class="nav-link ${item.id === currentView ? "active" : ""}" data-view="${item.id}" ${item.id === currentView ? 'aria-current="page"' : ""}>${escapeHtml(item.label)}</button>`;
   }).join("");
 }
 
@@ -647,18 +649,18 @@ function renderLogin() {
         <p class="muted">Usa una cuenta de prueba o ingresa correo y clave.</p>
         <form id="login-form" class="form-grid">
           <label class="full-field">Correo
-            <input name="email" type="email" value="coordinador@udi.edu.co" required />
+            <input class="form-control" name="email" type="email" value="coordinador@udi.edu.co" required />
           </label>
           <label class="full-field">Clave
-            <input name="password" type="password" value="123456" required />
+            <input class="form-control" name="password" type="password" value="123456" required />
           </label>
-          <button class="button primary full-field" type="submit">Entrar</button>
+          <button class="btn btn-primary button primary full-field" type="submit">Entrar</button>
         </form>
         <div class="demo-users">
           ${data.users
             .filter((user) => ["COORDINADOR", "ESTUDIANTE", "DOCENTE_ASESOR", "DIRECTOR"].includes(user.role))
             .slice(0, 4)
-            .map((user) => `<button data-login="${user.email}"><strong>${escapeHtml(roleLabel(user.role))}</strong><br><span class="muted">${escapeHtml(user.email)}</span></button>`)
+            .map((user) => `<button class="btn btn-light text-start" data-login="${user.email}"><strong>${escapeHtml(roleLabel(user.role))}</strong><br><span class="muted">${escapeHtml(user.email)}</span></button>`)
             .join("")}
         </div>
       </section>
@@ -692,8 +694,8 @@ function renderDashboard(user) {
       ${metricCard("Asignaciones pendientes", unassignedStudents, "Estudiantes por asignar")}
       <article class="card wide">
         <h2>Periodo activo</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Programa</th><th>Nivel</th><th>Vigencia</th><th>Estado</th></tr></thead>
             <tbody>
               ${activePeriod
@@ -707,7 +709,7 @@ function renderDashboard(user) {
         <h2>Acciones</h2>
         <p class="muted">Continua la gestion del periodo.</p>
         <div class="toolbar">
-          <button class="button primary" data-view="assignments">Asignar practicantes</button>
+          <button class="btn btn-primary button primary" data-view="assignments">Asignar practicantes</button>
         </div>
       </article>
     </section>
@@ -735,7 +737,7 @@ function renderDirectorHome(user) {
         <h2>Acciones</h2>
         <p class="muted">Revisa el estado consolidado del periodo.</p>
         <div class="toolbar">
-          <button class="button primary" data-view="reports">Ver consolidado de practicas</button>
+          <button class="btn btn-primary button primary" data-view="reports">Ver consolidado de practicas</button>
         </div>
       </article>
     </section>
@@ -778,8 +780,8 @@ function renderProgramCatalog() {
       <td>${escapeHtml(program.levels.join(", "))}</td>
       <td>${statusTag(program.active ? "ACTIVA" : "INACTIVA")}</td>
       <td>
-        <button class="button" data-action="edit-program" data-id="${program.id}">Editar</button>
-        <button class="button" data-action="delete-program" data-id="${program.id}">Eliminar</button>
+        <button class="btn btn-outline-secondary button" data-action="edit-program" data-id="${program.id}">Editar</button>
+        <button class="btn btn-outline-secondary button" data-action="delete-program" data-id="${program.id}">Eliminar</button>
       </td>
     </tr>`).join("");
   return `<article class="card full">
@@ -787,13 +789,13 @@ function renderProgramCatalog() {
     <p class="muted">Registra programas y sus niveles de practica. Los programas en uso no pueden eliminarse.</p>
     <form class="form-grid" data-submit="academic-program" id="program-crud-form">
       <input type="hidden" name="programId" value="">
-      <label>Nombre del programa<input name="name" required maxlength="120" placeholder="Nombre del programa"></label>
-      <label>Niveles de practica (separados por coma)<input name="levels" required placeholder="Practica I, Practica II"></label>
-      <label>Estado<select name="active"><option value="true">ACTIVO</option><option value="false">INACTIVO</option></select></label>
-      <div class="toolbar full-field"><button class="button primary" type="submit">Guardar programa</button>
-      <button class="button" type="button" data-action="cancel-program-edit">Limpiar</button></div>
+      <label>Nombre del programa<input class="form-control" name="name" required maxlength="120" placeholder="Nombre del programa"></label>
+      <label>Niveles de practica (separados por coma)<input class="form-control" name="levels" required placeholder="Practica I, Practica II"></label>
+      <label>Estado<select class="form-select" name="active"><option value="true">ACTIVO</option><option value="false">INACTIVO</option></select></label>
+      <div class="toolbar full-field"><button class="btn btn-primary button primary" type="submit">Guardar programa</button>
+      <button class="btn btn-outline-secondary button" type="button" data-action="cancel-program-edit">Limpiar</button></div>
     </form>
-    <div class="table-wrap"><table><thead><tr><th>PROGRAMA</th><th>NIVELES</th><th>ESTADO</th><th>ACCIONES</th></tr></thead>
+    <div class="table-wrap table-responsive"><table class="table table-hover align-middle"><thead><tr><th>PROGRAMA</th><th>NIVELES</th><th>ESTADO</th><th>ACCIONES</th></tr></thead>
     <tbody>${rows || '<tr><td colspan="4">No hay programas registrados.</td></tr>'}</tbody></table></div>
   </article>`;
 }
@@ -809,8 +811,8 @@ function renderPeriods() {
       </article>
       <article class="card full">
         <h2>Periodos registrados</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Programa</th><th>Nivel</th><th>Periodo</th><th>Vigencia</th><th>Reporte hasta</th><th>Horas</th><th>Evaluacion</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.periods.map((period) => `
@@ -822,7 +824,7 @@ function renderPeriods() {
                   <td>${moneyDate(period.reportLimit)}</td>
                   <td>${period.minHours}</td>
                   <td>${(period.rubric || []).map((criterion) => `${escapeHtml(criterion.name)} (${criterion.weight}%)`).join("<br>") || "Sin criterios configurados"}</td>
-                  <td>${statusTag(period.status)}${period.status === "BORRADOR" ? `<br><button class="button" data-modal="period" data-id="${period.id}">Continuar borrador</button>` : ""}</td>
+                  <td>${statusTag(period.status)}${period.status === "BORRADOR" ? `<br><button class="btn btn-outline-secondary button" data-modal="period" data-id="${period.id}">Continuar borrador</button>` : ""}</td>
                 </tr>
               `).join("") || `<tr><td colspan="8">No hay periodos registrados.</td></tr>`}
             </tbody>
@@ -838,7 +840,7 @@ function renderAgreements() {
     <section class="stack">
       <article class="card full">
         <div class="toolbar">
-          <button class="button primary" data-modal="institution">Nueva institucion</button>
+          <button class="btn btn-primary button primary" data-modal="institution">Nueva institucion</button>
         </div>
         <h2>Registrar convenio y plaza</h2>
         <p class="muted">Selecciona una institucion y completa en orden el convenio y la plaza ofrecida. Los convenios vencidos o sin documento quedan inactivos y sus plazas no se ofrecen para asignacion.</p>
@@ -846,8 +848,8 @@ function renderAgreements() {
       </article>
       <article class="card full">
         <h2>Convenios y plazas registrados</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Institucion</th><th>Convenio</th><th>Vigencia</th><th>Plazas</th><th>Cupos</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.agreements.map((agreement) => {
@@ -873,8 +875,8 @@ function renderAgreements() {
       </article>
       <article class="card full">
         <h2>Plazas disponibles</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Institucion</th><th>Nivel</th><th>Jornada</th><th>Cupos</th><th>Docente titular</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.places.map((place) => {
@@ -938,16 +940,16 @@ function assignmentWorkflowForm() {
         <p class="assignment-period">Periodo vigente: <strong>${escapeHtml(activePeriod.year)}-${escapeHtml(activePeriod.semester)}</strong> (${escapeHtml(activePeriod.program)} - ${escapeHtml(activePeriod.level)})</p>
         <input type="hidden" name="periodId" value="${activePeriod.id}" />
         <label class="full-field">Estudiante habilitado
-          <select name="studentId" required>
+          <select class="form-select" name="studentId" required>
             <option value="">-- Seleccione un estudiante --</option>
             ${studentUsers().map((student) => `<option value="${student.id}">${escapeHtml(student.name)} - ${escapeHtml(student.code || student.email)}</option>`).join("")}
           </select>
         </label>
         <div class="full-field" id="assignment-student-details" hidden></div>
-        <div class="full-field notice warning" id="assignment-reassignment" hidden>
+        <div class="full-field alert alert-warning notice warning" id="assignment-reassignment" hidden>
           <strong>Asignacion activa encontrada.</strong> Para cambiar la plaza o el docente, selecciona el motivo de la reasignacion.
           <label>Motivo de la reasignacion
-            <select name="reassignmentReason">
+            <select class="form-select" name="reassignmentReason">
               <option value="">-- Seleccione un motivo --</option>
               <option>Solicitud de la institucion receptora</option>
               <option>Solicitud del estudiante</option>
@@ -961,7 +963,7 @@ function assignmentWorkflowForm() {
         <h2><span class="step-number">2</span> Plaza de practica</h2>
         <p class="muted">Solo se muestran plazas con cupo disponible y convenio vigente.</p>
         <label class="full-field">Plaza disponible
-          <select name="placeId" ${availablePlaces.length ? "" : "disabled"}>
+          <select class="form-select" name="placeId" ${availablePlaces.length ? "" : "disabled"}>
             <option value="">-- Seleccione una plaza --</option>
             ${availablePlaces.map((place) => {
               const agreement = data.agreements.find((item) => item.id === place.agreementId);
@@ -977,7 +979,7 @@ function assignmentWorkflowForm() {
         <h2><span class="step-number">3</span> Docente asesor</h2>
         <p class="muted">Selecciona un docente con disponibilidad en el periodo.</p>
         <label class="full-field">Docente asesor disponible
-          <select name="teacherId" ${availableTeachers.length ? "" : "disabled"}>
+          <select class="form-select" name="teacherId" ${availableTeachers.length ? "" : "disabled"}>
             <option value="">-- Seleccione un docente --</option>
             ${availableTeachers.map((teacher) => {
               const load = data.assignments.filter((assignment) =>
@@ -993,8 +995,8 @@ function assignmentWorkflowForm() {
         <h2><span class="step-number">4</span> Resumen de la asignacion</h2>
         <div id="assignment-summary" class="empty">Revisa los datos seleccionados antes de confirmar.</div>
         <div class="toolbar">
-          <button class="button" type="button" data-action="reset-assignment-workflow">Limpiar seleccion</button>
-          <button class="button primary" type="submit">Confirmar asignacion</button>
+          <button class="btn btn-outline-secondary button" type="button" data-action="reset-assignment-workflow">Limpiar seleccion</button>
+          <button class="btn btn-primary button primary" type="submit">Confirmar asignacion</button>
         </div>
       </article>
     </form>
@@ -1039,7 +1041,7 @@ function updateAssignmentWorkflow(form, changedField = "") {
 
   studentDetails.hidden = !student;
   studentDetails.innerHTML = student
-    ? `<table><tbody><tr><th>Programa</th><td>${escapeHtml(period?.program || "No especificado")}</td><th>Semestre</th><td>${escapeHtml(student.semester || "No especificado")}</td></tr><tr><th>Estado</th><td><span class="tag ok">Habilitado</span></td><th>Horas requeridas</th><td>${period?.minHours || "No definidas"}</td></tr></tbody></table>`
+    ? `<table class="table table-hover align-middle"><tbody><tr><th>Programa</th><td>${escapeHtml(period?.program || "No especificado")}</td><th>Semestre</th><td>${escapeHtml(student.semester || "No especificado")}</td></tr><tr><th>Estado</th><td><span class="badge rounded-pill tag ok">Habilitado</span></td><th>Horas requeridas</th><td>${period?.minHours || "No definidas"}</td></tr></tbody></table>`
     : "";
 
   reassignment.hidden = !activeAssignment;
@@ -1055,7 +1057,7 @@ function updateAssignmentWorkflow(form, changedField = "") {
   placeField.required = hasStudentAndPeriod && !placeField.disabled;
   placeDetails.hidden = !place;
   placeDetails.innerHTML = place
-    ? `<table><tbody><tr><th>Institucion</th><td>${escapeHtml(institution?.name || "")}</td><th>Convenio</th><td>${escapeHtml(agreement?.number || "")}</td></tr><tr><th>Nivel / jornada</th><td>${escapeHtml(place.level)} - ${escapeHtml(place.shift)}</td><th>Cupos</th><td>${place.offered - place.occupied} disponibles de ${place.offered}</td></tr></tbody></table>`
+    ? `<table class="table table-hover align-middle"><tbody><tr><th>Institucion</th><td>${escapeHtml(institution?.name || "")}</td><th>Convenio</th><td>${escapeHtml(agreement?.number || "")}</td></tr><tr><th>Nivel / jornada</th><td>${escapeHtml(place.level)} - ${escapeHtml(place.shift)}</td><th>Cupos</th><td>${place.offered - place.occupied} disponibles de ${place.offered}</td></tr></tbody></table>`
     : "";
 
   stepTeacher.hidden = !hasPlace;
@@ -1068,15 +1070,15 @@ function updateAssignmentWorkflow(form, changedField = "") {
   const selectedPeriod = period ? `${period.year}-${period.semester} (${period.program} - ${period.level})` : "";
   summary.classList.toggle("empty", !hasTeacher);
   summary.innerHTML = hasTeacher
-    ? `<table><tbody><tr><th>Estudiante</th><td>${escapeHtml(selectedStudent)}</td></tr><tr><th>Plaza / institucion</th><td>${escapeHtml(selectedPlace)}</td></tr><tr><th>Docente asesor</th><td>${escapeHtml(selectedTeacher)}</td></tr><tr><th>Periodo</th><td>${escapeHtml(selectedPeriod)}</td></tr><tr><th>Tipo</th><td>${activeAssignment ? "Reasignacion" : "Nueva asignacion"}</td></tr></tbody></table>`
+    ? `<table class="table table-hover align-middle"><tbody><tr><th>Estudiante</th><td>${escapeHtml(selectedStudent)}</td></tr><tr><th>Plaza / institucion</th><td>${escapeHtml(selectedPlace)}</td></tr><tr><th>Docente asesor</th><td>${escapeHtml(selectedTeacher)}</td></tr><tr><th>Periodo</th><td>${escapeHtml(selectedPeriod)}</td></tr><tr><th>Tipo</th><td>${activeAssignment ? "Reasignacion" : "Nueva asignacion"}</td></tr></tbody></table>`
     : "Revisa los datos seleccionados antes de confirmar.";
 }
 
 function assignmentsTable(assignments) {
   if (!assignments.length) return `<div class="empty">No hay asignaciones registradas.</div>`;
   return `
-    <div class="table-wrap">
-      <table>
+    <div class="table-wrap table-responsive">
+      <table class="table table-hover align-middle">
         <thead><tr><th>Estudiante</th><th>Institucion</th><th>Docente asesor</th><th>Periodo</th><th>Horas</th><th>Estado</th></tr></thead>
         <tbody>
           ${assignments.map((assignment) => {
@@ -1121,8 +1123,8 @@ function renderStudentActivities(user) {
 function studentActivitiesTable(activities) {
   if (!activities.length) return `<div class="empty">No hay actividades registradas.</div>`;
   return `
-    <div class="table-wrap">
-      <table>
+    <div class="table-wrap table-responsive">
+      <table class="table table-hover align-middle">
         <thead><tr><th>Fecha</th><th>Actividad</th><th>Horas</th><th>Soportes</th><th>Estado</th><th>Observacion</th><th>Accion</th></tr></thead>
         <tbody>
           ${activities.map((activity) => {
@@ -1135,7 +1137,7 @@ function studentActivitiesTable(activities) {
               <td>${evidences.map((evidence) => escapeHtml(evidence.fileName)).join("<br>") || "Sin soportes"}</td>
               <td>${statusTag(activity.status)}</td>
               <td>${escapeHtml(activity.observation || "Sin observacion")}</td>
-              <td>${canEdit ? `<button class="button" data-modal="activity" data-id="${activity.id}">${activity.status === "DEVUELTA" ? "Corregir y reenviar" : "Completar borrador"}</button>` : "—"}</td>
+              <td>${canEdit ? `<button class="btn btn-outline-secondary button" data-modal="activity" data-id="${activity.id}">${activity.status === "DEVUELTA" ? "Corregir y reenviar" : "Completar borrador"}</button>` : "—"}</td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -1147,8 +1149,8 @@ function studentActivitiesTable(activities) {
 function activitiesTable(activities, withActions = false) {
   if (!activities.length) return `<div class="empty">No hay actividades registradas.</div>`;
   return `
-    <div class="table-wrap">
-      <table>
+    <div class="table-wrap table-responsive">
+      <table class="table table-hover align-middle">
         <thead><tr><th>Fecha</th><th>Estudiante</th><th>Actividad</th><th>Horas</th><th>Estado</th><th>Observacion</th>${withActions ? "<th>Accion</th>" : ""}</tr></thead>
         <tbody>
           ${activities.map((activity) => {
@@ -1162,7 +1164,7 @@ function activitiesTable(activities, withActions = false) {
                 <td>${activity.hours}</td>
                 <td>${statusTag(activity.status)}</td>
                 <td>${escapeHtml(activity.observation || "Sin observacion")}</td>
-                ${withActions ? `<td><button class="button" data-modal="validate" data-id="${activity.id}">Revisar</button></td>` : ""}
+                ${withActions ? `<td><button class="btn btn-outline-secondary button" data-modal="validate" data-id="${activity.id}">Revisar</button></td>` : ""}
               </tr>
             `;
           }).join("")}
@@ -1185,8 +1187,8 @@ function renderStudentEvidence(user) {
         ${assignment ? modalForm("evidence") : `<div class="empty">Necesitas una asignacion activa para adjuntar evidencias.</div>`}
       </article>
       <article class="card full">
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Archivo</th><th>Actividad</th><th>Tipo</th><th>Referencia</th><th>Estado</th></tr></thead>
             <tbody>
               ${evidences.map((evidence) => {
@@ -1212,8 +1214,8 @@ function renderStudentValidations(user) {
     <section class="grid">
       <article class="card full">
         <h2>Estado de validaciones</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Actividad</th><th>Fecha</th><th>Horas</th><th>Resultado</th><th>Observacion</th></tr></thead>
             <tbody>
               ${activities.map((activity) => `
@@ -1251,13 +1253,13 @@ function renderStudentProgress(user, compact = false) {
         <p><strong>Institucion:</strong> ${escapeHtml(d.institution?.name)}</p>
         <p><strong>Docente asesor:</strong> ${escapeHtml(d.teacher?.name)}</p>
         <p><strong>Periodo:</strong> ${d.period?.year}-${d.period?.semester}</p>
-        <div class="progress" aria-label="Avance de horas"><span style="width:${percent}%"></span></div>
+        <div class="progress" aria-label="Avance de horas"><span class="progress-bar" style="width:${percent}%"></span></div>
       </article>
       <article class="card">
         <h2>Acciones</h2>
         <div class="toolbar">
-          <button class="button primary" data-view="student-activities">Registrar actividad</button>
-          <button class="button" data-view="student-evidence">Registrar evidencia</button>
+          <button class="btn btn-primary button primary" data-view="student-activities">Registrar actividad</button>
+          <button class="btn btn-outline-secondary button" data-view="student-evidence">Registrar evidencia</button>
         </div>
       </article>
       ${compact ? "" : `<article class="card full"><h2>Historial</h2>${activitiesTable(activities)}</article>`}
@@ -1283,8 +1285,8 @@ function renderTeacherVisits(user) {
       </article>
       <article class="card full">
         <h2>Visitas registradas</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Fecha</th><th>Estudiante</th><th>Modalidad</th><th>Asistencia</th><th>Concepto</th><th>Puntaje</th><th>Observacion</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.visits.filter((visit) => visit.teacherId === user.id).map((visit) => {
@@ -1339,31 +1341,31 @@ function renderReports(user) {
     <section class="grid">
       <article class="card full">
         <div class="toolbar">
-          <button class="button primary" data-action="export-json">Exportar JSON</button>
-          <button class="button" data-action="export-csv">Exportar CSV</button>
-          <button class="button" data-action="export-print">Imprimir / guardar como PDF</button>
+          <button class="btn btn-primary button primary" data-action="export-json">Exportar JSON</button>
+          <button class="btn btn-outline-secondary button" data-action="export-csv">Exportar CSV</button>
+          <button class="btn btn-outline-secondary button" data-action="export-print">Imprimir / guardar como PDF</button>
         </div>
         <h2>Periodo y filtros</h2>
         <form class="form-grid report-filters" data-submit="report-filters">
-          <label>Periodo academico<select name="periodId">
+          <label>Periodo academico<select class="form-select" name="periodId">
             <option value="">Todos los periodos</option>
             ${data.periods.map((period) => `<option value="${period.id}" ${selectedFilter(period.id, reportFilters.periodId)}>${period.year}-${period.semester}</option>`).join("")}
           </select></label>
-          <label>Programa<select name="program">
+          <label>Programa<select class="form-select" name="program">
             <option value="">Todos</option>
             ${programs.map((program) => `<option value="${escapeHtml(program)}" ${selectedFilter(program, reportFilters.program)}>${escapeHtml(program)}</option>`).join("")}
           </select></label>
-          <label>Institucion receptora<select name="institutionId">
+          <label>Institucion receptora<select class="form-select" name="institutionId">
             <option value="">Todas</option>
             ${optionList(data.institutions, (item) => item.name, reportFilters.institutionId)}
           </select></label>
-          <label>Docente asesor<select name="teacherId">
+          <label>Docente asesor<select class="form-select" name="teacherId">
             <option value="">Todos</option>
             ${optionList(teacherUsers(), (item) => item.name, reportFilters.teacherId)}
           </select></label>
-          <button class="button primary full-field" type="submit">Aplicar filtros</button>
+          <button class="btn btn-primary button primary full-field" type="submit">Aplicar filtros</button>
         </form>
-        ${pendingCount ? `<div class="notice warning">Consolidado parcial: ${pendingCount} actividad(es) esperan validacion.</div>` : ""}
+        ${pendingCount ? `<div class="alert alert-warning notice warning">Consolidado parcial: ${pendingCount} actividad(es) esperan validacion.</div>` : ""}
         <div class="report-box ${rows.length ? "" : "hidden"}">
           <article><strong>${rows.length}</strong><br><span class="muted">Practicas</span></article>
           <article><strong>${rows.reduce((sum, row) => sum + row.hours, 0)}</strong><br><span class="muted">Horas aprobadas</span></article>
@@ -1373,8 +1375,8 @@ function renderReports(user) {
         ${rows.length ? "" : `<div class="empty">No hay informacion para los filtros seleccionados. Ajusta los filtros para generar el consolidado.</div>`}
         <div class="report-data ${rows.length ? "" : "hidden"}">
         <h2>Consolidado por institucion</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Institucion</th><th>Estudiantes activos</th><th>Horas aprobadas</th><th>Avance</th></tr></thead>
             <tbody>
               ${institutionGroups.map((group) => {
@@ -1385,8 +1387,8 @@ function renderReports(user) {
           </table>
         </div>
         <h2>Detalle de practicas</h2>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Periodo</th><th>Programa</th><th>Estudiante</th><th>Institucion</th><th>Docente</th><th>Horas</th><th>Avance</th><th>Estado</th></tr></thead>
             <tbody>
               ${rows.map((row) => `
@@ -1397,7 +1399,7 @@ function renderReports(user) {
                   <td>${escapeHtml(row.d.institution?.name)}</td>
                   <td>${escapeHtml(row.d.teacher?.name)}</td>
                   <td>${row.hours} / ${row.required}</td>
-                  <td><div class="progress"><span style="width:${Math.min(100, row.percent)}%"></span></div>${row.percent}%</td>
+                  <td><div class="progress"><span class="progress-bar" style="width:${Math.min(100, row.percent)}%"></span></div>${row.percent}%</td>
                   <td>${statusTag(row.assignment.status)}</td>
                 </tr>
               `).join("") || `<tr><td colspan="8">No hay informacion para los filtros seleccionados.</td></tr>`}
@@ -1428,8 +1430,8 @@ function renderAudit() {
   return `
     <section class="grid">
       <article class="card full">
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap table-responsive">
+          <table class="table table-hover align-middle">
             <thead><tr><th>Fecha</th><th>Usuario</th><th>Evento</th><th>Entidad</th></tr></thead>
             <tbody>
               ${data.audit.map((item) => `<tr><td>${escapeHtml(item.date)}</td><td>${escapeHtml(item.user)}</td><td>${escapeHtml(item.event)}</td><td>${escapeHtml(item.entity)}</td></tr>`).join("")}
@@ -1443,8 +1445,8 @@ function renderAudit() {
 
 function openModal(type, id = null) {
   const modal = document.createElement("div");
-  modal.className = "modal-backdrop";
-  modal.innerHTML = `<section class="modal">${modalContent(type, id)}</section>`;
+  modal.className = "sigpra-modal-backdrop";
+  modal.innerHTML = `<section class="sigpra-modal">${modalContent(type, id)}</section>`;
   document.body.appendChild(modal);
   modal.querySelectorAll("form[data-guided-workflow]").forEach(updateGuidedWorkflow);
 }
@@ -1463,7 +1465,7 @@ function modalContent(type, id) {
     visit: "Registrar visita"
   }[type];
   return `
-    <div class="modal-header">
+    <div class="sigpra-modal-header">
       <h2>${escapeHtml(title)}</h2>
       <button class="close" data-action="close-modal" aria-label="Cerrar">×</button>
     </div>
@@ -1487,42 +1489,42 @@ function modalForm(type, id) {
         <article class="card full workflow-step" data-workflow-step>
           <h3><span class="step-number">1</span> Programa y configuracion previa</h3>
           <label>Programa academico
-            <select name="program" required>
+            <select class="form-select" name="program" required>
               <option value="">-- Seleccione un programa --</option>
               ${programs.map((program) => `<option value="${escapeHtml(program.name)}" ${program.name === period?.program ? "selected" : ""}>${escapeHtml(program.name)}</option>`).join("")}
             </select>
           </label>
           <label>Nivel de practica
-            <select name="level" required>
+            <select class="form-select" name="level" required>
               <option value="">-- Seleccione un nivel --</option>
               ${levels.map((level) => `<option value="${escapeHtml(level)}" ${level === period?.level ? "selected" : ""}>${escapeHtml(level)}</option>`).join("")}
             </select>
           </label>
-          <label>Anio<input name="year" type="number" value="${period?.year || 2026}" required></label>
-          <label>Semestre<select name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
+          <label>Anio<input class="form-control" name="year" type="number" value="${period?.year || 2026}" required></label>
+          <label>Semestre<select class="form-select" name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Fechas e intensidad horaria</h3>
-          <label>Fecha inicio<input name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
-          <label>Fecha fin<input name="end" type="date" value="${escapeHtml(period?.end || "")}" required></label>
-          <label>Fecha limite de reporte<input name="reportLimit" type="date" value="${escapeHtml(period?.reportLimit || "")}" required></label>
-          <label>Intensidad horaria minima<input name="minHours" type="number" min="1" value="${period?.minHours || 320}" required></label>
+          <label>Fecha inicio<input class="form-control" name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
+          <label>Fecha fin<input class="form-control" name="end" type="date" value="${escapeHtml(period?.end || "")}" required></label>
+          <label>Fecha limite de reporte<input class="form-control" name="reportLimit" type="date" value="${escapeHtml(period?.reportLimit || "")}" required></label>
+          <label>Intensidad horaria minima<input class="form-control" name="minHours" type="number" min="1" value="${period?.minHours || 320}" required></label>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">3</span> Criterios de evaluacion y publicacion</h3>
           <div class="form-grid">
-            <label>Criterio 1<input name="criterion1" value="${criterion(0, "name", "Cumplimiento de horas")}" required></label>
-            <label>Peso (%)<input name="weight1" type="number" min="0" max="100" value="${criterion(0, "weight", 40)}" required></label>
-            <label>Criterio 2<input name="criterion2" value="${criterion(1, "name", "Validacion de actividades")}" required></label>
-            <label>Peso (%)<input name="weight2" type="number" min="0" max="100" value="${criterion(1, "weight", 30)}" required></label>
-            <label>Criterio 3<input name="criterion3" value="${criterion(2, "name", "Visita de acompanamiento")}" required></label>
-            <label>Peso (%)<input name="weight3" type="number" min="0" max="100" value="${criterion(2, "weight", 30)}" required></label>
+            <label>Criterio 1<input class="form-control" name="criterion1" value="${criterion(0, "name", "Cumplimiento de horas")}" required></label>
+            <label>Peso (%)<input class="form-control" name="weight1" type="number" min="0" max="100" value="${criterion(0, "weight", 40)}" required></label>
+            <label>Criterio 2<input class="form-control" name="criterion2" value="${criterion(1, "name", "Validacion de actividades")}" required></label>
+            <label>Peso (%)<input class="form-control" name="weight2" type="number" min="0" max="100" value="${criterion(1, "weight", 30)}" required></label>
+            <label>Criterio 3<input class="form-control" name="criterion3" value="${criterion(2, "name", "Visita de acompanamiento")}" required></label>
+            <label>Peso (%)<input class="form-control" name="weight3" type="number" min="0" max="100" value="${criterion(2, "weight", 30)}" required></label>
           </div>
           <p class="muted">Los pesos deben sumar exactamente 100% para publicar el periodo.</p>
-          <div class="notice warning">No se podra publicar si las fechas no son coherentes, las horas son inferiores al minimo previo del programa o los pesos no suman 100%.</div>
+          <div class="alert alert-warning notice warning">No se podra publicar si las fechas no son coherentes, las horas son inferiores al minimo previo del programa o los pesos no suman 100%.</div>
           <div class="toolbar">
-            <button class="button" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
-            <button class="button primary" type="submit" name="status" value="PUBLICADO">Publicar periodo</button>
+            <button class="btn btn-outline-secondary button" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
+            <button class="btn btn-primary button primary" type="submit" name="status" value="PUBLICADO">Publicar periodo</button>
           </div>
         </article>
       </form>`;
@@ -1530,23 +1532,23 @@ function modalForm(type, id) {
   if (type === "institution") {
     return `
       <form class="form-grid" data-submit="institution">
-        <label>Nombre<input name="name" required></label>
-        <label>NIT<input name="nit" required></label>
-        <label>Contacto<input name="contact" required></label>
-        <label>Telefono<input name="phone" required></label>
-        <label class="full-field">Correo<input name="email" type="email" required></label>
-        <button class="button primary full-field" type="submit">Guardar institucion</button>
+        <label>Nombre<input class="form-control" name="name" required></label>
+        <label>NIT<input class="form-control" name="nit" required></label>
+        <label>Contacto<input class="form-control" name="contact" required></label>
+        <label>Telefono<input class="form-control" name="phone" required></label>
+        <label class="full-field">Correo<input class="form-control" name="email" type="email" required></label>
+        <button class="btn btn-primary button primary full-field" type="submit">Guardar institucion</button>
       </form>`;
   }
   if (type === "agreement") {
     return `
       <form class="form-grid" data-submit="agreement">
-        <label>Institucion<select name="institutionId">${optionList(data.institutions, (item) => item.name)}</select></label>
-        <label>Numero convenio<input name="number" required></label>
-        <label>Fecha inicio<input name="start" type="date" required></label>
-        <label>Fecha fin<input name="end" type="date" required></label>
-        <label class="full-field">Documento<input name="document" placeholder="convenio.pdf"></label>
-        <button class="button primary full-field" type="submit">Guardar convenio</button>
+        <label>Institucion<select class="form-select" name="institutionId">${optionList(data.institutions, (item) => item.name)}</select></label>
+        <label>Numero convenio<input class="form-control" name="number" required></label>
+        <label>Fecha inicio<input class="form-control" name="start" type="date" required></label>
+        <label>Fecha fin<input class="form-control" name="end" type="date" required></label>
+        <label class="full-field">Documento<input class="form-control" name="document" placeholder="convenio.pdf"></label>
+        <button class="btn btn-primary button primary full-field" type="submit">Guardar convenio</button>
       </form>`;
   }
   if (type === "agreement-place") {
@@ -1557,7 +1559,7 @@ function modalForm(type, id) {
           <h3><span class="step-number">1</span> Institucion receptora</h3>
           <p class="muted">Selecciona la institucion donde se ofrecera la practica.</p>
           <label>Institucion receptora
-            <select name="institutionId" required>
+            <select class="form-select" name="institutionId" required>
               <option value="">-- Seleccione una institucion --</option>
               ${optionList(institutions, (item) => `${item.name} - ${item.contact}`)}
             </select>
@@ -1565,31 +1567,31 @@ function modalForm(type, id) {
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Convenio</h3>
-          <label>Numero de convenio<input name="number" required></label>
-          <label>Vigencia desde<input name="start" type="date" required></label>
-          <label>Vigencia hasta<input name="end" type="date" required></label>
-          <label class="full-field">Documento suscrito del convenio<input name="document" type="file" accept=".pdf,.doc,.docx" /></label>
-          <div class="notice warning full-field">El prototipo registra el nombre y los datos del archivo localmente; no carga documentos a un servidor.</div>
+          <label>Numero de convenio<input class="form-control" name="number" required></label>
+          <label>Vigencia desde<input class="form-control" name="start" type="date" required></label>
+          <label>Vigencia hasta<input class="form-control" name="end" type="date" required></label>
+          <label class="full-field">Documento suscrito del convenio<input class="form-control" name="document" type="file" accept=".pdf,.doc,.docx" /></label>
+          <div class="alert alert-warning notice warning full-field">El prototipo registra el nombre y los datos del archivo localmente; no carga documentos a un servidor.</div>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">3</span> Plaza ofrecida</h3>
-          <label>Nivel educativo<input name="level" required></label>
-          <label>Jornada<select name="shift"><option value="MANANA">Manana</option><option value="TARDE">Tarde</option><option value="NOCHE">Noche</option><option value="MIXTA">Mixta</option></select></label>
-          <label>Cupos<input name="offered" type="number" min="1" value="2" required></label>
-          <label>Docente titular<input name="tutor" required></label>
-          <button class="button primary full-field" type="submit">Guardar convenio y plaza</button>
+          <label>Nivel educativo<input class="form-control" name="level" required></label>
+          <label>Jornada<select class="form-select" name="shift"><option value="MANANA">Manana</option><option value="TARDE">Tarde</option><option value="NOCHE">Noche</option><option value="MIXTA">Mixta</option></select></label>
+          <label>Cupos<input class="form-control" name="offered" type="number" min="1" value="2" required></label>
+          <label>Docente titular<input class="form-control" name="tutor" required></label>
+          <button class="btn btn-primary button primary full-field" type="submit">Guardar convenio y plaza</button>
         </article>
       </form>`;
   }
   if (type === "place") {
     return `
       <form class="form-grid" data-submit="place">
-        <label>Convenio<select name="agreementId">${optionList(data.agreements, (item) => item.number)}</select></label>
-        <label>Nivel<input name="level" required></label>
-        <label>Jornada<select name="shift"><option>MANANA</option><option>TARDE</option><option>NOCHE</option><option>MIXTA</option></select></label>
-        <label>Cupos<input name="offered" type="number" min="1" value="5" required></label>
-        <label class="full-field">Docente titular<input name="tutor" required></label>
-        <button class="button primary full-field" type="submit">Guardar plaza</button>
+        <label>Convenio<select class="form-select" name="agreementId">${optionList(data.agreements, (item) => item.number)}</select></label>
+        <label>Nivel<input class="form-control" name="level" required></label>
+        <label>Jornada<select class="form-select" name="shift"><option>MANANA</option><option>TARDE</option><option>NOCHE</option><option>MIXTA</option></select></label>
+        <label>Cupos<input class="form-control" name="offered" type="number" min="1" value="5" required></label>
+        <label class="full-field">Docente titular<input class="form-control" name="tutor" required></label>
+        <button class="btn btn-primary button primary full-field" type="submit">Guardar plaza</button>
       </form>`;
   }
   if (type === "assignment") {
@@ -1602,37 +1604,37 @@ function modalForm(type, id) {
     );
     return `
       <form class="form-grid" data-submit="assignment">
-        <label>Estudiante habilitado<select name="studentId" required><option value="">Seleccione un estudiante</option>${optionList(studentUsers(), (item) => `${item.name} - ${item.code || item.email}`)}</select></label>
-        <label>Periodo vigente<select name="periodId" required><option value="">Seleccione periodo</option>${optionList(data.periods.filter((period) => period.status === "PUBLICADO"), (item) => `${item.program} ${item.year}-${item.semester}`)}</select></label>
-        <label>Plaza disponible<select name="placeId" required><option value="">Seleccione plaza</option>${optionList(availablePlaces, (item) => `${assignmentPlaceLabel(item)} - ${item.offered - item.occupied} cupos`)}</select></label>
-        <label>Docente asesor disponible<select name="teacherId" required><option value="">Seleccione docente</option>${optionList(availableTeachers, (item) => `${item.name} - ${data.assignments.filter((assignment) => assignment.teacherId === item.id && assignment.status === "ACTIVA").length}/6 estudiantes`)}</select></label>
-        <label class="full-field">Motivo de reasignacion <select name="reassignmentReason"><option value="">No es una reasignacion</option><option>Solicitud de la institucion receptora</option><option>Solicitud del estudiante</option><option>Cambio de disponibilidad del docente asesor</option><option>Otro</option></select></label>
-        <div class="full-field notice warning">Si el estudiante ya tiene asignacion activa en este periodo, indica un motivo para reasignarlo. Se conserva el historial anterior.</div>
-        <button class="button primary full-field" type="submit">Confirmar asignacion</button>
+        <label>Estudiante habilitado<select class="form-select" name="studentId" required><option value="">Seleccione un estudiante</option>${optionList(studentUsers(), (item) => `${item.name} - ${item.code || item.email}`)}</select></label>
+        <label>Periodo vigente<select class="form-select" name="periodId" required><option value="">Seleccione periodo</option>${optionList(data.periods.filter((period) => period.status === "PUBLICADO"), (item) => `${item.program} ${item.year}-${item.semester}`)}</select></label>
+        <label>Plaza disponible<select class="form-select" name="placeId" required><option value="">Seleccione plaza</option>${optionList(availablePlaces, (item) => `${assignmentPlaceLabel(item)} - ${item.offered - item.occupied} cupos`)}</select></label>
+        <label>Docente asesor disponible<select class="form-select" name="teacherId" required><option value="">Seleccione docente</option>${optionList(availableTeachers, (item) => `${item.name} - ${data.assignments.filter((assignment) => assignment.teacherId === item.id && assignment.status === "ACTIVA").length}/6 estudiantes`)}</select></label>
+        <label class="full-field">Motivo de reasignacion <select class="form-select" name="reassignmentReason"><option value="">No es una reasignacion</option><option>Solicitud de la institucion receptora</option><option>Solicitud del estudiante</option><option>Cambio de disponibilidad del docente asesor</option><option>Otro</option></select></label>
+        <div class="full-field alert alert-warning notice warning">Si el estudiante ya tiene asignacion activa en este periodo, indica un motivo para reasignarlo. Se conserva el historial anterior.</div>
+        <button class="btn btn-primary button primary full-field" type="submit">Confirmar asignacion</button>
       </form>`;
   }
   if (type === "activity") {
     const activity = id ? data.activities.find((item) => item.id === Number(id)) : null;
     return `
       <form class="form-grid guided-workflow" data-guided-workflow data-submit="activity" data-id="${id || ""}">
-        ${activity?.observation ? `<div class="notice warning full-field">Observacion del docente: ${escapeHtml(activity.observation)}</div>` : ""}
+        ${activity?.observation ? `<div class="alert alert-warning notice warning full-field">Observacion del docente: ${escapeHtml(activity.observation)}</div>` : ""}
         <article class="card full workflow-step" data-workflow-step>
           <h3><span class="step-number">1</span> Datos de la actividad</h3>
-          <label>Fecha de la actividad<input name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
-          <label>Horas ejecutadas<input name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
+          <label>Fecha de la actividad<input class="form-control" name="date" type="date" value="${escapeHtml(activity?.date || "")}" required></label>
+          <label>Horas ejecutadas<input class="form-control" name="hours" type="number" min="0.5" max="24" step="0.5" value="${escapeHtml(activity?.hours || "")}" required></label>
           <label class="full-field">Tipo de actividad
-            <input name="type" list="activity-types" value="${escapeHtml(activity?.type || "")}" required>
+            <input class="form-control" name="type" list="activity-types" value="${escapeHtml(activity?.type || "")}" required>
             <datalist id="activity-types"><option>Planeacion de clase</option><option>Refuerzo pedagogico</option><option>Reunion con docente titular</option></datalist>
           </label>
-          <label class="full-field">Descripcion<textarea name="description" required>${escapeHtml(activity?.description || "")}</textarea></label>
+          <label class="full-field">Descripcion<textarea class="form-control" name="description" required>${escapeHtml(activity?.description || "")}</textarea></label>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Soportes y envio</h3>
-          <label class="full-field">Soportes o evidencias<input name="files" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple></label>
-          <div class="notice warning full-field">El envio requiere al menos un soporte. Se permiten PDF, imagenes y documentos Office de hasta 10 MB cada uno. En este prototipo se persiste la referencia y el nombre de archivo, no el contenido binario.</div>
+          <label class="full-field">Soportes o evidencias<input class="form-control" name="files" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple></label>
+          <div class="alert alert-warning notice warning full-field">El envio requiere al menos un soporte. Se permiten PDF, imagenes y documentos Office de hasta 10 MB cada uno. En este prototipo se persiste la referencia y el nombre de archivo, no el contenido binario.</div>
           <div class="toolbar">
-            <button class="button" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
-            <button class="button primary" type="submit" name="status" value="PENDIENTE">Enviar a validacion</button>
+            <button class="btn btn-outline-secondary button" type="submit" name="status" value="BORRADOR">Guardar como borrador</button>
+            <button class="btn btn-primary button primary" type="submit" name="status" value="PENDIENTE">Enviar a validacion</button>
           </div>
         </article>
       </form>`;
@@ -1646,7 +1648,7 @@ function modalForm(type, id) {
           <h3><span class="step-number">1</span> Seleccionar actividad</h3>
           ${activities.length ? `
             <label class="full-field">Actividad
-              <select name="activityId" required>
+              <select class="form-select" name="activityId" required>
                 <option value="">-- Seleccione una actividad --</option>
                 ${optionList(activities, (item) => `${item.date} - ${item.type}`)}
               </select>
@@ -1655,9 +1657,9 @@ function modalForm(type, id) {
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Adjuntar soporte</h3>
-          <label class="full-field">Soporte o evidencia<input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required></label>
-          <div class="notice warning full-field">En esta version se guarda el nombre y la referencia del archivo en el navegador, no el contenido binario.</div>
-          <button class="button primary full-field" type="submit">Registrar evidencia</button>
+          <label class="full-field">Soporte o evidencia<input class="form-control" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required></label>
+          <div class="alert alert-warning notice warning full-field">En esta version se guarda el nombre y la referencia del archivo en el navegador, no el contenido binario.</div>
+          <button class="btn btn-primary button primary full-field" type="submit">Registrar evidencia</button>
         </article>
       </form>`;
   }
@@ -1675,14 +1677,14 @@ function modalForm(type, id) {
             <h4>Soportes adjuntos</h4>
             ${evidence.length ? `<ul>${evidence.map((item) => `<li>${escapeHtml(item.fileName)} (${escapeHtml(item.type)})</li>`).join("")}</ul>` : `<div class="empty">No se adjuntaron soportes.</div>`}
           </div>
-          <label class="full-field"><span><input name="evidenceReviewed" type="checkbox" value="yes" required style="width:auto"> Confirmo que revise los soportes disponibles para esta actividad</span></label>
+          <label class="full-field"><span><input class="form-check-input" name="evidenceReviewed" type="checkbox" value="yes" required> Confirmo que revise los soportes disponibles para esta actividad</span></label>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Registrar decision y justificacion</h3>
-          <label>Resultado<select name="status"><option value="APROBADA">Aprobar</option><option value="DEVUELTA">Devolver</option><option value="RECHAZADA">Rechazar</option></select></label>
-          <label>Observacion / justificacion<textarea name="observation" placeholder="Obligatoria al devolver o rechazar"></textarea></label>
-          <div class="notice warning full-field">Al devolver o rechazar, registra la justificacion para el estudiante.</div>
-          <button class="button primary full-field" type="submit">Guardar validacion</button>
+          <label>Resultado<select class="form-select" name="status"><option value="APROBADA">Aprobar</option><option value="DEVUELTA">Devolver</option><option value="RECHAZADA">Rechazar</option></select></label>
+          <label>Observacion / justificacion<textarea class="form-control" name="observation" placeholder="Obligatoria al devolver o rechazar"></textarea></label>
+          <div class="alert alert-warning notice warning full-field">Al devolver o rechazar, registra la justificacion para el estudiante.</div>
+          <button class="btn btn-primary button primary full-field" type="submit">Guardar validacion</button>
         </article>
       </form>`;
   }
@@ -1693,7 +1695,7 @@ function modalForm(type, id) {
         <article class="card full workflow-step" data-workflow-step>
           <h3><span class="step-number">1</span> Seleccionar practicante</h3>
           <label>Estudiante a evaluar
-            <select name="assignmentId" required>
+            <select class="form-select" name="assignmentId" required>
               <option value="">-- Seleccione estudiante --</option>
               ${optionList(assignments, (item) => `${assignmentDetails(item).student?.name} - ${assignmentDetails(item).institution?.name}`)}
             </select>
@@ -1702,17 +1704,17 @@ function modalForm(type, id) {
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Completar datos de la visita</h3>
-          <label>Fecha<input name="date" type="date" required></label>
-          <label>Modalidad<select name="mode"><option value="PRESENCIAL">Presencial</option><option value="VIRTUAL">Remota</option><option value="MIXTA">Mixta</option></select></label>
-          <label class="full-field">Observaciones de la visita<textarea name="observation" required></textarea></label>
-          <label class="full-field"><span><input name="attendance" type="checkbox" checked style="width:auto"> El estudiante asistio a la visita programada</span></label>
-          <label class="full-field">Soporte de visita remota (si aplica)<input name="support" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></label>
-          <div class="notice warning full-field">Si la visita es remota, adjunta un soporte. Si el estudiante no asistio, se registra la inasistencia para coordinar una reprogramacion.</div>
+          <label>Fecha<input class="form-control" name="date" type="date" required></label>
+          <label>Modalidad<select class="form-select" name="mode"><option value="PRESENCIAL">Presencial</option><option value="VIRTUAL">Remota</option><option value="MIXTA">Mixta</option></select></label>
+          <label class="full-field">Observaciones de la visita<textarea class="form-control" name="observation" required></textarea></label>
+          <label class="full-field"><span><input class="form-check-input" name="attendance" type="checkbox" checked> El estudiante asistio a la visita programada</span></label>
+          <label class="full-field">Soporte de visita remota (si aplica)<input class="form-control" name="support" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></label>
+          <div class="alert alert-warning notice warning full-field">Si la visita es remota, adjunta un soporte. Si el estudiante no asistio, se registra la inasistencia para coordinar una reprogramacion.</div>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">3</span> Evaluar con la rubrica</h3>
           <div class="form-grid" id="visit-rubric">${visitRubricFields("")}</div>
-          <button class="button primary full-field" type="submit">Guardar visita y evaluacion</button>
+          <button class="btn btn-primary button primary full-field" type="submit">Guardar visita y evaluacion</button>
         </article>
       </form>`;
   }
@@ -1726,7 +1728,7 @@ function visitAssignmentDetails(assignmentId) {
   const activities = data.activities.filter((activity) => activity.assignmentId === assignment.id);
   const evidence = data.evidences.filter((item) => activities.some((activity) => activity.id === item.activityId));
   return `
-    <div class="notice">
+    <div class="alert alert-info notice">
       <strong>Institucion receptora:</strong> ${escapeHtml(details.institution?.name || "No registrada")}<br>
       <strong>Actividades reportadas:</strong> ${activities.length}<br>
       <strong>Evidencias disponibles:</strong> ${evidence.map((item) => escapeHtml(item.fileName)).join(", ") || "Ninguna"}
@@ -1738,10 +1740,10 @@ function visitRubricFields(assignmentId) {
   const assignment = data.assignments.find((item) => item.id === Number(assignmentId));
   const period = assignment && data.periods.find((item) => item.id === assignment.periodId);
   const rubric = period?.rubric || [];
-  if (!rubric.length) return `<div class="notice warning full-field">No existe una rubrica configurada para el periodo. El coordinador debe configurar criterios antes de registrar la evaluacion.</div>`;
+  if (!rubric.length) return `<div class="alert alert-warning notice warning full-field">No existe una rubrica configurada para el periodo. El coordinador debe configurar criterios antes de registrar la evaluacion.</div>`;
   return rubric.map((criterion, index) => `
     <label>${escapeHtml(criterion.name)} (${criterion.weight}%)
-      <select name="score-${index}" required>
+      <select class="form-select" name="score-${index}" required>
         <option value="">Seleccione puntaje</option>
         <option value="4">Excelente</option>
         <option value="3">Bueno</option>
@@ -1749,7 +1751,7 @@ function visitRubricFields(assignmentId) {
         <option value="1">Insuficiente</option>
       </select>
     </label>
-    <label>Comentario<input name="comment-${index}" placeholder="Comentario del criterio"></label>
+    <label>Comentario<input class="form-control" name="comment-${index}" placeholder="Comentario del criterio"></label>
   `).join("");
 }
 
@@ -2125,7 +2127,7 @@ function handleSubmit(form, submitter) {
     return;
   }
   saveData();
-  document.querySelector(".modal-backdrop")?.remove();
+  document.querySelector(".sigpra-modal-backdrop")?.remove();
   toast("Operacion guardada correctamente.");
   render();
 }
@@ -2294,7 +2296,7 @@ document.addEventListener("click", async (event) => {
     render();
   }
   if (action.dataset.action === "close-modal") {
-    document.querySelector(".modal-backdrop")?.remove();
+    document.querySelector(".sigpra-modal-backdrop")?.remove();
   }
   if (action.dataset.action === "reset-demo") {
     data = structuredClone(seedData);
@@ -2312,7 +2314,7 @@ document.addEventListener("click", async (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") document.querySelector(".modal-backdrop")?.remove();
+  if (event.key === "Escape") document.querySelector(".sigpra-modal-backdrop")?.remove();
 });
 
 initializeApi();

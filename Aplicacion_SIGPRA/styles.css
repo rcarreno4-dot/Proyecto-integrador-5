@@ -390,7 +390,7 @@ textarea {
   background: var(--teal);
 }
 
-.modal-backdrop {
+.sigpra-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 30;
@@ -400,7 +400,7 @@ textarea {
   background: rgba(15, 23, 42, 0.45);
 }
 
-.modal {
+.sigpra-modal {
   width: min(760px, 100%);
   max-height: min(86vh, 760px);
   overflow: auto;
@@ -410,7 +410,7 @@ textarea {
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.35);
 }
 
-.modal-header {
+.sigpra-modal-header {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -418,7 +418,7 @@ textarea {
   margin-bottom: 16px;
 }
 
-.modal-header h2 {
+.sigpra-modal-header h2 {
   margin: 0;
 }
 
@@ -428,7 +428,7 @@ textarea {
   font-size: 24px;
 }
 
-.toast {
+.sigpra-toast {
   position: fixed;
   right: 18px;
   bottom: 18px;
@@ -527,7 +527,7 @@ textarea {
 }
 
 body {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--bs-font-sans-serif);
 }
 
 .login-page {
@@ -721,7 +721,7 @@ input[type="radio"] {
   font-weight: 400;
 }
 
-.toast {
+.sigpra-toast {
   background: #2457a6;
 }
 
@@ -1039,6 +1039,69 @@ input[type="radio"] {
   background: rgba(20, 184, 166, 0.09);
   font-size: 12px;
   font-weight: 700;
+}
+
+/* Bootstrap aporta los componentes; estas variables conservan el tema SIGPRA. */
+:root {
+  --bs-primary: #2457a6;
+  --bs-primary-rgb: 36, 87, 166;
+  --bs-body-color: var(--ink);
+  --bs-body-bg: var(--bg);
+  --bs-border-color: var(--line);
+  --bs-link-color: var(--blue);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--blue);
+  --bs-btn-border-color: var(--blue);
+  --bs-btn-hover-bg: var(--teal-dark);
+  --bs-btn-hover-border-color: var(--teal-dark);
+  --bs-btn-active-bg: var(--teal-dark);
+  --bs-btn-active-border-color: var(--teal-dark);
+  --bs-btn-disabled-bg: var(--blue);
+  --bs-btn-disabled-border-color: var(--blue);
+  --bs-btn-focus-shadow-rgb: 36, 87, 166;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.form-select {
+  padding-right: 2.5rem;
+}
+
+.form-check-input[type="checkbox"],
+.form-check-input[type="radio"] {
+  width: 1em;
+  padding: 0;
+  margin-right: 0.35rem;
+}
+
+.form-check-input:checked {
+  background-color: var(--blue);
+  border-color: var(--blue);
+}
+
+.card h2,
+.login-card h2,
+.sigpra-modal-header h2 {
+  font-size: 1.4rem;
+}
+
+.card h3 {
+  font-size: 1.15rem;
+}
+
+.table {
+  --bs-table-bg: var(--panel);
+  --bs-table-color: var(--ink);
+  --bs-table-border-color: var(--line);
+  --bs-table-hover-bg: var(--soft);
+  margin-bottom: 0;
 }
 
 @media (max-width: 1000px) {

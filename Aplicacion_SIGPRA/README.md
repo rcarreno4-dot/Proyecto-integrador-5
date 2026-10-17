@@ -22,6 +22,26 @@ http://localhost:3000
 
 Abrir `index.html` en el navegador. En este modo la aplicacion funciona con `localStorage`, sin servidor.
 
+## Bootstrap
+
+La interfaz usa Bootstrap 5.3.8 en botones, formularios, tablas adaptables,
+navegacion, insignias, alertas y barras de progreso. `styles.css` se carga despues
+de Bootstrap para conservar los colores y la distribucion de SIGPRA.
+
+Los archivos CSS y JavaScript (bundle con Popper), sus mapas y la licencia estan
+en `vendor/bootstrap/`, de modo que tambien funcionan sin conexion al abrir
+`index.html`. Express publica estos recursos en `/vendor/bootstrap`.
+
+`npm install` y `npm run build` sincronizan los recursos desde la dependencia npm.
+Para copiarlos manualmente, o si la instalacion deshabilita scripts:
+
+```bash
+npm run assets:bootstrap
+```
+
+Las ventanas y los avisos existentes usan clases `sigpra-modal` y `sigpra-toast`
+para evitar conflictos con los componentes JavaScript de Bootstrap.
+
 ## Backend MVC
 
 La capa backend se encuentra en `src/`:
