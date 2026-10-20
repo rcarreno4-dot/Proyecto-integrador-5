@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGPRA - CU-01 Programar Periodo de Práctica</title>
+  <link rel="stylesheet" href="/css/s1-styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SIGPRA - Gestión de Prácticas Académicas</h1>
+      <h2>CU-01 Programar Periodo de Práctica</h2>
+    </header>
+
+    <main>
+      <!-- Formulario de Creación de Periodo y Rúbrica -->
+      <section class="card">
+        <h3>1. Datos del Periodo Académico</h3>
+        <form id="form-period">
+          <div class="form-group">
+            <label for="programa">Programa Académico:</label>
+            <input type="text" id="programa" name="programa" value="Ingeniería de Sistemas" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nivel_practica">Nivel de Práctica:</label>
+              <select id="nivel_practica" name="nivel_practica" required>
+                <option value="Práctica I">Práctica I</option>
+                <option value="Práctica II">Práctica II</option>
+                <option value="Práctica Pedagógica">Práctica Pedagógica</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="anio">Año:</label>
+              <input type="number" id="anio" name="anio" value="2026" required>
+            </div>
+            <div class="form-group">
+              <label for="semestre">Semestre:</label>
+              <input type="number" id="semestre" name="semestre" min="1" max="2" value="2" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fecha_inicio">Fecha Inicio:</label>
+              <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+            </div>
+            <div class="form-group">
+              <label for="fecha_fin">Fecha Fin:</label>
+              <input type="date" id="fecha_fin" name="fecha_fin" required>
+            </div>
+            <div class="form-group">
+              <label for="fecha_limite_reportes">Límite Reportes:</label>
+              <input type="date" id="fecha_limite_reportes" name="fecha_limite_reportes" required>
+            </div>
+            <div class="form-group">
+              <label for="horas_minimas">Horas Mínimas Exigidas:</label>
+              <input type="number" id="horas_minimas" name="horas_minimas" value="120" required>
+            </div>
+          </div>
+
+          <h3>2. Rúbrica de Evaluación (Suma de pesos debe ser 100%)</h3>
+          <div id="criterios-container">
+            <div class="criterio-item form-row">
+              <input type="text" placeholder="Nombre Criterio" class="crit-nombre" value="Desempeño en Aula" required>
+              <input type="text" placeholder="Descripción" class="crit-desc" value="Evaluación del manejo de clase" required>
+              <input type="number" placeholder="Peso %" class="crit-peso" value="40" required>
+            </div>
+            <div class="criterio-item form-row">
+              <input type="text" placeholder="Nombre Criterio" class="crit-nombre" value="Cumplimiento de Horas" required>
+              <input type="text" placeholder="Descripción" class="crit-desc" value="Reporte y soportes de jornadas" required>
+              <input type="number" placeholder="Peso %" class="crit-peso" value="30" required>
+            </div>
+            <div class="criterio-item form-row">
+              <input type="text" placeholder="Nombre Criterio" class="crit-nombre" value="Material y Planeación" required>
+              <input type="text" placeholder="Descripción" class="crit-desc" value="Diarios de campo y preparadores" required>
+              <input type="number" placeholder="Peso %" class="crit-peso" value="30" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">Publicar Periodo de Práctica</button>
+        </form>
+      </section>
+
+      <!-- Tabla de Periodos Registrados -->
+      <section class="card">
+        <h3>Periodos Académicos Registrados</h3>
+        <table id="table-periods">
+          <thead>
+            <tr>
+              <th>Programa</th>
+              <th>Nivel</th>
+              <th>Año/Sem</th>
+              <th>Vigencia</th>
+              <th>Horas Mín.</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Cargado dinámicamente con JavaScript -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/periods-client.js"></script>
+</body>
+</html>

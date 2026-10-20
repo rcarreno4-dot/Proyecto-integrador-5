@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGPRA - CU-02 Gestionar Convenios y Plazas</title>
+  <link rel="stylesheet" href="/css/s1-styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SIGPRA - Gestión de Prácticas Académicas</h1>
+      <h2>CU-02 Gestionar Convenios y Plazas</h2>
+    </header>
+
+    <main>
+      <section class="card">
+        <h3>Registrar Institución, Convenio y Plaza</h3>
+        <form id="form-agreement">
+          <h4>1. Datos de la Institución Receptora</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre_institucion">Nombre Institución:</label>
+              <input type="text" id="nombre_institucion" required placeholder="Colegio San José">
+            </div>
+            <div class="form-group">
+              <label for="nit">NIT / Identificación:</label>
+              <input type="text" id="nit" required placeholder="800123456-1">
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono:</label>
+              <input type="text" id="telefono" required placeholder="6076340000">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="correo_contacto">Correo Contacto:</label>
+              <input type="email" id="correo_contacto" required placeholder="contacto@sanjose.edu.co">
+            </div>
+            <div class="form-group">
+              <label for="responsable_contacto">Persona Responsable:</label>
+              <input type="text" id="responsable_contacto" required placeholder="Lic. María Pérez">
+            </div>
+          </div>
+
+          <h4>2. Datos del Convenio</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="numero_convenio">Número Convenio:</label>
+              <input type="text" id="numero_convenio" required placeholder="CV-2026-001">
+            </div>
+            <div class="form-group">
+              <label for="fecha_inicio_conv">Inicio Vigencia:</label>
+              <input type="date" id="fecha_inicio_conv" required>
+            </div>
+            <div class="form-group">
+              <label for="fecha_fin_conv">Fin Vigencia:</label>
+              <input type="date" id="fecha_fin_conv" required>
+            </div>
+          </div>
+
+          <h4>3. Datos de la Plaza Ofertada</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nivel_practica_plaza">Nivel:</label>
+              <input type="text" id="nivel_practica_plaza" required value="Práctica Pedagógica">
+            </div>
+            <div class="form-group">
+              <label for="jornada">Jornada:</label>
+              <select id="jornada" required>
+                <option value="MANANA">Mañana</option>
+                <option value="TARDE">Tarde</option>
+                <option value="MIXTA">Mixta</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cupos_ofrecidos">Cupos Ofertados:</label>
+              <input type="number" id="cupos_ofrecidos" value="5" min="1" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">Guardar Convenio y Plaza</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Convenios y Plazas Activas</h3>
+        <table id="table-agreements">
+          <thead>
+            <tr>
+              <th>Institución</th>
+              <th>Convenio</th>
+              <th>Vigencia</th>
+              <th>Jornada</th>
+              <th>Cupos (Ocupados/Total)</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Cargado dinámicamente -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/agreements-client.js"></script>
+</body>
+</html>

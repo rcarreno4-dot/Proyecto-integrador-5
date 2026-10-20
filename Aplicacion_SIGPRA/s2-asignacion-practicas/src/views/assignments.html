@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGPRA - S2 Asignación de Prácticas</title>
+  <link rel="stylesheet" href="/css/s2-styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SIGPRA - Microservicio S2</h1>
+      <h2>Gestión de Solicitudes y Asignación de Prácticas</h2>
+    </header>
+
+    <main>
+      <!-- CU-08: Solicitar Práctica Académica -->
+      <section class="card">
+        <h3>CU-08: Solicitar Práctica Académica (Estudiante)</h3>
+        <form id="form-request">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="req_id_estudiante">ID Estudiante:</label>
+              <input type="number" id="req_id_estudiante" value="101" required>
+            </div>
+            <div class="form-group">
+              <label for="req_id_periodo">ID Periodo Académico:</label>
+              <input type="number" id="req_id_periodo" value="1" required>
+            </div>
+            <div class="form-group">
+              <label for="req_nivel">Nivel de Práctica:</label>
+              <select id="req_nivel" required>
+                <option value="Práctica Pedagógica">Práctica Pedagógica</option>
+                <option value="Práctica I">Práctica I</option>
+                <option value="Práctica II">Práctica II</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="req_observaciones">Observaciones / Preferencias:</label>
+            <input type="text" id="req_observaciones" placeholder="Ej. Disponibilidad en jornada mañana">
+          </div>
+          <button type="submit" class="btn-primary">Enviar Solicitud</button>
+        </form>
+      </section>
+
+      <!-- CU-03: Asignar Practicante a Plaza y Docente Asesor -->
+      <section class="card">
+        <h3>CU-03: Asignación de Plaza y Docente Asesor (Coordinación)</h3>
+        <p class="info-note">Al procesar la asignación, S2 consultará automáticamente a S1 para validar la disponibilidad del convenio y cupos.</p>
+        <form id="form-assign">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="assign_id_estudiante">ID Estudiante:</label>
+              <input type="number" id="assign_id_estudiante" value="101" required>
+            </div>
+            <div class="form-group">
+              <label for="assign_id_plaza">ID Plaza Ofertada (en S1):</label>
+              <input type="number" id="assign_id_plaza" value="1" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="assign_id_docente">ID Docente Asesor:</label>
+              <input type="number" id="assign_id_docente" value="501" required>
+            </div>
+            <div class="form-group">
+              <label for="assign_id_periodo">ID Periodo Académico:</label>
+              <input type="number" id="assign_id_periodo" value="1" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-success">Confirmar Asignación</button>
+        </form>
+      </section>
+
+      <!-- Panel de Respuestas/Logs -->
+      <section class="card">
+        <h3>Resultado de la Operación</h3>
+        <pre id="output-log">Esperando acción...</pre>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/assignments-client.js"></script>
+</body>
+</html>

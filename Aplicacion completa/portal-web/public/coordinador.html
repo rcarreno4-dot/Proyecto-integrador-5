@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SIGPRA - Coordinador de PrÃ¡cticas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="js/dashboard.js"></script>
+    <script>checkSession('Coordinador de PrÃ¡ctica');</script>
+</head>
+<body>
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-graduation-cap fs-3 text-primary"></i>
+            <div><h5 class="fw-bold mb-0">SIGPRA</h5><small class="text-muted">CoordinaciÃ³n</small></div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active" onclick="switchTab('view-asignaciones')"><i class="fa-solid fa-user-check"></i> Asignaciones (CU-03)</a></li>
+            <li><a href="#" onclick="switchTab('view-plazas')"><i class="fa-solid fa-handshake"></i> Convenios y Plazas (CU-02)</a></li>
+            <li><a href="#" onclick="switchTab('view-bitacoras-coord')"><i class="fa-solid fa-list-check"></i> Validar Actividades (CU-05)</a></li>
+        </ul>
+        <div class="p-3 mt-auto border-top border-secondary">
+            <button onclick="logout()" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-power-off me-2"></i>Cerrar SesiÃ³n</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h4 class="fw-bold mb-0">GestiÃ³n de CoordinaciÃ³n de PrÃ¡cticas</h4>
+                <small class="text-muted">Usuario: <strong id="user-name">Coordinador</strong></small>
+            </div>
+        </header>
+
+        <div id="view-asignaciones" class="view-panel animated-view">
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-gear text-primary me-2"></i>Solicitudes Pendientes de AsignaciÃ³n Docente y Plaza</h5>
+                <table class="table-custom" id="tabla-asignaciones">
+                    <thead><tr><th>Estudiante</th><th>Plaza Solicitada</th><th>Empresa</th><th>Docente Asesor</th><th>AcciÃ³n</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-plazas" class="view-panel d-none">
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-plus-circle text-primary me-2"></i>Registrar Plaza de PrÃ¡ctica</h5>
+                <form id="form-plaza" onsubmit="guardarPlaza(event)">
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label class="form-label small fw-bold">Empresa</label><input type="text" id="plz-empresa" class="form-control" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label small fw-bold">TÃ­tulo de la Plaza</label><input type="text" id="plz-titulo" class="form-control" required></div>
+                        <div class="col-md-2 mb-3"><label class="form-label small fw-bold">Cupos</label><input type="number" id="plz-cupos" class="form-control" value="2" required></div>
+                        <div class="col-md-2 mb-3"><label class="form-label small fw-bold">Modalidad</label><select id="plz-modalidad" class="form-select"><option>HÃ­brida</option><option>Presencial</option><option>Remota</option></select></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary fw-bold"><i class="fa-solid fa-paper-plane me-2"></i> Publicar Plaza</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-bitacoras-coord" class="view-panel d-none">
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-check-double text-primary me-2"></i>RevisiÃ³n de Horas Reportadas</h5>
+                <div id="contenedor-bitacoras-coord"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+function renderAsignaciones() {
+    const list = SigpraStore.get('solicitudes', []);
+    const tbody = document.querySelector('#tabla-asignaciones tbody');
+    tbody.innerHTML = list.map((s, idx) => `
+        <tr>
+            <td><strong>${s.estudiante}</strong><br><small class="text-muted">Doc: ${s.doc}</small></td>
+            <td>${s.plaza}</td>
+            <td>${s.empresa}</td>
+            <td>
+                <select class="form-select form-select-sm" id="docente-select-${idx}">
+                    <option ${s.docente === 'Prof. Roberto Silva' ? 'selected' : ''}>Prof. Roberto Silva</option>
+                    <option ${s.docente === 'Dra. Fernanda Lopez' ? 'selected' : ''}>Dra. Fernanda Lopez</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-success fw-bold" onclick="aprobarAsignacion(${idx})"><i class="fa-solid fa-check me-1"></i> Aprobar</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function aprobarAsignacion(idx) {
+    const list = SigpraStore.get('solicitudes', []);
+    list[idx].docente = document.getElementById('docente-select-' + idx).value;
+    list[idx].estado = 'Aprobada';
+    SigpraStore.set('solicitudes', list);
+    showNotification('Â¡AsignaciÃ³n guardada en PostgreSQL!');
+    renderAsignaciones();
+}
+
+function guardarPlaza(e) {
+    e.preventDefault();
+    const list = SigpraStore.get('plazas', []);
+    list.unshift({
+        id: Date.now(),
+        empresa: document.getElementById('plz-empresa').value,
+        titulo: document.getElementById('plz-titulo').value,
+        modalidad: document.getElementById('plz-modalidad').value,
+        cupos: document.getElementById('plz-cupos').value,
+        estado: 'Disponible',
+        descripcion: 'Plaza registrada por CoordinaciÃ³n.'
+    });
+    SigpraStore.set('plazas', list);
+    showNotification('Â¡Plaza publicada exitosamente!');
+    document.getElementById('form-plaza').reset();
+}
+
+function renderBitacorasCoord() {
+    const list = SigpraStore.get('bitacoras', []);
+    const container = document.getElementById('contenedor-bitacoras-coord');
+    container.innerHTML = list.map((b, idx) => `
+        <div class="p-3 mb-3 border rounded bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">${b.estudiante} &bull; ${b.horas} Horas</h6>
+                <span class="badge-status ${b.estado === 'Aprobado' ? 'badge-active' : 'badge-pending'}">${b.estado}</span>
+            </div>
+            <p class="small text-secondary mb-2">${b.descripcion}</p>
+            ${b.estado === 'Pendiente' ? `
+                <button class="btn btn-sm btn-success" onclick="aprobarBitacora(${idx})"><i class="fa-solid fa-check me-1"></i> Aprobar Horas en MongoDB</button>
+            ` : `<small class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Validado</small>`}
+        </div>
+    `).join('');
+}
+
+function aprobarBitacora(idx) {
+    const list = SigpraStore.get('bitacoras', []);
+    list[idx].estado = 'Aprobado';
+    SigpraStore.set('bitacoras', list);
+    showNotification('Â¡BitÃ¡cora aprobada en MongoDB!');
+    renderBitacorasCoord();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderAsignaciones();
+    renderBitacorasCoord();
+});
+</script>
+</body>
+</html>

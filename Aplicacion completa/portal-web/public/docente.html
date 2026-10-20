@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SIGPRA - Docente Asesor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="js/dashboard.js"></script>
+    <script>checkSession('Docente Asesor');</script>
+</head>
+<body>
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-graduation-cap fs-3 text-primary"></i>
+            <div><h5 class="fw-bold mb-0">SIGPRA</h5><small class="text-muted">Docente Asesor</small></div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active" onclick="switchTab('view-bitacoras-doc')"><i class="fa-solid fa-list-check"></i> Revisar BitÃ¡coras (CU-05)</a></li>
+            <li><a href="#" onclick="switchTab('view-evaluacion-rubrica')"><i class="fa-solid fa-clipboard-check"></i> Visita y RÃºbrica (CU-06)</a></li>
+        </ul>
+        <div class="p-3 mt-auto border-top border-secondary">
+            <button onclick="logout()" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-power-off me-2"></i>Cerrar SesiÃ³n</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h4 class="fw-bold mb-0">AcompaÃ±amiento PedagÃ³gico</h4>
+                <small class="text-muted">Bienvenido, <strong id="user-name">Docente</strong></small>
+            </div>
+        </header>
+
+        <div id="view-bitacoras-doc" class="view-panel animated-view">
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-magnifying-glass text-primary me-2"></i>BitÃ¡coras Reportadas por Estudiantes</h5>
+                <div id="contenedor-docente-bitacoras"></div>
+            </div>
+        </div>
+
+        <div id="view-evaluacion-rubrica" class="view-panel d-none">
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-clipboard-check text-primary me-2"></i>EvaluaciÃ³n por RÃºbrica de Visita (CU-06)</h5>
+                <form id="form-rubrica" onsubmit="guardarRubrica(event)">
+                    <div class="row mb-3">
+                        <div class="col-md-6"><label class="form-label small fw-bold">Estudiante Practicante</label><input type="text" class="form-control" value="Juan Rueda (Doc: 1004)" readonly></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">NÃºmero de Visita</label><select id="rub-visita" class="form-select"><option>Visita 1 - Inicial</option><option>Visita 2 - Intermedia</option><option>Visita 3 - Final</option></select></div>
+                    </div>
+                    <div class="p-3 bg-light rounded mb-3">
+                        <h6 class="fw-bold">Calificaciones por Criterio (0.0 a 5.0)</h6>
+                        <div class="row mt-2">
+                            <div class="col-md-4"><label class="form-label small">DesempeÃ±o TÃ©cnico (40%)</label><input type="number" step="0.1" id="rub-tec" class="form-control" value="4.8" required></div>
+                            <div class="col-md-4"><label class="form-label small">Ã‰tica y Puntualidad (30%)</label><input type="number" step="0.1" id="rub-eti" class="form-control" value="5.0" required></div>
+                            <div class="col-md-4"><label class="form-label small">ComunicaciÃ³n (30%)</label><input type="number" step="0.1" id="rub-com" class="form-control" value="4.7" required></div>
+                        </div>
+                    </div>
+                    <div class="mb-3"><label class="form-label small fw-bold">Observaciones PedagÃ³gicas</label><textarea id="rub-obs" class="form-control" rows="2" required>El estudiante evidencia un desempeÃ±o sobresaliente.</textarea></div>
+                    <button type="submit" class="btn btn-primary fw-bold"><i class="fa-solid fa-floppy-disk me-2"></i> Guardar EvaluaciÃ³n en PostgreSQL</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+function renderDocenteBitacoras() {
+    const list = SigpraStore.get('bitacoras', []);
+    const container = document.getElementById('contenedor-docente-bitacoras');
+    container.innerHTML = list.map((b, idx) => `
+        <div class="p-3 mb-3 border rounded bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">${b.estudiante} &bull; ${b.fecha}</h6>
+                <span class="badge-status ${b.estado === 'Aprobado' ? 'badge-active' : 'badge-pending'}">${b.estado}</span>
+            </div>
+            <p class="small text-secondary mb-2">${b.descripcion}</p>
+            <div class="mb-2"><input type="text" class="form-control form-control-sm" id="obs-input-${idx}" placeholder="Agregar recomendaciÃ³n..." value="${b.observacion || ''}"></div>
+            <button class="btn btn-sm btn-success me-2" onclick="aprobarDocenteBitacora(${idx})"><i class="fa-solid fa-check me-1"></i> Aprobar Horas</button>
+        </div>
+    `).join('');
+}
+
+function aprobarDocenteBitacora(idx) {
+    const list = SigpraStore.get('bitacoras', []);
+    list[idx].observacion = document.getElementById('obs-input-' + idx).value;
+    list[idx].estado = 'Aprobado';
+    SigpraStore.set('bitacoras', list);
+    showNotification('Â¡ValidaciÃ³n guardada en MongoDB!');
+    renderDocenteBitacoras();
+}
+
+function guardarRubrica(e) {
+    e.preventDefault();
+    const list = SigpraStore.get('evaluaciones', []);
+    const tec = parseFloat(document.getElementById('rub-tec').value);
+    const eti = parseFloat(document.getElementById('rub-eti').value);
+    const com = parseFloat(document.getElementById('rub-com').value);
+    const prom = (tec * 0.4 + eti * 0.3 + com * 0.3).toFixed(2);
+
+    list.unshift({ id: Date.now(), estudiante: 'Juan Rueda', visita: document.getElementById('rub-visita').value, notaTecnica: tec, notaEtica: eti, notaComunicacion: com, promedio: prom, observaciones: document.getElementById('rub-obs').value });
+    SigpraStore.set('evaluaciones', list);
+    showNotification(`Â¡EvaluaciÃ³n registrada en PostgreSQL! Promedio: ${prom}`);
+}
+
+document.addEventListener('DOMContentLoaded', renderDocenteBitacoras);
+</script>
+</body>
+</html>

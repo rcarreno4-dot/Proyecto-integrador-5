@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SIGPRA - Estudiante Practicante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="js/dashboard.js"></script>
+    <script>checkSession('Estudiante');</script>
+</head>
+<body>
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-graduation-cap fs-3 text-primary"></i>
+            <div><h5 class="fw-bold mb-0">SIGPRA</h5><small class="text-muted">Portal Estudiante</small></div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active" onclick="switchTab('view-solicitar-est')"><i class="fa-solid fa-paper-plane"></i> Solicitar PrÃ¡ctica (CU-08)</a></li>
+            <li><a href="#" onclick="switchTab('view-bitacora-est')"><i class="fa-solid fa-pen-to-square"></i> Registrar BitÃ¡cora (CU-04)</a></li>
+        </ul>
+        <div class="p-3 mt-auto border-top border-secondary">
+            <button onclick="logout()" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-power-off me-2"></i>Cerrar SesiÃ³n</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h4 class="fw-bold mb-0">MÃ³dulo del Estudiante Practicante</h4>
+                <small class="text-muted">Bienvenido, <strong id="user-name">Juan Rueda</strong></small>
+            </div>
+        </header>
+
+        <div id="view-solicitar-est" class="view-panel animated-view">
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-briefcase text-primary me-2"></i>Plazas de PrÃ¡ctica Disponibles</h5>
+                <div id="contenedor-plazas-est"></div>
+            </div>
+        </div>
+
+        <div id="view-bitacora-est" class="view-panel d-none">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="card-custom">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Nueva Entrada de BitÃ¡cora</h5>
+                        <form id="form-bitacora" onsubmit="guardarBitacoraEst(event)">
+                            <div class="mb-3"><label class="form-label small fw-bold">Horas Ejecutadas</label><input type="number" id="bit-horas" class="form-control" value="8" required></div>
+                            <div class="mb-3"><label class="form-label small fw-bold">DescripciÃ³n de Actividades</label><textarea id="bit-desc" class="form-control" rows="3" placeholder="Detalle el trabajo realizado..." required></textarea></div>
+                            <div class="mb-3"><label class="form-label small fw-bold">Soporte de Evidencia (PDF/PNG)</label><input type="file" class="form-control" required></div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="fa-solid fa-paper-plane me-2"></i> Registrar en MongoDB</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card-custom">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Historial de BitÃ¡coras</h5>
+                        <div id="historial-bitacoras-est"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+function renderPlazasEst() {
+    const list = SigpraStore.get('plazas', []);
+    const container = document.getElementById('contenedor-plazas-est');
+    container.innerHTML = list.map(p => `
+        <div class="p-3 mb-3 border rounded bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-primary mb-0">${p.titulo}</h6>
+                <span class="badge bg-info">${p.modalidad}</span>
+            </div>
+            <p class="small text-secondary mb-2">${p.empresa} &bull; ${p.descripcion}</p>
+            <button class="btn btn-sm btn-primary fw-bold" onclick="postularPlaza('${p.titulo}', '${p.empresa}')"><i class="fa-solid fa-paper-plane me-1"></i> Postularme</button>
+        </div>
+    `).join('');
+}
+
+function postularPlaza(plaza, empresa) {
+    const list = SigpraStore.get('solicitudes', []);
+    list.unshift({ id: Date.now(), estudiante: 'Juan Rueda', doc: '1004', plaza: plaza, empresa: empresa, docente: 'Prof. Roberto Silva', estado: 'Pendiente' });
+    SigpraStore.set('solicitudes', list);
+    showNotification('Â¡PostulaciÃ³n enviada a la CoordinaciÃ³n!');
+}
+
+function renderBitacorasEst() {
+    const list = SigpraStore.get('bitacoras', []);
+    const container = document.getElementById('historial-bitacoras-est');
+    container.innerHTML = list.map(b => `
+        <div class="p-3 mb-2 border rounded bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">${b.horas} Horas (${b.fecha})</span>
+                <span class="badge-status ${b.estado === 'Aprobado' ? 'badge-active' : 'badge-pending'}">${b.estado}</span>
+            </div>
+            <p class="small text-secondary mb-1 mt-1">${b.descripcion}</p>
+        </div>
+    `).join('');
+}
+
+function guardarBitacoraEst(e) {
+    e.preventDefault();
+    const list = SigpraStore.get('bitacoras', []);
+    list.unshift({ id: Date.now(), estudiante: 'Juan Rueda', fecha: new Date().toISOString().split('T')[0], horas: document.getElementById('bit-horas').value, descripcion: document.getElementById('bit-desc').value, soporte: 'evidencia_adjunta.pdf', estado: 'Pendiente', observacion: '' });
+    SigpraStore.set('bitacoras', list);
+    showNotification('Â¡BitÃ¡cora registrada en MongoDB!');
+    document.getElementById('form-bitacora').reset();
+    renderBitacorasEst();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderPlazasEst();
+    renderBitacorasEst();
+});
+</script>
+</body>
+</html>

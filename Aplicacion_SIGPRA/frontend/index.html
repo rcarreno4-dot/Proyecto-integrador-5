@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SIGPRA - Panel de Prueba de Microservicios</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f6f9; }
+    h1 { color: #2c3e50; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    button { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #2980b9; }
+    pre { background: #eef2f7; padding: 10px; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+  <h1>SIGPRA - Panel de Control por Actores</h1>
+  <p>Servidor API Gateway en <strong>http://localhost:3000</strong></p>
+
+  <div class="grid">
+    <!-- Coordinador (PostgreSQL) -->
+    <div class="card">
+      <h2>Coordinador (PostgreSQL)</h2>
+      <p>Probar CU-01: Programar período</p>
+      <button onclick="probarEndpoint('/api/coordinador/periodo', 'POST', {nombre: 'Periodo 2026-1'})">Programar Período</button>
+    </div>
+
+    <!-- Director (PostgreSQL) -->
+    <div class="card">
+      <h2>Director de Programa (PostgreSQL)</h2>
+      <p>Probar CU-08: Gestionar solicitud</p>
+      <button onclick="probarEndpoint('/api/director/solicitud', 'POST', {estudianteId: 101})">Probar Solicitud</button>
+    </div>
+
+    <!-- Estudiante (MongoDB) -->
+    <div class="card">
+      <h2>Estudiante (MongoDB)</h2>
+      <p>Probar CU-04: Registrar actividad</p>
+      <button onclick="probarEndpoint('/api/estudiante/actividad', 'POST', {descripcion: 'Bitácora Semana 1'})">Registrar Actividad</button>
+    </div>
+
+    <!-- Docente (MongoDB) -->
+    <div class="card">
+      <h2>Docente Asesor (MongoDB)</h2>
+      <p>Probar CU-05: Validar actividad</p>
+      <button onclick="probarEndpoint('/api/docente/validar/123', 'PUT')">Validar Actividad</button>
+    </div>
+  </div>
+
+  <h2>Respuesta del Microservicio:</h2>
+  <pre id="output">Haz clic en cualquier botón para ver la respuesta en tiempo real...</pre>
+
+  <script>
+    async function probarEndpoint(url, method, body = null) {
+      const options = {
+        method,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (body) options.body = JSON.stringify(body);
+
+      try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('output').textContent = 'Error de conexión: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
