@@ -9,7 +9,8 @@ let syncTimer = null;
 const additionalDemoStudents = [
   { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8 },
   { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8 },
-  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 }
+  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 },
+  { id: 10, name: "ana francisca", email: "jobixiita@gmail.com", password: "123456", role: "ESTUDIANTE", initials: "AF", code: "udi 2026", semester: 8 }
 ];
 
 const additionalDemoPlaces = [
@@ -221,6 +222,24 @@ const seedData = {
       justification: "El paz y salvo académico adjunto corresponde al periodo 2026-1. Debe adjuntar el paz y salvo vigente para 2026-2.",
       createdAt: "2026-08-21 15:30",
       updatedAt: "2026-08-22 09:00"
+    },
+    {
+      id: 6,
+      studentId: 10,
+      periodId: 1,
+      level: "VIII semestre",
+      modality: "Convenio institucional",
+      placeId: 2,
+      status: "PENDIENTE_REVISION",
+      documents: {
+        matricula: { name: "matricula_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" },
+        epsArl: { name: "eps_arl_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" },
+        pazYSalvo: { name: "paz_y_salvo_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" }
+      },
+      comments: "hacer mi practica",
+      submittedAt: "2026-10-27 03:52",
+      createdAt: "2026-10-27 03:52",
+      updatedAt: "2026-10-27 03:52"
     }
   ],
   audit: [
