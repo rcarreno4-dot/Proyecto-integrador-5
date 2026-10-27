@@ -1,12 +1,15 @@
 import cors from "cors";
 import express from "express";
+import fs from "fs";
 import path from "path";
 import { postgresRouter } from "./postgres/routes";
 import { apiRouter } from "./routes";
 
 export function createApp() {
   const app = express();
-  const publicDir = process.cwd();
+  const publicDir = fs.existsSync(path.join(process.cwd(), "index.html"))
+    ? process.cwd()
+    : path.resolve(__dirname, "..");
 
   app.use(cors());
   app.use(express.json({ limit: "2mb" }));

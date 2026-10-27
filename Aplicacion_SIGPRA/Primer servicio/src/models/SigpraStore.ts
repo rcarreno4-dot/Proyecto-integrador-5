@@ -1,9 +1,17 @@
 import fs from "fs";
 import path from "path";
 import { seedData } from "./seedData";
-import { Agreement, Assignment, Period, SigpraData } from "./types";
+import { Activity, Agreement, Assignment, Period, SigpraData, Visit } from "./types";
 
-const storePath = path.join(process.cwd(), "data", "sigpra-store.json");
+function getStorePath(): string {
+  const localData = path.join(process.cwd(), "data", "sigpra-store.json");
+  if (fs.existsSync(localData)) return localData;
+  const moduleData = path.resolve(__dirname, "..", "data", "sigpra-store.json");
+  if (fs.existsSync(moduleData)) return moduleData;
+  return localData;
+}
+
+const storePath = getStorePath();
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -30,6 +38,7 @@ export class SigpraStore {
     return this.all();
   }
 
+  // S1: Planeacion y convenios
   periods() {
     return clone(this.data.periods);
   }
@@ -56,6 +65,7 @@ export class SigpraStore {
     return clone(agreement);
   }
 
+  // S2: Asignacion de practicas
   assignments() {
     return clone(this.data.assignments);
   }
@@ -67,6 +77,42 @@ export class SigpraStore {
     if (place) place.occupied += 1;
     this.persist();
     return clone(assignment);
+  }
+
+  // S3: Ejecucion y seguimiento
+  activities() {
+    return clone(this.data.activities);
+  }
+
+  createActivity(input: Omit<Activity, "id">) {
+    const activity = { ...input, id: nextId(this.data.activities) };
+    this.data.activities.push(activity);
+    this.persist();
+    return clone(activity);
+  }
+
+  updateActivity(id: number, input: Partial<Activity>) {
+    const index = this.data.activities.findIndex((item) => item.id === id);
+    if (index === -1) return null;
+    this.data.activities[index] = { ...this.data.activities[index], ...input };
+    this.persist();
+    return clone(this.data.activities[index]);
+  }
+
+  visits() {
+    return clone(this.data.visits);
+  }
+
+  createVisit(input: Omit<Visit, "id">) {
+    const visit = { ...input, id: nextId(this.data.visits) };
+    this.data.visits.push(visit);
+    this.persist();
+    return clone(visit);
+  }
+
+  // S4: Informes y auditoria
+  audit() {
+    return clone(this.data.audit);
   }
 
   private load() {

@@ -7,6 +7,9 @@ const wrap = (fn: (req: Request, res: Response) => Promise<void>) =>
   (req: Request, res: Response, next: NextFunction) => { Promise.resolve(fn(req, res)).catch(next); };
 const newId = (records: { id: number }[]) => Math.max(0, ...records.map(r => Number(r.id))) + 1;
 
+// ==========================================
+// Servicios Transversales
+// ==========================================
 postgresRouter.get('/health', wrap(async (_req, res) => {
   res.json({ ok: await postgresReady(), service: 'SIGPRA', persistence: 'PostgreSQL JSONB MVP' });
 }));
@@ -21,11 +24,14 @@ postgresRouter.post('/auth/login', wrap(async (req, res) => {
   const { password: _password, ...user } = u;
   res.json({ user });
 }));
+
+// ==========================================
+// S1. Planeacion y convenios (RF-01, RF-02)
+// ==========================================
 postgresRouter.get('/periods', wrap(async (_req, res) => { res.json({ periods: (await readState()).periods }); }));
 postgresRouter.get('/agreements', wrap(async (_req, res) => {
   const d = await readState(); res.json({ institutions: d.institutions, agreements: d.agreements, places: d.places });
 }));
-postgresRouter.get('/assignments', wrap(async (_req, res) => { res.json({ assignments: (await readState()).assignments }); }));
 postgresRouter.post('/periods', wrap(async (req, res) => {
   const period = await changeState((d: SigpraData) => {
     const input = req.body;
@@ -44,6 +50,11 @@ postgresRouter.post('/agreements', wrap(async (req, res) => {
     d.agreements.push(item); return item;
   }); res.status(201).json({ agreement });
 }));
+
+// ==========================================
+// S2. Asignacion de practicas (RF-03)
+// ==========================================
+postgresRouter.get('/assignments', wrap(async (_req, res) => { res.json({ assignments: (await readState()).assignments }); }));
 postgresRouter.post('/assignments', wrap(async (req, res) => {
   const assignment = await changeState(d => {
     const input = req.body;
@@ -59,6 +70,52 @@ postgresRouter.post('/assignments', wrap(async (req, res) => {
     d.assignments.push(a); place.occupied++; return a;
   }); res.status(201).json({ assignment });
 }));
+
+// ==========================================
+// S3. Ejecucion y seguimiento (RF-04, RF-05)
+// ==========================================
+postgresRouter.get('/activities', wrap(async (req, res) => {
+  const d = await readState();
+  const assignmentId = req.query.assignmentId ? Number(req.query.assignmentId) : undefined;
+  const activities = assignmentId ? d.activities.filter(a => a.assignmentId === assignmentId) : d.activities;
+  res.json({ activities });
+}));
+postgresRouter.post('/activities', wrap(async (req, res) => {
+  const activity = await changeState(d => {
+    const input = req.body;
+    if (!input?.assignmentId || !input?.description || !input?.hours) throw new Error('Datos de actividad incompletos');
+    const a = { ...input, id: newId(d.activities), status: 'PENDIENTE', observation: input.observation || '' };
+    d.activities.push(a); return a;
+  }); res.status(201).json({ activity });
+}));
+postgresRouter.put('/activities/:id', wrap(async (req, res) => {
+  const id = Number(req.params.id);
+  const updated = await changeState(d => {
+    const item = d.activities.find(a => a.id === id);
+    if (!item) throw new Error('Actividad no encontrada');
+    if (req.body?.status) item.status = req.body.status;
+    if (req.body?.observation !== undefined) item.observation = req.body.observation;
+    return item;
+  }); res.json({ activity: updated });
+}));
+postgresRouter.get('/visits', wrap(async (req, res) => {
+  const d = await readState();
+  const assignmentId = req.query.assignmentId ? Number(req.query.assignmentId) : undefined;
+  const visits = assignmentId ? d.visits.filter(v => v.assignmentId === assignmentId) : d.visits;
+  res.json({ visits });
+}));
+postgresRouter.post('/visits', wrap(async (req, res) => {
+  const visit = await changeState(d => {
+    const input = req.body;
+    if (!input?.assignmentId || !input?.teacherId || !input?.date) throw new Error('Datos de visita incompletos');
+    const v = { ...input, id: newId(d.visits), mode: input.mode || 'PRESENCIAL', attendance: Boolean(input.attendance), score: Number(input.score), status: input.status || 'REGISTRADA' };
+    d.visits.push(v); return v;
+  }); res.status(201).json({ visit });
+}));
+
+// ==========================================
+// S4. Informes y auditoria (CU-07)
+// ==========================================
 postgresRouter.get('/reports/consolidated', wrap(async (_req, res) => {
   const data = await readState();
   const rows = data.assignments.map(a => {
