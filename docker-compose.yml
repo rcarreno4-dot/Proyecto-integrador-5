@@ -45,6 +45,8 @@ services:
       PORT: 3000
       SIGPRA_STORAGE: json
       DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/sigpra
+    volumes:
+      - ./Aplicacion_SIGPRA/Primer servicio/data:/app/data
     depends_on:
       postgres:
         condition: service_healthy

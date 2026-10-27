@@ -326,8 +326,35 @@ async function initializeApi() {
           if (!program.levels.includes(period.level)) program.levels.push(period.level);
         }
       }
+      // Combinar usuarios: mantener nuevos registrados en local o servidor
+      const localUsers = Array.isArray(data?.users) ? data.users : [];
+      const serverUsers = Array.isArray(state.data?.users) ? state.data.users : [];
+      const mergedUsers = [...serverUsers];
+      let needsSync = false;
+
+      for (const lu of localUsers) {
+        if (!mergedUsers.some(su => su.email.toLowerCase() === lu.email.toLowerCase())) {
+          mergedUsers.push(lu);
+          needsSync = true;
+        }
+      }
+
+      // Combinar solicitudes
+      const localReqs = Array.isArray(data?.requests) ? data.requests : [];
+      const serverReqs = Array.isArray(state.data?.requests) ? state.data.requests : [];
+      const mergedReqs = [...serverReqs];
+
+      for (const lr of localReqs) {
+        if (!mergedReqs.some(sr => sr.id === lr.id)) {
+          mergedReqs.push(lr);
+          needsSync = true;
+        }
+      }
+
       data = {
         ...state.data,
+        users: mergedUsers,
+        requests: mergedReqs,
         periods: periods.periods,
         institutions: agreements.institutions,
         agreements: agreements.agreements,
@@ -335,6 +362,10 @@ async function initializeApi() {
         assignments: assignments.assignments
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      if (needsSync) {
+        apiRequest("/state", { method: "PUT", body: JSON.stringify(data) }).catch(() => {});
+      }
     }
     apiEnabled = true;
     apiStatusText = "API Express conectada";
@@ -364,16 +395,34 @@ function syncDataWithApi() {
 }
 
 async function loginWithApi(email, password) {
+  const cleanEmail = String(email || "").trim().toLowerCase();
   if (!apiEnabled) {
-    return data.users.find((item) => item.email === email && item.password === password) || null;
+    return data.users.find((item) => item.email.toLowerCase() === cleanEmail && item.password === password) || null;
   }
   try {
     const result = await apiRequest("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email: cleanEmail, password })
     });
-    return data.users.find((item) => item.id === result.user.id) || result.user;
+    const found = data.users.find((item) => item.id === result.user.id);
+    return found || result.user;
   } catch {
+    // Fallback: verificar si el usuario existe localmente
+    const localUser = data.users.find((item) => item.email.toLowerCase() === cleanEmail && item.password === password);
+    if (localUser) {
+      // Sincronizar en segundo plano con el servidor
+      apiRequest("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          name: localUser.name,
+          email: localUser.email,
+          password: localUser.password,
+          code: localUser.code,
+          semester: localUser.semester
+        })
+      }).catch(() => {});
+      return localUser;
+    }
     return null;
   }
 }
@@ -2395,37 +2444,78 @@ document.addEventListener("submit", async (event) => {
     }
 
     const email = String(formData.email || "").trim().toLowerCase();
+    const name = String(formData.name || "").trim();
+    const code = String(formData.code || "").trim();
+    const semester = Number(formData.semester) || 8;
+    const password = String(formData.password);
+
     if (data.users.some(u => u.email.toLowerCase() === email)) {
       toast("Este correo institucional ya se encuentra registrado. Por favor inicia sesión.");
       return;
     }
 
-    const nameParts = String(formData.name).trim().split(" ");
-    const initials = nameParts.length >= 2
-      ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
-      : formData.name.substring(0, 2).toUpperCase();
+    let newUser = null;
 
-    const newUser = {
-      id: nextId(data.users),
-      name: String(formData.name).trim(),
-      email,
-      password: String(formData.password),
-      role: "ESTUDIANTE",
-      initials,
-      code: String(formData.code || "").trim(),
-      semester: Number(formData.semester) || 8,
-      enabledForAssignment: false
-    };
+    // 1. Si la API está activa, registrar directamente en el backend
+    if (apiEnabled) {
+      try {
+        const response = await apiRequest("/auth/register", {
+          method: "POST",
+          body: JSON.stringify({ name, email, password, code, semester })
+        });
+        if (response?.user) {
+          newUser = { ...response.user, password };
+        }
+      } catch (err) {
+        console.warn("Fallo registro en API:", err);
+      }
+    }
 
-    data.users.push(newUser);
+    // 2. Fallback o inicialización local
+    if (!newUser) {
+      const nameParts = name.split(" ");
+      const initials = nameParts.length >= 2
+        ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+        : name.substring(0, 2).toUpperCase();
+
+      newUser = {
+        id: nextId(data.users),
+        name,
+        email,
+        password,
+        role: "ESTUDIANTE",
+        initials,
+        code: code || `UDI-2026-${String(data.users.length + 1).padStart(3, "0")}`,
+        semester,
+        enabledForAssignment: false
+      };
+    }
+
+    // Asegurar que no esté duplicado
+    if (!data.users.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+      data.users.push(newUser);
+    }
+
     audit(`Registro de nuevo estudiante practicante (${newUser.email})`, "USUARIO");
     saveData();
+
+    // Sincronizar estado completo de forma inmediata
+    if (apiEnabled) {
+      try {
+        await apiRequest("/state", {
+          method: "PUT",
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.warn("Fallo sincronizacion de estado:", e);
+      }
+    }
 
     // Iniciar sesión directamente con el nuevo estudiante
     saveSession(newUser);
     currentView = "student-request";
     studentRequestTab = "form";
-    toast(`¡Bienvenido ${newUser.name}! Tu cuenta ha sido creada. Puedes diligenciar tu solicitud de práctica a continuación.`);
+    toast(`¡Bienvenido ${newUser.name}! Tu cuenta ha sido creada y guardada en el sistema.`);
     render();
     return;
   }
@@ -3069,45 +3159,59 @@ function renderDirectorRequests(user) {
               </tr>
             </thead>
             <tbody>
-              ${requests.length ? requests.map(req => {
-                const student = data.users.find(u => u.id === req.studentId);
-                const period = data.periods.find(p => p.id === req.periodId);
+              ${studentUsers().map(student => {
+                const req = (data.requests || []).find(r => r.studentId === student.id);
+                const period = req ? data.periods.find(p => p.id === req.periodId) : (data.periods || [])[0];
+                const status = req ? req.status : 'SIN_SOLICITUD';
                 const badgeMap = {
+                  SIN_SOLICITUD: 'bg-light text-dark border',
                   BORRADOR: 'bg-secondary',
                   PENDIENTE_REVISION: 'bg-warning text-dark',
                   APROBADA: 'bg-success',
                   DEVUELTA: 'bg-primary',
                   RECHAZADA: 'bg-danger'
                 };
-                const badgeClass = badgeMap[req.status] || 'bg-secondary';
+                const badgeClass = badgeMap[status] || 'bg-secondary';
+                const statusLabel = {
+                  SIN_SOLICITUD: 'Sin solicitud formal',
+                  BORRADOR: 'Borrador',
+                  PENDIENTE_REVISION: 'Pendiente de revisión',
+                  APROBADA: 'Aprobada (Habilitado)',
+                  DEVUELTA: 'Devuelta',
+                  RECHAZADA: 'Rechazada'
+                }[status] || status;
 
                 return `
                   <tr>
-                    <td>#${req.id}</td>
+                    <td>${req ? '#' + req.id : '-'}</td>
                     <td>
-                      <strong>${escapeHtml(student?.name || 'Estudiante #' + req.studentId)}</strong>
-                      <div class="text-muted small">${escapeHtml(student?.code || student?.email || '')}</div>
+                      <strong>${escapeHtml(student.name)}</strong>
+                      <div class="text-muted small">${escapeHtml(student.code || student.email)} • Semestre ${student.semester || 8}</div>
                     </td>
                     <td>
-                      <div>${escapeHtml(period?.program || 'Programa')}</div>
-                      <small class="text-muted">${escapeHtml(req.level)} (${period ? period.year + '-' + period.semester : ''})</small>
+                      <div>${escapeHtml(period?.program || 'Programa UDI')}</div>
+                      <small class="text-muted">${escapeHtml(req?.level || period?.level || 'VIII semestre')}</small>
                     </td>
-                    <td>${escapeHtml(req.modality)}</td>
+                    <td>${escapeHtml(req?.modality || 'No definida')}</td>
                     <td>
-                      <small class="d-block">📄 Matricula</small>
-                      <small class="d-block">📄 EPS/ARL</small>
-                      <small class="d-block">📄 Paz y Salvo</small>
+                      ${req ? `
+                        <small class="d-block">📄 Matricula</small>
+                        <small class="d-block">📄 EPS/ARL</small>
+                        <small class="d-block">📄 Paz y Salvo</small>
+                      ` : '<span class="text-muted small fst-italic">Pendiente de anexar</span>'}
                     </td>
-                    <td><small>${escapeHtml(req.submittedAt || req.updatedAt || '-')}</small></td>
-                    <td><span class="badge ${badgeClass}">${escapeHtml(req.status)}</span></td>
+                    <td><small>${escapeHtml(req?.submittedAt || req?.updatedAt || 'No radicada')}</small></td>
+                    <td><span class="badge ${badgeClass}">${escapeHtml(statusLabel)}</span></td>
                     <td class="text-end">
-                      <button class="btn btn-sm btn-outline-primary" data-action="open-review-modal" data-id="${req.id}">
-                        🔍 Evaluar 
-                      </button>
+                      ${req ? `
+                        <button class="btn btn-sm ${user.role === 'DIRECTOR' ? 'btn-primary' : 'btn-outline-secondary'}" data-action="open-review-modal" data-id="${req.id}">
+                          ${user.role === 'DIRECTOR' ? '🔍 Evaluar Solicitud' : '👁️ Ver Detalle'}
+                        </button>
+                      ` : '<span class="text-muted small">Sin radicar</span>'}
                     </td>
                   </tr>
                 `;
-              }).join('') : `<tr><td colspan="8" class="text-center py-4 text-muted">No hay solicitudes registradas</td></tr>`}
+              }).join('')}
             </tbody>
           </table>
         </div>
