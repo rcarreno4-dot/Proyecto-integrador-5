@@ -9,6 +9,7 @@ export interface User {
   initials: string;
   code?: string;
   semester?: number;
+  enabledForAssignment?: boolean;
 }
 
 export interface Period {
@@ -101,6 +102,38 @@ export interface Visit {
   status: string;
 }
 
+export interface PracticeRequestDocument {
+  name: string;
+  url?: string;
+  type: string;
+  uploadedAt: string;
+}
+
+export type PracticeRequestStatus = "BORRADOR" | "PENDIENTE_REVISION" | "APROBADA" | "DEVUELTA" | "RECHAZADA";
+
+export interface PracticeRequest {
+  id: number;
+  studentId: number;
+  periodId: number;
+  level: string;
+  modality: string;
+  placeId?: number;
+  suggestedCompany?: string;
+  status: PracticeRequestStatus;
+  documents: {
+    matricula?: PracticeRequestDocument;
+    epsArl?: PracticeRequestDocument;
+    pazYSalvo?: PracticeRequestDocument;
+  };
+  comments?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: number;
+  justification?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuditEvent {
   id: number;
   date: string;
@@ -127,5 +160,6 @@ export interface SigpraData {
   activities: Activity[];
   evidences: Evidence[];
   visits: Visit[];
+  requests: PracticeRequest[];
   audit: AuditEvent[];
 }

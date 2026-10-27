@@ -3,14 +3,14 @@ import { SigpraData } from "./types";
 export const seedData: SigpraData = {
   users: [
     { id: 1, name: "Rafael Carreno", email: "coordinador@udi.edu.co", password: "123456", role: "COORDINADOR", initials: "RC" },
-    { id: 2, name: "Laura Gomez", email: "estudiante@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "LG", code: "UDI-2026-001", semester: 8 },
+    { id: 2, name: "Laura Gomez", email: "estudiante@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "LG", code: "UDI-2026-001", semester: 8, enabledForAssignment: true },
     { id: 3, name: "Martha Rodriguez", email: "docente@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "MR" },
     { id: 4, name: "Director Programa", email: "director@udi.edu.co", password: "123456", role: "DIRECTOR", initials: "DP" },
-    { id: 5, name: "Miguel Rios", email: "miguel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "MR", code: "UDI-2026-002", semester: 8 },
+    { id: 5, name: "Miguel Rios", email: "miguel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "MR", code: "UDI-2026-002", semester: 8, enabledForAssignment: true },
     { id: 6, name: "Carlos Mendoza", email: "docente2@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "CM" },
-    { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8 },
-    { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8 },
-    { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 }
+    { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8, enabledForAssignment: false },
+    { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8, enabledForAssignment: false },
+    { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8, enabledForAssignment: false }
   ],
   programs: [
     { id: 1, name: "Ingenieria de Sistemas", levels: ["Practica profesional"], active: true },
@@ -68,7 +68,108 @@ export const seedData: SigpraData = {
   visits: [
     { id: 1, assignmentId: 1, teacherId: 3, date: "2026-09-20", mode: "PRESENCIAL", attendance: true, observation: "Buen manejo del grupo. Se recomienda fortalecer el cierre de la actividad.", score: 4.4, status: "REGISTRADA" }
   ],
+  requests: [
+    {
+      id: 1,
+      studentId: 2,
+      periodId: 1,
+      level: "VIII semestre",
+      modality: "Convenio institucional",
+      placeId: 1,
+      status: "APROBADA",
+      documents: {
+        matricula: { name: "matricula_laura.pdf", type: "application/pdf", uploadedAt: "2026-08-18" },
+        epsArl: { name: "arl_sura_laura.pdf", type: "application/pdf", uploadedAt: "2026-08-18" },
+        pazYSalvo: { name: "paz_y_salvo_laura.pdf", type: "application/pdf", uploadedAt: "2026-08-18" }
+      },
+      comments: "Solicitud radicada para realizar practica en Centro Educativo La Esperanza.",
+      submittedAt: "2026-08-18 09:30",
+      reviewedAt: "2026-08-19 14:15",
+      reviewedBy: 4,
+      justification: "Cumple con totalidad de créditos y documentación verificada.",
+      createdAt: "2026-08-18 09:10",
+      updatedAt: "2026-08-19 14:15"
+    },
+    {
+      id: 2,
+      studentId: 5,
+      periodId: 1,
+      level: "VIII semestre",
+      modality: "Convenio institucional",
+      placeId: 2,
+      status: "APROBADA",
+      documents: {
+        matricula: { name: "matricula_miguel.pdf", type: "application/pdf", uploadedAt: "2026-08-19" },
+        epsArl: { name: "arl_positiva_miguel.pdf", type: "application/pdf", uploadedAt: "2026-08-19" },
+        pazYSalvo: { name: "paz_y_salvo_miguel.pdf", type: "application/pdf", uploadedAt: "2026-08-19" }
+      },
+      comments: "Interés en turno de la tarde.",
+      submittedAt: "2026-08-19 10:00",
+      reviewedAt: "2026-08-20 11:00",
+      reviewedBy: 4,
+      justification: "Documentación en regla.",
+      createdAt: "2026-08-19 09:45",
+      updatedAt: "2026-08-20 11:00"
+    },
+    {
+      id: 3,
+      studentId: 7,
+      periodId: 1,
+      level: "VIII semestre",
+      modality: "Convenio institucional",
+      placeId: 3,
+      status: "PENDIENTE_REVISION",
+      documents: {
+        matricula: { name: "matricula_sofia.pdf", type: "application/pdf", uploadedAt: "2026-08-22" },
+        epsArl: { name: "eps_sanitas_sofia.pdf", type: "application/pdf", uploadedAt: "2026-08-22" },
+        pazYSalvo: { name: "paz_y_salvo_sofia.pdf", type: "application/pdf", uploadedAt: "2026-08-22" }
+      },
+      comments: "Solicitud pendiente de revision por Director de Programa.",
+      submittedAt: "2026-08-22 15:40",
+      createdAt: "2026-08-22 15:00",
+      updatedAt: "2026-08-22 15:40"
+    },
+    {
+      id: 4,
+      studentId: 8,
+      periodId: 1,
+      level: "VIII semestre",
+      modality: "Practica autogestionada",
+      suggestedCompany: "Colegio Bilingüe San José",
+      status: "BORRADOR",
+      documents: {
+        matricula: { name: "matricula_daniel.pdf", type: "application/pdf", uploadedAt: "2026-08-23" }
+      },
+      comments: "Borrador en curso. Pendiente anexar paz y salvo académico.",
+      createdAt: "2026-08-23 11:20",
+      updatedAt: "2026-08-23 11:25"
+    },
+    {
+      id: 5,
+      studentId: 9,
+      periodId: 1,
+      level: "VIII semestre",
+      modality: "Convenio institucional",
+      placeId: 4,
+      status: "DEVUELTA",
+      documents: {
+        matricula: { name: "matricula_valentina.pdf", type: "application/pdf", uploadedAt: "2026-08-21" },
+        epsArl: { name: "eps_sura_valentina.pdf", type: "application/pdf", uploadedAt: "2026-08-21" },
+        pazYSalvo: { name: "paz_salvo_antiguo.pdf", type: "application/pdf", uploadedAt: "2026-08-21" }
+      },
+      comments: "Por favor revisar el documento de paz y salvo.",
+      submittedAt: "2026-08-21 16:10",
+      reviewedAt: "2026-08-22 09:00",
+      reviewedBy: 4,
+      justification: "El paz y salvo académico adjunto corresponde al periodo 2026-1. Debe adjuntar el paz y salvo vigente para 2026-2.",
+      createdAt: "2026-08-21 15:30",
+      updatedAt: "2026-08-22 09:00"
+    }
+  ],
   audit: [
-    { id: 1, date: "2026-09-13 10:00", user: "Sistema", event: "Carga inicial de datos demo", entity: "APP" }
+    { id: 1, date: "2026-08-18 09:30", user: "Laura Gomez", event: "Radicó solicitud formal de práctica (CU-08)", entity: "SOLICITUD" },
+    { id: 2, date: "2026-08-19 14:15", user: "Director Programa", event: "Aprobó solicitud de práctica #1 y habilitó estudiante", entity: "SOLICITUD" },
+    { id: 3, date: "2026-08-22 09:00", user: "Director Programa", event: "Devolvió solicitud #5 por documento desactualizado", entity: "SOLICITUD" },
+    { id: 4, date: "2026-08-22 15:40", user: "Sofia Martinez", event: "Radicó solicitud formal de práctica (CU-08)", entity: "SOLICITUD" }
   ]
 };

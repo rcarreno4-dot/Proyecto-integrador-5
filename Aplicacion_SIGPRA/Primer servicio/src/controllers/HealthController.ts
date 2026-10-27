@@ -6,12 +6,9 @@ export class HealthController {
       ok: true,
       service: "SIGPRA API MVC",
       stack: ["Node.js", "Express", "TypeScript", "MVC"],
-<<<<<<< HEAD
-      apis: ["/api/auth/login", "/api/periods", "/api/agreements", "/api/assignments", "/api/reports/consolidated"]
-=======
       services: {
         S1_Planeacion_y_convenios: ["/api/periods", "/api/agreements"],
-        S2_Asignacion_de_practicas: ["/api/assignments"],
+        S2_Asignacion_y_solicitudes: ["/api/requests", "/api/assignments"],
         S3_Ejecucion_y_seguimiento: ["/api/activities", "/api/visits"],
         S4_Informes_y_auditoria: ["/api/reports/consolidated"],
         Transversales: ["/api/auth/login", "/api/state", "/api/health"]
@@ -20,12 +17,12 @@ export class HealthController {
         "/api/auth/login",
         "/api/periods",
         "/api/agreements",
+        "/api/requests",
         "/api/assignments",
         "/api/activities",
         "/api/visits",
         "/api/reports/consolidated"
       ]
->>>>>>> origin/main
     });
   }
 }
