@@ -1,0 +1,56 @@
+services:
+  # 1. Base de datos relacional (PostgreSQL)
+  postgres:
+    image: postgres:16-alpine
+    container_name: sigpra_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: sigpra
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./Base_de_datos_SIGPRA/scripts/postgresql_schema.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sigpra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Base de datos documental (MongoDB)
+  mongodb:
+    image: mongo:7.0
+    container_name: sigpra_mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: sigpra
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./Base_de_datos_SIGPRA/scripts/mongodb_collections.js:/docker-entrypoint-initdb.d/01-init.js:ro
+
+  # 3. Aplicacion SIGPRA y APIs de Servicios (S1 a S4)
+  sigpra-app:
+    build:
+      context: "./Aplicacion_SIGPRA/Primer servicio"
+      dockerfile: Dockerfile
+    container_name: sigpra_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      SIGPRA_STORAGE: json
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/sigpra
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: sigpra_postgres_data
+  mongo_data:
+    name: sigpra_mongo_data
