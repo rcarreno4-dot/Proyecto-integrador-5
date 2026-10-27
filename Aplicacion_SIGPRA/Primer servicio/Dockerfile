@@ -3,8 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copiar archivos de dependencias
+# Copiar archivos de dependencias y scripts de inicializacion
 COPY package*.json ./
+COPY scripts/ ./scripts/
+
 RUN npm install
 
 # Copiar codigo fuente
@@ -20,7 +22,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm install --omit=dev
+COPY scripts/ ./scripts/
+
+RUN npm install --omit=dev --ignore-scripts
 
 # Copiar distribucion compilada y recursos estaticos
 COPY --from=builder /app/dist ./dist
