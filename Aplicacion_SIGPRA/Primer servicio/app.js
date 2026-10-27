@@ -429,20 +429,12 @@ function render() {
   app.innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="brand">
-          <strong>SIGPRA</strong>
-          <span>Gestion de practicas academicas</span>
-        </div>
-        <div class="role-switch">
-          <label for="role-switch">Ver como</label>
-          <select class="form-select" id="role-switch">
-            ${[
-              ["COORDINADOR", "Coordinador de Practicas"],
-              ["ESTUDIANTE", "Estudiante"],
-              ["DOCENTE_ASESOR", "Docente Asesor"],
-              ["DIRECTOR", "Director del programa"]
-            ].map(([role, label]) => `<option value="${role}" ${user.role === role ? "selected" : ""}>${label}</option>`).join("")}
-          </select>
+        <div class="brand d-flex align-items-center gap-3">
+          <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="38" height="38" />
+          <div>
+            <strong>SIGPRA</strong>
+            <span>Gestion de practicas</span>
+          </div>
         </div>
         <nav class="nav nav-pills" aria-label="Navegacion de ${escapeHtml(roleLabel(user.role))}">
           ${renderNavigation(nav)}
@@ -634,16 +626,33 @@ function renderLogin() {
   app.innerHTML = `
     <main class="login-page">
       <section class="login-aside">
-        <div>
+        <div class="login-aside-header">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="badge bg-warning text-dark px-3 py-1 fw-bold text-uppercase">UDI • Proyecto Integrador</span>
+          </div>
           <h1>SIGPRA</h1>
-          <p>Aplicacion web para gestionar practicas academicas: periodos, convenios, asignaciones, evidencias, validacion, visitas y reportes.</p>
+          <p class="lead">Sistema Integrado de Gestión de Prácticas Académicas</p>
         </div>
-        <p>Version funcional con backend Node, Express, TypeScript y APIs MVC. ${escapeHtml(apiStatusText)}.</p>
+        <div class="login-aside-media">
+          <img src="assets/login-illustration.svg" alt="Gestión de Prácticas Académicas" class="login-illustration-img" />
+        </div>
+        <div class="login-aside-footer">
+          <div class="login-features">
+            <div class="feature-item"><span class="feature-icon">📋</span><span>Periodos y convenios vigentes</span></div>
+            <div class="feature-item"><span class="feature-icon">👥</span><span>Asignación con control de cupos</span></div>
+            <div class="feature-item"><span class="feature-icon">📝</span><span>Bitácora y validación de horas</span></div>
+            <div class="feature-item"><span class="feature-icon">📊</span><span>Informes y reportes consolidados</span></div>
+          </div>
+          <small class="login-subinfo">Facultad de Ingenierías y Ciencias Básicas • UDI</small>
+        </div>
       </section>
       <section class="login-card">
         <div class="brand login-brand">
-          <strong>SIGPRA</strong>
-          <span>Gestion de practicas academicas</span>
+          <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="login-logo" width="48" height="48" />
+          <div class="login-brand-text">
+            <strong>SIGPRA</strong>
+            <span>Gestion de practicas academicas</span>
+          </div>
         </div>
         <h2>Iniciar sesion</h2>
         <p class="muted">Usa una cuenta de prueba o ingresa correo y clave.</p>
@@ -656,13 +665,27 @@ function renderLogin() {
           </label>
           <button class="btn btn-primary button primary full-field" type="submit">Entrar</button>
         </form>
-        <div class="demo-users">
-          ${data.users
-            .filter((user) => ["COORDINADOR", "ESTUDIANTE", "DOCENTE_ASESOR", "DIRECTOR"].includes(user.role))
-            .slice(0, 4)
-            .map((user) => `<button class="btn btn-light text-start" data-login="${user.email}"><strong>${escapeHtml(roleLabel(user.role))}</strong><br><span class="muted">${escapeHtml(user.email)}</span></button>`)
-            .join("")}
-        </div>
+        <details class="demo-users-dropdown">
+          <summary class="demo-users-summary">
+            <span class="demo-users-summary-content">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Cuentas de prueba (desplegar para ingresar)</span>
+            </span>
+            <span class="dropdown-arrow">▼</span>
+          </summary>
+          <div class="demo-users-list">
+            ${data.users
+              .filter((user) => ["COORDINADOR", "ESTUDIANTE", "DOCENTE_ASESOR", "DIRECTOR"].includes(user.role))
+              .slice(0, 4)
+              .map((user) => `<button class="btn btn-light text-start demo-user-btn" data-login="${user.email}" type="button"><div class="demo-btn-header"><strong>${escapeHtml(roleLabel(user.role))}</strong><span class="badge bg-primary-subtle text-primary border border-primary-subtle">Ingresar</span></div><span class="muted small">${escapeHtml(user.email)}</span></button>`)
+              .join("")}
+          </div>
+        </details>
       </section>
     </main>
   `;
@@ -2214,17 +2237,7 @@ document.addEventListener("change", (event) => {
     updateGuidedWorkflow(form);
     return;
   }
-  if (event.target.id !== "role-switch") return;
-  const role = event.target.value;
-  const user = data.users.find((item) => item.role === role);
-  if (!user) {
-    toast("No hay una cuenta de demostracion disponible para ese rol.");
-    render();
-    return;
-  }
-  currentView = "dashboard";
-  saveSession(user);
-  render();
+  // Role-switch removido por seguridad
 });
 
 document.addEventListener("click", async (event) => {
