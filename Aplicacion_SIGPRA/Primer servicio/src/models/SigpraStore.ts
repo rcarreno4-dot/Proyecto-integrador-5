@@ -149,7 +149,7 @@ export class SigpraStore {
       user: userName,
       event: isDraft
         ? `Guardó borrador de solicitud de práctica #${result.id}`
-        : `Radicó solicitud formal de práctica #${result.id} (CU-08)`,
+        : `Radicó solicitud formal de práctica #${result.id}`,
       entity: "SOLICITUD"
     };
     this.data.audit.push(auditEvent);

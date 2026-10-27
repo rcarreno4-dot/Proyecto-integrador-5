@@ -579,13 +579,13 @@ function navForRole(role) {
       { id: "periods", label: "Periodos de practica", group: "Preparar practicas", description: "Configura fechas, horas y criterios para cada periodo." },
       { id: "agreements", label: "Convenios y plazas", group: "Preparar practicas", description: "Organiza instituciones, convenios y cupos disponibles." },
       { id: "assignments", label: "Asignaciones", group: "Seguimiento", description: "Consulta y organiza las practicas de los estudiantes." },
-      { id: "director-requests", label: "Solicitudes (CU-08)", group: "Seguimiento", description: "Consulta las solicitudes radicadas por estudiantes." },
+      { id: "director-requests", label: "Solicitudes de práctica", group: "Seguimiento", description: "Consulta las solicitudes radicadas por estudiantes." },
       { id: "reports", label: "Consolidado", group: "Seguimiento", description: "Filtra el avance y consulta resultados de las practicas." },
       { id: "audit", label: "Auditoria", group: "Seguimiento", description: "Revisa el historial de acciones registradas." }
     ],
     ESTUDIANTE: [
       ...shared,
-      { id: "student-request", label: "Solicitar practica (CU-08)", group: "Mi practica", description: "Radica tu solicitud formal y consulta su estado de aprobacion." },
+      { id: "student-request", label: "Solicitar práctica", group: "Mi practica", description: "Radica tu solicitud formal y consulta su estado de aprobacion." },
       { id: "student-progress", label: "Mi avance", group: "Mi practica", description: "Consulta tus horas aprobadas y el estado de tu practica." },
       { id: "student-activities", label: "Mi bitacora", group: "Mi practica", description: "Registra el trabajo realizado y reporta tus horas." },
       { id: "student-evidence", label: "Evidencias", group: "Mi practica", description: "Adjunta y consulta los soportes de tus actividades." },
@@ -598,7 +598,7 @@ function navForRole(role) {
     ],
     DIRECTOR: [
       ...shared,
-      { id: "director-requests", label: "Solicitudes de practica (CU-08)", group: "Gestion de practicas", description: "Revisa, aprueba, devuelve o rechaza solicitudes de practica." },
+      { id: "director-requests", label: "Solicitudes de práctica", group: "Gestion de practicas", description: "Revisa, aprueba, devuelve o rechaza solicitudes de practica." },
       { id: "reports", label: "Consolidado", group: "Consulta", description: "Consulta el avance general de las practicas." },
       { id: "audit", label: "Auditoria", group: "Consulta", description: "Revisa las acciones registradas en el sistema." }
     ]
@@ -688,19 +688,19 @@ function viewTitle(view, role) {
   }
   return {
     dashboard: "Resumen de coordinacion",
-    periods: "CU-01 Programar periodo de practica",
-    agreements: "CU-02 Gestionar convenios y plazas",
-    assignments: "CU-03 Asignar practicante a plaza y docente asesor",
-    reports: "CU-07 Consultar estado consolidado de practicas",
+    periods: "Programar periodo de práctica",
+    agreements: "Gestión de convenios y plazas",
+    assignments: "Asignación de practicante y docente asesor",
+    reports: "Estado consolidado de prácticas",
     audit: "Auditoria",
-    "student-activities": "CU-04 Registrar actividad ejecutada y soportes",
+    "student-activities": "Registro de actividades y soportes",
     "student-evidence": "Evidencias y soportes",
     "student-validations": "Estado de validaciones",
     "student-progress": "Avance de practica",
-    "teacher-validations": "CU-05 Validar actividades reportadas",
-    "teacher-visits": "CU-06 Realizar visita de acompanamiento y evaluar",
-    "student-request": "CU-08 Solicitar practica academica",
-    "director-requests": "CU-08 Evaluar solicitudes de practica academica"
+    "teacher-validations": "Validación de actividades reportadas",
+    "teacher-visits": "Visitas de acompañamiento y evaluación",
+    "student-request": "Solicitud formal de práctica académica",
+    "director-requests": "Evaluación de solicitudes de práctica"
   }[view] || "SIGPRA";
 }
 
@@ -783,7 +783,7 @@ function renderLogin() {
             <h2 class="mb-0">Registro de Estudiante</h2>
             <span class="badge bg-success-subtle text-success border border-success-subtle">Nuevo Practicante</span>
           </div>
-          <p class="muted mb-3">Crea tu cuenta institucional para radicar tu solicitud de práctica (CU-08).</p>
+          <p class="muted mb-3">Crea tu cuenta institucional para radicar tu solicitud de práctica.</p>
 
           <form id="register-form" class="form-grid">
             <label class="full-field">Nombre y Apellidos completos *
@@ -1163,7 +1163,7 @@ function assignmentWorkflowForm() {
             ${studentUsers().map((student) => {
               const req = (data.requests || []).find((r) => r.studentId === student.id && r.periodId === activePeriod.id);
               const isApproved = req?.status === "APROBADA" || student.enabledForAssignment;
-              const tag = isApproved ? " [✅ Habilitado CU-08]" : " [⏳ Pendiente CU-08]";
+              const tag = isApproved ? " [✅ Habilitado]" : " [⏳ Pendiente de Habilitación]";
               return `<option value="${student.id}">${escapeHtml(student.name)} - ${escapeHtml(student.code || student.email)}${tag}</option>`;
             }).join("")}
           </select>
@@ -1331,7 +1331,7 @@ function renderStudentActivities(user) {
   return `
     <section class="stack">
       <article class="card full">
-        <h2>Nueva bitacora (CU-04)</h2>
+        <h2>Nueva bitácora de actividades</h2>
         <p class="muted">Registra la actividad realizada, las horas y sus soportes. Puedes guardar un borrador o enviarlo al docente asesor.</p>
         ${assignment ? modalForm("activity") : `<div class="empty">Necesitas una asignacion activa para registrar actividades.</div>`}
       </article>
@@ -2615,7 +2615,7 @@ document.addEventListener("click", async (event) => {
       data.requests.push(reqData);
     }
 
-    audit(isDraft ? `Guardó borrador de solicitud #${reqData.id}` : `Radicó solicitud formal de práctica #${reqData.id} (CU-08)`, "SOLICITUD");
+    audit(isDraft ? `Guardó borrador de solicitud #${reqData.id}` : `Radicó solicitud formal de práctica #${reqData.id} `, "SOLICITUD");
     studentRequestTab = "status";
     saveData();
     toast(isDraft ? "Borrador guardado exitosamente." : "¡Solicitud formal de práctica radicada exitosamente!");
@@ -2657,7 +2657,7 @@ document.addEventListener("click", async (event) => {
     if (!req) return;
     const justification = document.querySelector("#review-justification-input")?.value?.trim();
     if (!justification) {
-      alert("Regla de negocio CU-08: La justificación es obligatoria para devolver o rechazar una solicitud.");
+      alert("La justificación es obligatoria para devolver o rechazar una solicitud.");
       return;
     }
     const user = currentUser();
@@ -2715,7 +2715,7 @@ function renderStudentRequest(user) {
           <h2>Convocatoria de practicas</h2>
           <div class="alert alert-warning mb-0" role="alert">
             <h5 class="alert-heading">⚠️ No hay convocatorias abiertas</h5>
-            <p class="mb-0">En este momento no existen periodos de practica en estado PUBLICADO (Regla 2a). Comunícate con la coordinación académica para más información.</p>
+            <p class="mb-0">En este momento no existen periodos de practica en estado PUBLICADO . Comunícate con la coordinación académica para más información.</p>
           </div>
         </article>
       </section>
@@ -2753,7 +2753,7 @@ function renderStudentRequest(user) {
             ` : ''}
             <li class="nav-item">
               <button class="nav-link ${currentTab === 'form' ? 'active' : 'btn-outline-primary'}" data-action="switch-request-tab" data-tab="form">
-                📝 ${existingRequest ? 'Diligenciar / Nueva Solicitud (Formulario)' : 'Diligenciar Formulario de Solicitud (CU-08)'}
+                📝 ${existingRequest ? 'Diligenciar / Nueva Solicitud (Formulario)' : 'Diligenciar Formulario de Solicitud '}
               </button>
             </li>
           </ul>
@@ -2770,7 +2770,7 @@ function renderStudentRequest(user) {
         ${currentTab === 'status' && existingRequest ? `
           <!-- VISTA 1: RESUMEN DE ESTADO RADICADO -->
           <div>
-            <h2 class="mb-1">Estado de tu solicitud de practica (CU-08)</h2>
+            <h2 class="mb-1">Estado de tu solicitud de practica </h2>
             <p class="muted mb-3">Periodo academico: <strong>${escapeHtml(activePeriod.program)} - ${escapeHtml(activePeriod.level)} (${activePeriod.year}-${activePeriod.semester})</strong></p>
 
             ${isApproved ? `
@@ -2778,7 +2778,7 @@ function renderStudentRequest(user) {
                 <span class="fs-2">🎉</span>
                 <div>
                   <h5 class="alert-heading mb-1">¡Solicitud Aprobada y Estudiante Habilitado!</h5>
-                  <p class="mb-0">Tu solicitud formal fue evaluada y aprobada por la Direccion de Programa. Cumples con todos los prerrequisitos y estas habilitado para asignacion de plaza y docente asesor (CU-03).</p>
+                  <p class="mb-0">Tu solicitud formal fue evaluada y aprobada por la Direccion de Programa. Cumples con todos los prerrequisitos y estas habilitado para asignacion de plaza y docente asesor.</p>
                   <small class="text-muted">Aprobada el: ${escapeHtml(existingRequest.reviewedAt || existingRequest.updatedAt)} | Observacion: "${escapeHtml(existingRequest.justification || 'Cumple con totalidad de créditos y documentación verificada.')}"</small>
                 </div>
               </div>
@@ -2854,7 +2854,7 @@ function renderStudentRequest(user) {
           <!-- VISTA 2: FORMULARIO INTERACTIVO POR ETAPAS PARA LLENAR INFORMACION -->
           <div>
             <div class="mb-4">
-              <h2 class="mb-1">Formulario de Solicitud de Practica Academica (CU-08)</h2>
+              <h2 class="mb-1">Formulario de Solicitud de Practica Academica </h2>
               <p class="muted mb-0">Diligencia la informacion requerida en cada una de las 4 etapas y adjunta tus soportes digitales para habilitar tu practica.</p>
             </div>
 
@@ -2983,10 +2983,10 @@ function renderStudentRequest(user) {
 
                   <div class="d-flex gap-2">
                     <button type="button" class="btn btn-outline-secondary" data-action="save-request-draft">
-                      💾 Guardar como borrador (Flujo 6a)
+                      💾 Guardar como borrador
                     </button>
                     <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" data-action="submit-student-request">
-                      📤 Radicar Solicitud Formal (Flujo 6)
+                      📤 Radicar Solicitud Formal
                     </button>
                   </div>
                 </div>
@@ -3041,7 +3041,7 @@ function renderDirectorRequests(user) {
       <article class="card full mt-3">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <div>
-            <h2 class="mb-1">Bandeja de Solicitudes de Practica Academica (CU-08)</h2>
+            <h2 class="mb-1">Bandeja de Solicitudes de Practica Academica </h2>
             <p class="muted mb-0">Revisa la documentacion adjunta de los estudiantes y evalua su habilitacion formal en el sistema.</p>
           </div>
         </div>
@@ -3094,7 +3094,7 @@ function renderDirectorRequests(user) {
                     <td><span class="badge ${badgeClass}">${escapeHtml(req.status)}</span></td>
                     <td class="text-end">
                       <button class="btn btn-sm btn-outline-primary" data-action="open-review-modal" data-id="${req.id}">
-                        🔍 Evaluar (CU-08)
+                        🔍 Evaluar 
                       </button>
                     </td>
                   </tr>
@@ -3119,7 +3119,7 @@ function openRequestReviewModal(requestId) {
   backdrop.innerHTML = `
     <div class="sigpra-modal" style="max-width: 750px;">
       <div class="sigpra-modal-header d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">Evaluacion de Solicitud #${req.id} - CU-08</h3>
+        <h3 class="mb-0">Evaluacion de Solicitud #${req.id} </h3>
         <button class="btn-close" data-action="close-modal" aria-label="Cerrar"></button>
       </div>
       <div class="sigpra-modal-body">
@@ -3172,7 +3172,7 @@ function openRequestReviewModal(requestId) {
         <div class="mb-3">
           <label class="form-label fw-bold">Observacion / Justificacion del Director</label>
           <textarea class="form-control" id="review-justification-input" rows="3" placeholder="Requerido obligatoriamente si se devuelve para correccion o se rechaza la solicitud...">${escapeHtml(req.justification || '')}</textarea>
-          <div class="form-text">Regla CU-08: Devolver o rechazar exige obligatoriamente justificacion registrada.</div>
+          <div class="form-text">Devolver o rechazar exige obligatoriamente una justificación registrada.</div>
         </div>
       </div>
       <div class="sigpra-modal-footer d-flex justify-content-between flex-wrap gap-2">

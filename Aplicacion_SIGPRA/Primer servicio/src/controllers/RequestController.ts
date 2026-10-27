@@ -54,7 +54,7 @@ export class RequestController {
       );
 
       return res.status(201).json({
-        message: status === "BORRADOR" ? "Borrador de solicitud guardado exitosamente." : "Solicitud formal de práctica radicada exitosamente (CU-08).",
+        message: status === "BORRADOR" ? "Borrador de solicitud guardado exitosamente." : "Solicitud formal de práctica radicada exitosamente.",
         request: result
       });
     } catch (error: any) {
@@ -72,7 +72,7 @@ export class RequestController {
       }
 
       if ((status === "DEVUELTA" || status === "RECHAZADA") && (!justification || !String(justification).trim())) {
-        return res.status(400).json({ error: "La justificación es obligatoria para devolver o rechazar una solicitud (CU-08)." });
+        return res.status(400).json({ error: "La justificación es obligatoria para devolver o rechazar una solicitud." });
       }
 
       const updated = sigpraStore.reviewRequest(
