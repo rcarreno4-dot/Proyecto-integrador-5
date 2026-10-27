@@ -232,6 +232,7 @@ let data = loadData();
 let session = loadSession();
 let currentView = "dashboard";
 let studentRequestTab = "status";
+let authMode = "login";
 let reportFilters = { periodId: "", program: "", institutionId: "", teacherId: "" };
 
 const app = document.querySelector("#app");
@@ -741,6 +742,8 @@ function renderView(user) {
 }
 
 function renderLogin() {
+  const isRegister = authMode === "register";
+
   app.innerHTML = `
     <main class="login-page">
       <section class="login-aside">
@@ -764,6 +767,7 @@ function renderLogin() {
           <small class="login-subinfo">Facultad de Ingenierías y Ciencias Básicas • UDI</small>
         </div>
       </section>
+
       <section class="login-card">
         <div class="brand login-brand">
           <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="login-logo" width="48" height="48" />
@@ -772,42 +776,115 @@ function renderLogin() {
             <span>Gestion de practicas academicas</span>
           </div>
         </div>
-        <h2>Iniciar sesion</h2>
-        <p class="muted">Usa una cuenta de prueba o ingresa correo y clave.</p>
-        <form id="login-form" class="form-grid">
-          <label class="full-field">Correo
-            <input class="form-control" name="email" type="email" value="coordinador@udi.edu.co" required />
-          </label>
-          <label class="full-field">Clave
-            <input class="form-control" name="password" type="password" value="123456" required />
-          </label>
-          <button class="btn btn-primary button primary full-field" type="submit">Entrar</button>
-        </form>
-        <details class="demo-users-dropdown">
-          <summary class="demo-users-summary">
-            <span class="demo-users-summary-content">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span>Cuentas de prueba (desplegar para ingresar)</span>
-            </span>
-            <span class="dropdown-arrow">▼</span>
-          </summary>
-          <div class="demo-users-list">
-            ${data.users
-              .filter((user) => ["COORDINADOR", "ESTUDIANTE", "DOCENTE_ASESOR", "DIRECTOR"].includes(user.role))
-              .slice(0, 4)
-              .map((user) => `<button class="btn btn-light text-start demo-user-btn" data-login="${user.email}" type="button"><div class="demo-btn-header"><strong>${escapeHtml(roleLabel(user.role))}</strong><span class="badge bg-primary-subtle text-primary border border-primary-subtle">Ingresar</span></div><span class="muted small">${escapeHtml(user.email)}</span></button>`)
-              .join("")}
+
+        ${isRegister ? `
+          <!-- FORMULARIO DE REGISTRO PARA NUEVOS ESTUDIANTES -->
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h2 class="mb-0">Registro de Estudiante</h2>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Nuevo Practicante</span>
           </div>
-        </details>
+          <p class="muted mb-3">Crea tu cuenta institucional para radicar tu solicitud de práctica (CU-08).</p>
+
+          <form id="register-form" class="form-grid">
+            <label class="full-field">Nombre y Apellidos completos *
+              <input class="form-control" name="name" type="text" placeholder="Ej: Camilo Andrés Pérez" required />
+            </label>
+
+            <label class="full-field">Correo institucional UDI *
+              <input class="form-control" name="email" type="email" placeholder="estudiante@udi.edu.co" required />
+            </label>
+
+            <div class="row g-2 w-100 m-0">
+              <div class="col-md-6 p-0 pe-1">
+                <label class="w-100">Código estudiantil *
+                  <input class="form-control" name="code" type="text" placeholder="UDI-2026-..." required />
+                </label>
+              </div>
+              <div class="col-md-6 p-0 ps-1">
+                <label class="w-100">Semestre actual *
+                  <select class="form-select" name="semester" required>
+                    <option value="7">7° Semestre</option>
+                    <option value="8" selected>8° Semestre</option>
+                    <option value="9">9° Semestre</option>
+                    <option value="10">10° Semestre</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="row g-2 w-100 m-0">
+              <div class="col-md-6 p-0 pe-1">
+                <label class="w-100">Contraseña *
+                  <input class="form-control" name="password" type="password" minlength="6" placeholder="Mínimo 6 caracteres" required />
+                </label>
+              </div>
+              <div class="col-md-6 p-0 ps-1">
+                <label class="w-100">Confirmar contraseña *
+                  <input class="form-control" name="confirmPassword" type="password" minlength="6" placeholder="Repite contraseña" required />
+                </label>
+              </div>
+            </div>
+
+            <button class="btn btn-success button primary full-field mt-3 fw-bold" type="submit">
+              ✨ Crear Cuenta y Comenzar Solicitud
+            </button>
+          </form>
+
+          <div class="text-center mt-3 pt-3 border-top">
+            <span class="text-muted small">¿Ya tienes una cuenta registrada?</span>
+            <button class="btn btn-link p-0 fw-bold ms-1 text-decoration-none" type="button" data-action="toggle-auth-mode" data-mode="login">
+              Iniciar sesión aquí
+            </button>
+          </div>
+        ` : `
+          <!-- FORMULARIO DE INICIO DE SESIÓN -->
+          <h2>Iniciar sesion</h2>
+          <p class="muted">Usa una cuenta de prueba o ingresa tu correo institucional.</p>
+
+          <form id="login-form" class="form-grid">
+            <label class="full-field">Correo institucional
+              <input class="form-control" name="email" type="email" value="coordinador@udi.edu.co" required />
+            </label>
+            <label class="full-field">Clave
+              <input class="form-control" name="password" type="password" value="123456" required />
+            </label>
+            <button class="btn btn-primary button primary full-field" type="submit">Entrar</button>
+          </form>
+
+          <div class="text-center my-3 p-2 bg-light rounded border">
+            <span class="text-muted small">¿Eres un estudiante nuevo?</span>
+            <button class="btn btn-link p-0 fw-bold ms-1 text-decoration-none" type="button" data-action="toggle-auth-mode" data-mode="register">
+              📝 Registrar nueva cuenta de estudiante
+            </button>
+          </div>
+
+          <details class="demo-users-dropdown">
+            <summary class="demo-users-summary">
+              <span class="demo-users-summary-content">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Cuentas de prueba (desplegar para ingresar)</span>
+              </span>
+              <span class="dropdown-arrow">▼</span>
+            </summary>
+            <div class="demo-users-list">
+              ${data.users
+                .filter((user) => ["COORDINADOR", "ESTUDIANTE", "DOCENTE_ASESOR", "DIRECTOR"].includes(user.role))
+                .slice(0, 4)
+                .map((user) => `<button class="btn btn-light text-start demo-user-btn" data-login="${user.email}" type="button"><div class="demo-btn-header"><strong>${escapeHtml(roleLabel(user.role))}</strong><span class="badge bg-primary-subtle text-primary border border-primary-subtle">Ingresar</span></div><span class="muted small">${escapeHtml(user.email)}</span></button>`)
+                .join("")}
+            </div>
+          </details>
+        `}
       </section>
     </main>
   `;
 }
+
 
 function renderDashboard(user) {
   if (user.role === "ESTUDIANTE") return renderStudentProgress(user, true);
@@ -2308,6 +2385,51 @@ function downloadFile(name, content, type) {
 }
 
 document.addEventListener("submit", async (event) => {
+  if (event.target.id === "register-form") {
+    event.preventDefault();
+    const formData = Object.fromEntries(new FormData(event.target).entries());
+
+    if (formData.password !== formData.confirmPassword) {
+      toast("Las contraseñas no coinciden. Por favor verifícalas.");
+      return;
+    }
+
+    const email = String(formData.email || "").trim().toLowerCase();
+    if (data.users.some(u => u.email.toLowerCase() === email)) {
+      toast("Este correo institucional ya se encuentra registrado. Por favor inicia sesión.");
+      return;
+    }
+
+    const nameParts = String(formData.name).trim().split(" ");
+    const initials = nameParts.length >= 2
+      ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+      : formData.name.substring(0, 2).toUpperCase();
+
+    const newUser = {
+      id: nextId(data.users),
+      name: String(formData.name).trim(),
+      email,
+      password: String(formData.password),
+      role: "ESTUDIANTE",
+      initials,
+      code: String(formData.code || "").trim(),
+      semester: Number(formData.semester) || 8,
+      enabledForAssignment: false
+    };
+
+    data.users.push(newUser);
+    audit(`Registro de nuevo estudiante practicante (${newUser.email})`, "USUARIO");
+    saveData();
+
+    // Iniciar sesión directamente con el nuevo estudiante
+    saveSession(newUser);
+    currentView = "student-request";
+    studentRequestTab = "form";
+    toast(`¡Bienvenido ${newUser.name}! Tu cuenta ha sido creada. Puedes diligenciar tu solicitud de práctica a continuación.`);
+    render();
+    return;
+  }
+
   if (event.target.id === "login-form") {
     event.preventDefault();
     const formData = Object.fromEntries(new FormData(event.target).entries());
@@ -2430,6 +2552,12 @@ document.addEventListener("click", async (event) => {
     form.elements.reassignmentReason.value = "";
     updateAssignmentWorkflow(form, "studentId");
     form.elements.studentId.focus();
+    return;
+  }
+
+  if (action.dataset.action === "toggle-auth-mode") {
+    authMode = action.dataset.mode;
+    renderLogin();
     return;
   }
 

@@ -11,10 +11,11 @@ export class HealthController {
         S2_Asignacion_y_solicitudes: ["/api/requests", "/api/assignments"],
         S3_Ejecucion_y_seguimiento: ["/api/activities", "/api/visits"],
         S4_Informes_y_auditoria: ["/api/reports/consolidated"],
-        Transversales: ["/api/auth/login", "/api/state", "/api/health"]
+        Transversales: ["/api/auth/login", "/api/auth/register", "/api/state", "/api/health"]
       },
       apis: [
         "/api/auth/login",
+        "/api/auth/register",
         "/api/periods",
         "/api/agreements",
         "/api/requests",

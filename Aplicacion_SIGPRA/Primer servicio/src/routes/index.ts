@@ -18,6 +18,7 @@ apiRouter.get("/health", HealthController.show);
 apiRouter.get("/state", StateController.show);
 apiRouter.put("/state", StateController.replace);
 apiRouter.post("/auth/login", AuthController.login);
+apiRouter.post("/auth/register", AuthController.register);
 
 // ==========================================
 // S1. Planeacion y convenios (RF-01, RF-02, CU-01, CU-02)
