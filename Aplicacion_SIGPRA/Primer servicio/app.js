@@ -2629,10 +2629,14 @@ document.addEventListener("click", async (event) => {
   }
 
   if (action.dataset.action === "approve-request-confirm") {
+    const user = currentUser();
+    if (user?.role !== "DIRECTOR") {
+      alert("Operación no autorizada: Solo el Director de Programa tiene los permisos para aprobar solicitudes de práctica.");
+      return;
+    }
     const reqId = Number(action.dataset.id);
     const req = (data.requests || []).find(r => r.id === reqId);
     if (!req) return;
-    const user = currentUser();
     const timestamp = new Date().toISOString().replace("T", " ").substring(0, 16);
     req.status = "APROBADA";
     req.reviewedAt = timestamp;
@@ -2651,6 +2655,11 @@ document.addEventListener("click", async (event) => {
   }
 
   if (action.dataset.action === "return-request-confirm" || action.dataset.action === "reject-request-confirm") {
+    const user = currentUser();
+    if (user?.role !== "DIRECTOR") {
+      alert("Operación no autorizada: Solo el Director de Programa tiene los permisos para devolver o rechazar solicitudes.");
+      return;
+    }
     const isReturn = action.dataset.action === "return-request-confirm";
     const reqId = Number(action.dataset.id);
     const req = (data.requests || []).find(r => r.id === reqId);
@@ -2660,7 +2669,6 @@ document.addEventListener("click", async (event) => {
       alert("La justificación es obligatoria para devolver o rechazar una solicitud.");
       return;
     }
-    const user = currentUser();
     const timestamp = new Date().toISOString().replace("T", " ").substring(0, 16);
     req.status = isReturn ? "DEVUELTA" : "RECHAZADA";
     req.reviewedAt = timestamp;
@@ -3113,20 +3121,34 @@ function openRequestReviewModal(requestId) {
   if (!req) return;
   const student = data.users.find(u => u.id === req.studentId);
   const period = data.periods.find(p => p.id === req.periodId);
+  const currentUserObj = currentUser();
+  const isDirector = currentUserObj?.role === "DIRECTOR";
 
   const backdrop = document.createElement("div");
   backdrop.className = "sigpra-modal-backdrop";
   backdrop.innerHTML = `
     <div class="sigpra-modal" style="max-width: 750px;">
       <div class="sigpra-modal-header d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">Evaluacion de Solicitud #${req.id} </h3>
+        <div>
+          <h3 class="mb-0">${isDirector ? "Evaluación de Solicitud #" + req.id : "Detalle de Solicitud #" + req.id}</h3>
+          <small class="text-muted">${isDirector ? "Panel de Decisión - Dirección de Programa" : "Modo Consulta - Coordinación de Prácticas"}</small>
+        </div>
         <button class="btn-close" data-action="close-modal" aria-label="Cerrar"></button>
       </div>
       <div class="sigpra-modal-body">
+        ${!isDirector ? `
+          <div class="alert alert-info py-2 px-3 small mb-3 d-flex align-items-center gap-2" role="alert">
+            <span class="fs-4">ℹ️</span>
+            <div>
+              <strong>Rol de Coordinación (Solo Consulta):</strong> La potestad de evaluar, aprobar o rechazar la solicitud formal de práctica corresponde exclusivamente a la <strong>Dirección de Programa</strong>. Una vez aprobada, el practicante quedará disponible en el módulo de Asignaciones.
+            </div>
+          </div>
+        ` : ''}
+
         <div class="alert alert-light border mb-3">
           <div class="row g-2">
             <div class="col-md-6">
-              <span class="text-muted small d-block">Estudiante:</span>
+              <span class="text-muted small d-block">Estudiante practicante:</span>
               <strong>${escapeHtml(student?.name)}</strong> (${escapeHtml(student?.code || student?.email)})
             </div>
             <div class="col-md-6">
@@ -3134,64 +3156,77 @@ function openRequestReviewModal(requestId) {
               <strong>${escapeHtml(period?.program)} - ${escapeHtml(req.level)}</strong>
             </div>
             <div class="col-md-6">
-              <span class="text-muted small d-block">Modalidad:</span>
+              <span class="text-muted small d-block">Modalidad de práctica:</span>
               <strong>${escapeHtml(req.modality)}</strong>
             </div>
             <div class="col-md-6">
-              <span class="text-muted small d-block">Estado actual:</span>
-              <span class="badge bg-secondary">${escapeHtml(req.status)}</span>
+              <span class="text-muted small d-block">Estado de la solicitud:</span>
+              <span class="badge ${req.status === 'APROBADA' ? 'bg-success' : req.status === 'PENDIENTE_REVISION' ? 'bg-warning text-dark' : req.status === 'DEVUELTA' ? 'bg-primary' : 'bg-danger'} px-2 py-1">${escapeHtml(req.status)}</span>
             </div>
           </div>
         </div>
 
-        <h5 class="fw-bold mb-2">Verificacion de soportes documentales:</h5>
+        <h5 class="fw-bold mb-2 fs-6">Verificación de soportes documentales (Prerrequisitos):</h5>
         <div class="list-group mb-3">
           <div class="list-group-item d-flex justify-content-between align-items-center">
             <div>
-              <strong>1. Certificado de Matricula</strong>
+              <strong>1. Certificado de Matrícula</strong>
               <div class="text-muted small">${escapeHtml(req.documents?.matricula?.name || 'matricula.pdf')}</div>
             </div>
-            <span class="badge bg-success">Verificado</span>
+            <span class="badge bg-success">Cargado</span>
           </div>
           <div class="list-group-item d-flex justify-content-between align-items-center">
             <div>
-              <strong>2. Afiliacion EPS / ARL vigente</strong>
+              <strong>2. Afiliación EPS / ARL vigente</strong>
               <div class="text-muted small">${escapeHtml(req.documents?.epsArl?.name || 'eps_arl.pdf')}</div>
             </div>
-            <span class="badge bg-success">Verificado</span>
+            <span class="badge bg-success">Cargado</span>
           </div>
           <div class="list-group-item d-flex justify-content-between align-items-center">
             <div>
-              <strong>3. Paz y Salvo Academico (Creditos)</strong>
+              <strong>3. Paz y Salvo Académico (Créditos aprobados)</strong>
               <div class="text-muted small">${escapeHtml(req.documents?.pazYSalvo?.name || 'paz_y_salvo.pdf')}</div>
             </div>
-            <span class="badge bg-success">Verificado</span>
+            <span class="badge bg-success">Cargado</span>
           </div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label fw-bold">Observacion / Justificacion del Director</label>
-          <textarea class="form-control" id="review-justification-input" rows="3" placeholder="Requerido obligatoriamente si se devuelve para correccion o se rechaza la solicitud...">${escapeHtml(req.justification || '')}</textarea>
-          <div class="form-text">Devolver o rechazar exige obligatoriamente una justificación registrada.</div>
-        </div>
+        ${isDirector ? `
+          <div class="mb-3">
+            <label class="form-label fw-bold">Observación / Justificación de la Dirección de Programa</label>
+            <textarea class="form-control" id="review-justification-input" rows="3" placeholder="Ingresa tus observaciones. (Obligatorio en caso de devolver para corrección o rechazar)...">${escapeHtml(req.justification || '')}</textarea>
+            <div class="form-text">La justificación es obligatoria para devolver o rechazar una solicitud.</div>
+          </div>
+        ` : `
+          ${req.justification ? `
+            <div class="mb-3 p-3 bg-light rounded border">
+              <span class="text-muted small d-block fw-bold">Concepto emitido por la Dirección de Programa:</span>
+              <p class="mb-0 fst-italic">"${escapeHtml(req.justification)}"</p>
+              ${req.reviewedAt ? `<small class="text-muted">Fecha de evaluación: ${escapeHtml(req.reviewedAt)}</small>` : ''}
+            </div>
+          ` : ''}
+        `}
       </div>
       <div class="sigpra-modal-footer d-flex justify-content-between flex-wrap gap-2">
-        <button class="btn btn-secondary" data-action="close-modal">Cancelar</button>
-        <div class="d-flex gap-2">
-          <button class="btn btn-danger" data-action="reject-request-confirm" data-id="${req.id}">
-            ❌ Rechazar
-          </button>
-          <button class="btn btn-warning text-dark" data-action="return-request-confirm" data-id="${req.id}">
-            ↩️ Devolver para correccion
-          </button>
-          <button class="btn btn-success fw-bold" data-action="approve-request-confirm" data-id="${req.id}">
-            ✅ Aprobar y Habilitar
-          </button>
-        </div>
+        <button class="btn btn-secondary" data-action="close-modal">${isDirector ? "Cancelar" : "Cerrar"}</button>
+        ${isDirector ? `
+          <div class="d-flex gap-2">
+            <button class="btn btn-danger" data-action="reject-request-confirm" data-id="${req.id}">
+              ❌ Rechazar
+            </button>
+            <button class="btn btn-warning text-dark" data-action="return-request-confirm" data-id="${req.id}">
+              ↩️ Devolver para corrección
+            </button>
+            <button class="btn btn-success fw-bold" data-action="approve-request-confirm" data-id="${req.id}">
+              ✅ Aprobar y Habilitar
+            </button>
+          </div>
+        ` : ''}
       </div>
     </div>
   `;
   document.body.appendChild(backdrop);
 }
+
 
 initializeApi();
