@@ -1,18 +1,50 @@
 # Aplicacion SIGPRA
 
+<<<<<<< HEAD
+Espacio principal de la aplicacion web SIGPRA para el Proyecto Integrador.
+
+## Ejecucion rapida
+
+Puedes ejecutar la aplicacion directamente desde esta carpeta:
+=======
 Aplicacion web funcional tipo MVP para el producto final de SIGPRA.
-Incluye frontend web y backend API REST con Node.js, Express, TypeScript y organizacion MVC.
+Incluye frontend web y backend API REST con Node.js, Express, TypeScript y organizacion MVC orientada a los servicios del sistema (S1 a S4).
 
-## Como abrir
+## Como abrir y ejecutar
 
-### Opcion recomendada con API
+### Opcion recomendada (con servidor API REST)
+
+Desde la carpeta `Aplicacion_SIGPRA` o desde `Aplicacion_SIGPRA/Primer servicio`:
+>>>>>>> origin/main
 
 ```bash
 npm install
 npm run dev
 ```
 
-Luego abrir:
+<<<<<<< HEAD
+O ingresando a la carpeta de servicio:
+
+```bash
+cd "Primer servicio"
+npm install
+npm run dev
+```
+
+La aplicacion quedara disponible en: `http://localhost:3000`
+
+## Estructura
+
+- **`Primer servicio/`**: Contiene la implementacion funcional de la aplicacion (Frontend web, API REST MVC en Express/TypeScript, persistencia, adaptadores de PostgreSQL y Bootstrap).
+  - **S1. Planeacion y convenios**: Periodos, instituciones, convenios y plazas (`/api/periods`, `/api/agreements`).
+  - **S2. Asignacion de practicas**: Asignaciones y control de cupos (`/api/assignments`).
+  - **S3. Ejecucion y seguimiento**: Registro de actividades/bitacora y visitas de acompanamiento (`/api/activities`, `/api/visits`).
+  - **S4. Informes y auditoria**: Consolidado de practicas e historial (`/api/reports/consolidated`).
+  - **Transversales**: Autenticacion, estado y salud (`/api/auth/login`, `/api/state`, `/api/health`).
+
+Para mas detalles tecnicos y descripcion de los endpoints, consulta [`Primer servicio/README.md`](Primer%20servicio/README.md).
+=======
+Luego abrir en el navegador:
 
 ```text
 http://localhost:3000
@@ -20,51 +52,47 @@ http://localhost:3000
 
 ### Opcion local de respaldo
 
-Abrir `index.html` en el navegador. En este modo la aplicacion funciona con `localStorage`, sin servidor.
+Abrir `index.html` en el navegador. En este modo la aplicacion funciona directamente con `localStorage`, sin requerir servidor activo.
 
 ## Bootstrap
 
 La interfaz usa Bootstrap 5.3.8 en botones, formularios, tablas adaptables,
 navegacion, insignias, alertas y barras de progreso. `styles.css` se carga despues
-de Bootstrap para conservar los colores y la distribucion de SIGPRA.
+de Bootstrap para conservar los colores institucionales y la distribucion de SIGPRA.
 
 Los archivos CSS y JavaScript (bundle con Popper), sus mapas y la licencia estan
 en `vendor/bootstrap/`, de modo que tambien funcionan sin conexion al abrir
 `index.html`. Express publica estos recursos en `/vendor/bootstrap`.
 
-`npm install` y `npm run build` sincronizan los recursos desde la dependencia npm.
-Para copiarlos manualmente, o si la instalacion deshabilita scripts:
+`npm install` y `npm run build` sincronizan los recursos desde la dependencia npm:
 
 ```bash
 npm run assets:bootstrap
 ```
 
-Las ventanas y los avisos existentes usan clases `sigpra-modal` y `sigpra-toast`
-para evitar conflictos con los componentes JavaScript de Bootstrap.
+## Arquitectura de Servicios (Alineacion con la Propuesta S1 a S4)
 
-## Backend MVC
+De acuerdo con el documento formal de entrega (*Propuesta_SIGPRA_Segunda_Entrega*, Seccion 6.2), el sistema organiza su logica de negocio en cuatro servicios de dominio mas los servicios transversales:
+
+| Servicio | Descripcion y Casos de Uso | Controladores y Servicios | APIs REST |
+| --- | --- | --- | --- |
+| **S1. Planeacion y convenios** | Configuracion de periodos academicos, administracion de instituciones, convenios y plazas (RF-01, RF-02, CU-01, CU-02). | `PeriodController`, `PeriodService`, `AgreementController`, `AgreementService` | `GET/POST /api/periods`<br>`GET/POST /api/agreements` |
+| **S2. Asignacion de practicas** | Asignacion guiada de estudiantes a plazas y docentes con control de cupos (RF-03, CU-03). | `AssignmentController`, `AssignmentService` | `GET/POST /api/assignments` |
+| **S3. Ejecucion y seguimiento** | Registro de actividades/bitacora, validacion de horas y visitas de acompanamiento con rubricas (RF-04, RF-05, CU-04, CU-05, CU-06). | `TrackingController`, `TrackingService` | `GET/POST/PUT /api/activities`<br>`GET/POST /api/visits` |
+| **S4. Informes y auditoria** | Consolidado general de practicas, metricas, filtros e historial de auditoria (CU-07). | `ReportController`, `ReportService` | `GET /api/reports/consolidated` |
+| **Transversal** | Autenticacion por roles, sincronizacion de estado global y verificacion del servidor. | `AuthController`, `AuthService`, `StateController`, `StateService`, `HealthController` | `POST /api/auth/login`<br>`GET/PUT /api/state`<br>`GET /api/health` |
+
+## Estructura del Backend MVC
 
 La capa backend se encuentra en `src/`:
 
 | Carpeta | Responsabilidad |
 | --- | --- |
-| `src/controllers` | Recibe peticiones HTTP y responde JSON. |
-| `src/services` | Ejecuta reglas de negocio de autenticacion, periodos, convenios, asignaciones y reportes. |
-| `src/models` | Define tipos TypeScript, datos demo y persistencia JSON local. |
-| `src/routes` | Agrupa las rutas REST expuestas por Express. |
-
-## APIs implementadas
-
-| API | Metodo | Uso en la aplicacion |
-| --- | --- | --- |
-| `/api/health` | GET | Verifica conexion del frontend con Express. |
-| `/api/state` | GET | Carga el estado inicial desde el backend. |
-| `/api/state` | PUT | Sincroniza cambios realizados en la interfaz. |
-| `/api/auth/login` | POST | Valida inicio de sesion por rol. |
-| `/api/periods` | GET/POST | Expone periodos de practica. |
-| `/api/agreements` | GET/POST | Expone instituciones, convenios y plazas. |
-| `/api/assignments` | GET/POST | Expone asignaciones de practicantes. |
-| `/api/reports/consolidated` | GET | Entrega consolidado de practicas. |
+| `src/controllers` | Recibe peticiones HTTP y responde JSON para cada servicio. |
+| `src/services` | Ejecuta reglas de negocio de S1 (Periodos/Convenios), S2 (Asignaciones), S3 (Seguimiento/Visitas), S4 (Reportes) y Autenticacion. |
+| `src/models` | Define tipos TypeScript (`types.ts`), datos demo (`seedData.ts`) y persistencia (`SigpraStore.ts`). |
+| `src/routes` | Enrutamiento Express agrupado y documentado por servicio. |
+| `src/postgres` | Adaptador y rutas para modo opcional con PostgreSQL y persistencia JSONB. |
 
 ## Usuarios de prueba
 
@@ -81,21 +109,17 @@ La capa backend se encuentra en `src/`:
 ## Funcionalidades incluidas
 
 - Inicio de sesion por rol.
-- Navegacion agrupada por etapa y accesos directos a los modulos disponibles para cada rol, con resumen de tareas y registros.
-- Formularios operativos organizados en etapas guiadas que se habilitan al completar la etapa anterior.
+- Navegacion agrupada por etapa y accesos directos a los modulos disponibles para cada rol.
 - CU-01: crear periodos como borrador o publicarlos tras validar fechas, horas minimas y pesos de evaluacion.
 - CU-02: registrar instituciones, convenios y plazas; convenios sin documento o fuera de vigencia quedan inactivos.
-- CU-03: asignar estudiantes a plazas vigentes y docentes con disponibilidad mediante un flujo guiado de cuatro pasos, con control de cupos, resumen previo y reasignacion con historial.
-- Datos de demostracion: cinco estudiantes y cinco plazas disponibles para practicar el flujo de asignacion.
+- CU-03: asignar estudiantes a plazas vigentes y docentes con disponibilidad mediante flujo guiado de cuatro pasos, con control de cupos y reasignacion.
 - CU-04: registrar, guardar como borrador, corregir y reenviar actividades; valida fechas, horas y referencias de soportes.
-- CU-05: aprobar, devolver o rechazar actividades; la aprobacion exige confirmar la revision de soportes.
-- CU-06: registrar visitas, asistencia y puntajes para todos los criterios de la rubrica del periodo.
-- CU-07: consultar consolidado con filtros por periodo, programa, institucion y docente; exportar CSV o imprimir/guardar como PDF desde el navegador.
-- Registro de evidencias como metadatos.
-- Exportacion de datos en JSON.
-- Consumo de APIs Express para carga, login, periodos, convenios, asignaciones y sincronizacion.
-- Persistencia local en navegador con `localStorage` como respaldo.
+- CU-05: aprobar, devolver o rechazar actividades; confirmacion de revision de soportes.
+- CU-06: registrar visitas, asistencia y puntajes para los criterios de la rubrica del periodo.
+- CU-07: consultar consolidado con filtros por periodo, programa, institucion y docente; exportar CSV o imprimir/guardar PDF.
+- Persistencia local en archivo JSON del servidor (`data/sigpra-store.json`) con respaldo en `localStorage`.
 
 ## Alcance tecnico
 
-Esta version funciona con un backend API REST en Node.js/Express/TypeScript y tambien conserva modo local de respaldo para demostracion inmediata. Los datos se sincronizan contra una persistencia JSON local del servidor; los archivos binarios y las notificaciones no se envian a terceros. El selector "Ver como" facilita la demostracion y no representa control de acceso de produccion. Para produccion, el siguiente paso es reemplazar la persistencia JSON por PostgreSQL, MongoDB y almacenamiento de archivos, usando los scripts incluidos en `Base_de_datos_SIGPRA`.
+Esta version funciona con un backend API REST en Node.js/Express/TypeScript y conserva modo local de respaldo para demostracion inmediata. Los datos se sincronizan contra la persistencia JSON local del servidor (`data/sigpra-store.json`) o contra PostgreSQL mediante `SIGPRA_STORAGE=postgres` en `.env`.
+>>>>>>> origin/main

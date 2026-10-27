@@ -4,8 +4,16 @@ import { Pool, PoolClient } from 'pg';
 import { seedData } from '../models/seedData';
 import { SigpraData } from '../models/types';
 
+function getStoragePath(): string {
+  const localData = path.join(process.cwd(), 'data', 'sigpra-store.json');
+  if (fs.existsSync(localData)) return localData;
+  const moduleData = path.resolve(__dirname, '..', '..', 'data', 'sigpra-store.json');
+  if (fs.existsSync(moduleData)) return moduleData;
+  return localData;
+}
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
-const storage = path.join(process.cwd(), 'data', 'sigpra-store.json');
+const storage = getStoragePath();
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
 function valid(state: unknown): state is SigpraData {

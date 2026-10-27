@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿{
   "name": "aplicacion-sigpra",
   "version": "1.0.0",
@@ -11,5 +12,17 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+=======
+{
+  "name": "sigpra-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Espacio de trabajo SIGPRA - Redirecciona la ejecucion a los servicios del sistema",
+  "scripts": {
+    "dev": "npm --prefix \"Primer servicio\" run dev",
+    "build": "npm --prefix \"Primer servicio\" run build",
+    "start": "npm --prefix \"Primer servicio\" run start",
+    "assets:bootstrap": "npm --prefix \"Primer servicio\" run assets:bootstrap"
+>>>>>>> origin/main
   }
 }
