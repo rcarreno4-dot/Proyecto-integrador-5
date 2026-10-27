@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: sigpra-udi
+    runtime: node
+    rootDir: "Aplicacion_SIGPRA/Primer servicio"
+    plan: free
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SIGPRA_STORAGE
+        value: json
