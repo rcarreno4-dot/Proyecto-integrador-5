@@ -1302,7 +1302,7 @@ function renderAgreements() {
         <h2>Plazas disponibles</h2>
         <div class="table-wrap table-responsive">
           <table class="table table-hover align-middle">
-            <thead><tr><th>Institucion</th><th>Nivel</th><th>Jornada</th><th>Cupos</th><th>Docente titular</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Institucion</th><th>Programa / Nivel</th><th>Jornada</th><th>Cupos</th><th>Docente titular</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.places.map((place) => {
                 const agreement = data.agreements.find((item) => item.id === place.agreementId);
@@ -1310,7 +1310,7 @@ function renderAgreements() {
                 return `
                   <tr>
                     <td>${escapeHtml(institution?.name)}</td>
-                    <td>${escapeHtml(place.level)}</td>
+                    <td><span class="badge bg-light text-dark border d-block text-truncate mb-1" style="max-width: 170px;">${escapeHtml(place.program || "General")}</span><strong>${escapeHtml(place.level)}</strong></td>
                     <td>${escapeHtml(place.shift)}</td>
                     <td>${place.occupied} / ${place.offered}</td>
                     <td>${escapeHtml(place.tutor)}</td>
@@ -1362,8 +1362,19 @@ function assignmentWorkflowForm() {
     <form class="form-grid workflow-form assignment-workflow" data-submit="assignment">
       <article class="card full assignment-step" id="assignment-step-student">
         <h2><span class="step-number">1</span> Estudiante practicante</h2>
-        <p class="assignment-period">Periodo vigente: <strong>${escapeHtml(activePeriod.year)}-${escapeHtml(activePeriod.semester)}</strong> (${escapeHtml(activePeriod.program)} - ${escapeHtml(activePeriod.level)})</p>
-        <input type="hidden" name="periodId" value="${activePeriod.id}" />
+        <div class="mb-3 p-3 bg-light border rounded">
+          <label class="form-label fw-bold d-block text-primary mb-1">
+            Convocatoria / Periodo Académico a Gestionar:
+            <select class="form-select mt-1" name="periodId" id="assignment-period-selector" required>
+              ${publishedPeriods.map((p) => `
+                <option value="${p.id}" ${p.id === activePeriod.id ? "selected" : ""}>
+                  ${escapeHtml(p.program)} — ${escapeHtml(p.level)} (${p.year}-${p.semester})
+                </option>
+              `).join("")}
+            </select>
+          </label>
+          <small class="text-muted d-block">Selecciona el programa académico específico para emparejar al practicante con la plaza y docente tutor correspondientes.</small>
+        </div>
         <label class="full-field">Estudiante habilitado
           <select class="form-select" name="studentId" required>
             <option value="">-- Seleccione un estudiante --</option>
@@ -2107,7 +2118,13 @@ function modalForm(type, id) {
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">3</span> Plaza ofrecida</h3>
-          <label>Nivel educativo<input class="form-control" name="level" required></label>
+          <label>Programa Académico Afín
+            <select class="form-select" name="program">
+              ${(data.programs || []).map(pr => `<option value="${escapeHtml(pr.name)}">${escapeHtml(pr.name)}</option>`).join("")}
+              <option value="General / Interdisciplinar">General / Interdisciplinar</option>
+            </select>
+          </label>
+          <label>Nivel / Área Formativa<input class="form-control" name="level" placeholder="Ej: VIII semestre, Práctica profesional" required></label>
           <label>Jornada<select class="form-select" name="shift"><option value="MANANA">Manana</option><option value="TARDE">Tarde</option><option value="NOCHE">Noche</option><option value="MIXTA">Mixta</option></select></label>
           <label>Cupos<input class="form-control" name="offered" type="number" min="1" value="2" required></label>
           <label>Docente titular<input class="form-control" name="tutor" required></label>
