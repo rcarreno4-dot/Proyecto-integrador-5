@@ -1040,7 +1040,7 @@ function renderDashboard(user) {
       <!-- Tarjetas KPI Modernas con Microinteracciones -->
       <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-blue" data-nav="periods" title="Clic para gestionar periodos académicos">
+          <div class="metric-card-kpi kpi-blue" data-view="periods" title="Clic para gestionar periodos académicos">
             <div class="kpi-icon">📅</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Periodos Activos</span>
@@ -1053,7 +1053,7 @@ function renderDashboard(user) {
           </div>
         </div>
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-green" data-nav="agreements" title="Clic para gestionar convenios y plazas formativas">
+          <div class="metric-card-kpi kpi-green" data-view="agreements" title="Clic para gestionar convenios y plazas formativas">
             <div class="kpi-icon">🏫</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Convenios Vigentes</span>
@@ -1066,7 +1066,7 @@ function renderDashboard(user) {
           </div>
         </div>
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-amber" data-nav="assignments" title="Clic para asignar plazas y docentes">
+          <div class="metric-card-kpi kpi-amber" data-view="assignments" title="Clic para asignar plazas y docentes">
             <div class="kpi-icon">🎓</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Por Asignar</span>
@@ -1079,7 +1079,7 @@ function renderDashboard(user) {
           </div>
         </div>
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-purple" data-nav="reports" title="Clic para ver consolidado e informes">
+          <div class="metric-card-kpi kpi-purple" data-view="reports" title="Clic para ver consolidado e informes">
             <div class="kpi-icon">⏱️</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Horas Validadas</span>
@@ -1095,14 +1095,25 @@ function renderDashboard(user) {
 
     <section class="grid">
       <article class="card wide">
-        <h2>Periodo activo</h2>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <h2 class="mb-0">Periodos académicos activos</h2>
+          <button class="btn btn-sm btn-outline-primary" data-view="periods">Gestionar todos (${publishedPeriods.length}) ➔</button>
+        </div>
         <div class="table-wrap table-responsive">
           <table class="table table-hover align-middle">
-            <thead><tr><th>Programa</th><th>Nivel</th><th>Vigencia</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Programa</th><th>Nivel</th><th>Vigencia</th><th>Horas Mínimas</th><th>Estado</th></tr></thead>
             <tbody>
-              ${activePeriod
-                ? `<tr><td>${escapeHtml(activePeriod.program)}</td><td>${escapeHtml(activePeriod.level)}</td><td>${moneyDate(activePeriod.start)} - ${moneyDate(activePeriod.end)}</td><td>${statusTag(activePeriod.status)}</td></tr>`
-                : `<tr><td colspan="4">No hay periodos publicados.</td></tr>`}
+              ${publishedPeriods.length
+                ? publishedPeriods.map(p => `
+                  <tr>
+                    <td><strong>${escapeHtml(p.program)}</strong></td>
+                    <td>${escapeHtml(p.level)}</td>
+                    <td>${moneyDate(p.start)} - ${moneyDate(p.end)}</td>
+                    <td><span class="badge bg-secondary-subtle text-dark">${p.minHours || 160} hrs</span></td>
+                    <td>${statusTag(p.status)}</td>
+                  </tr>
+                `).join("")
+                : `<tr><td colspan="5" class="text-center text-muted py-3">No hay periodos publicados.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -3914,7 +3925,7 @@ document.addEventListener("click", (e) => {
     const target = navCard.dataset.nav;
     if (target) {
       currentView = target;
-      renderApp();
+      render();
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
