@@ -16,9 +16,18 @@ export function createApp() {
   app.use("/api", process.env.SIGPRA_STORAGE === "postgres" ? postgresRouter : apiRouter);
   app.use("/vendor/bootstrap", express.static(path.join(publicDir, "vendor/bootstrap")));
   app.use("/assets", express.static(path.join(publicDir, "assets")));
-  app.get("/", (_req, res) => res.sendFile(path.join(publicDir, "index.html")));
-  app.get("/app.js", (_req, res) => res.sendFile(path.join(publicDir, "app.js")));
-  app.get("/styles.css", (_req, res) => res.sendFile(path.join(publicDir, "styles.css")));
+  app.get("/", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+  app.get("/app.js", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.sendFile(path.join(publicDir, "app.js"));
+  });
+  app.get("/styles.css", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.sendFile(path.join(publicDir, "styles.css"));
+  });
 
   return app;
 }
