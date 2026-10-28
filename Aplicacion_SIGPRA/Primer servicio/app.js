@@ -501,15 +501,62 @@ function moneyDate(value) {
   return new Date(`${value}T00:00:00`).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "2-digit" });
 }
 
-function toast(message) {
-  document.querySelector(".sigpra-toast")?.remove();
-  const node = document.createElement("div");
-  node.className = "sigpra-toast";
-  node.setAttribute("role", "status");
-  node.setAttribute("aria-live", "polite");
-  node.textContent = message;
-  document.body.appendChild(node);
-  setTimeout(() => node.remove(), 3200);
+function toast(message, type = "success") {
+  let host = document.getElementById("sigpra-toast-host");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "sigpra-toast-host";
+    document.body.appendChild(host);
+  }
+
+  // Auto detect type if not explicit
+  const msgLower = String(message).toLowerCase();
+  if (msgLower.includes("error") || msgLower.includes("no se puede") || msgLower.includes("rechazad")) {
+    type = "error";
+  } else if (msgLower.includes("obligatori") || msgLower.includes("advertencia") || msgLower.includes("atención") || msgLower.includes("devuelt")) {
+    type = "warning";
+  } else if (msgLower.includes("información") || msgLower.includes("info")) {
+    type = "info";
+  }
+
+  const icons = {
+    success: "✅",
+    warning: "⚠️",
+    error: "❌",
+    info: "ℹ️"
+  };
+  const titles = {
+    success: "Operación Exitosa",
+    warning: "Atención Requerida",
+    error: "Error del Sistema",
+    info: "Notificación SIGPRA"
+  };
+
+  const card = document.createElement("div");
+  card.className = `sigpra-toast-card toast-${type}`;
+  card.innerHTML = `
+    <div style="font-size: 1.35rem; line-height: 1;" class="flex-shrink-0">${icons[type] || "ℹ️"}</div>
+    <div class="flex-grow-1">
+      <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a;">${titles[type] || "Notificación"}</div>
+      <div style="font-size: 0.82rem; color: #475569; margin-top: 2px;">${escapeHtml(message)}</div>
+    </div>
+    <button type="button" class="btn-close" style="font-size: 0.7rem; margin-left: 8px;" aria-label="Cerrar"></button>
+  `;
+
+  card.querySelector(".btn-close").addEventListener("click", () => {
+    card.style.opacity = "0";
+    card.style.transform = "translateX(60px)";
+    setTimeout(() => card.remove(), 250);
+  });
+
+  host.appendChild(card);
+  setTimeout(() => {
+    if (card.parentElement) {
+      card.style.opacity = "0";
+      card.style.transform = "translateX(60px)";
+      setTimeout(() => card.remove(), 250);
+    }
+  }, 3800);
 }
 
 function audit(event, entity) {
@@ -970,14 +1017,55 @@ function renderDashboard(user) {
     )).length
     : studentUsers().length;
 
+  const totalHours = (data.activities || []).filter(a => a.status === "APROBADA").reduce((acc, a) => acc + (Number(a.hours) || 0), 0);
+
   return `
+    <section class="stack">
+      <!-- Tarjetas KPI Modernas con Microinteracciones -->
+      <div class="row g-3 mb-3">
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-blue">
+            <div class="kpi-icon">📅</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Periodos Activos</span>
+              <h3 class="mb-0 fw-bold">${publishedPeriods.length}</h3>
+              <span class="text-primary small">${activePeriod ? `${activePeriod.year}-${activePeriod.semester} en curso` : 'Sin periodo'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-green">
+            <div class="kpi-icon">🏫</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Convenios Vigentes</span>
+              <h3 class="mb-0 fw-bold">${activeAgreements.length}</h3>
+              <span class="text-success small">Instituciones aliadas</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-amber">
+            <div class="kpi-icon">🎓</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Por Asignar</span>
+              <h3 class="mb-0 fw-bold">${unassignedStudents}</h3>
+              <span class="text-warning small">Estudiantes en espera</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-purple">
+            <div class="kpi-icon">⏱️</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Horas Validadas</span>
+              <h3 class="mb-0 fw-bold">${totalHours} hrs</h3>
+              <span class="text-muted small">Trazabilidad en tiempo real</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     <section class="grid">
-      ${metricCard("Periodos publicados", publishedPeriods.length, activePeriod ? `${activePeriod.year}-${activePeriod.semester} activo` : "No hay periodos activos")}
-      ${metricCard("Convenios vigentes", activeAgreements.length, `${activeAgreements.filter((agreement) => {
-        const daysUntilEnd = (new Date(`${agreement.end}T00:00:00`) - new Date()) / 86400000;
-        return daysUntilEnd >= 0 && daysUntilEnd <= 30;
-      }).length} por vencer este mes`)}
-      ${metricCard("Asignaciones pendientes", unassignedStudents, "Estudiantes por asignar")}
       <article class="card wide">
         <h2>Periodo activo</h2>
         <div class="table-wrap table-responsive">
@@ -1096,9 +1184,15 @@ function renderPeriods() {
         ${modalForm("period")}
       </article>
       <article class="card full">
-        <h2>Periodos registrados</h2>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <h2 class="mb-0">Periodos registrados</h2>
+          <div class="table-search-bar">
+            <span class="text-muted">🔍</span>
+            <input type="text" placeholder="Buscar por programa o año..." data-table-filter="#periods-table">
+          </div>
+        </div>
         <div class="table-wrap table-responsive">
-          <table class="table table-hover align-middle">
+          <table class="table table-hover align-middle" id="periods-table">
             <thead><tr><th>Programa</th><th>Nivel</th><th>Periodo</th><th>Vigencia</th><th>Reporte hasta</th><th>Horas</th><th>Evaluacion</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.periods.map((period) => `
@@ -1133,9 +1227,15 @@ function renderAgreements() {
         ${modalForm("agreement-place")}
       </article>
       <article class="card full">
-        <h2>Convenios y plazas registrados</h2>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <h2 class="mb-0">Convenios y plazas registrados</h2>
+          <div class="table-search-bar">
+            <span class="text-muted">🔍</span>
+            <input type="text" placeholder="Buscar por institución o convenio..." data-table-filter="#agreements-table">
+          </div>
+        </div>
         <div class="table-wrap table-responsive">
-          <table class="table table-hover align-middle">
+          <table class="table table-hover align-middle" id="agreements-table">
             <thead><tr><th>Institucion</th><th>Convenio</th><th>Vigencia</th><th>Plazas</th><th>Cupos</th><th>Estado</th></tr></thead>
             <tbody>
               ${data.agreements.map((agreement) => {
@@ -1530,32 +1630,92 @@ function renderStudentProgress(user, compact = false) {
   const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
   if (!assignment) return `<div class="empty">No tienes una asignacion activa.</div>${compact ? renderModuleCards(user) : ""}`;
   const d = assignmentDetails(assignment);
-  const hours = approvedHours(assignment.id) || assignment.approvedHours;
-  const required = d.period?.minHours || 320;
+  const hours = Number(approvedHours(assignment.id) || assignment.approvedHours || 0);
+  const required = Number(d.period?.minHours || 160);
   const percent = Math.min(100, Math.round((hours / required) * 100));
   const activities = data.activities.filter((activity) => activity.assignmentId === assignment.id);
-  return `
-    <section class="grid">
-      ${metricCard("Horas aprobadas", `${hours} / ${required}`, `${percent}% de avance`)}
-      ${metricCard("Actividades", activities.length, "Registros creados")}
-      ${metricCard("Pendientes", activities.filter((item) => item.status === "PENDIENTE").length, "Por validar")}
-      <article class="card wide">
-        <h2>Practica activa</h2>
-        <p><strong>Institucion:</strong> ${escapeHtml(d.institution?.name)}</p>
-        <p><strong>Docente asesor:</strong> ${escapeHtml(d.teacher?.name)}</p>
-        <p><strong>Periodo:</strong> ${d.period?.year}-${d.period?.semester}</p>
-        <div class="progress" aria-label="Avance de horas"><span class="progress-bar" style="width:${percent}%"></span></div>
-      </article>
-      <article class="card">
-        <h2>Acciones</h2>
-        <div class="toolbar">
-          <button class="btn btn-primary button primary" data-view="student-activities">Registrar actividad</button>
-          <button class="btn btn-outline-secondary button" data-view="student-evidence">Registrar evidencia</button>
+  const pendingHours = activities.filter(a => a.status === "PENDIENTE").reduce((acc, a) => acc + (Number(a.hours) || 0), 0);
+  const remainingHours = Math.max(0, required - hours);
+
+  let fillClass = "fill-amber";
+  let badgeHtml = '<span class="badge bg-warning text-dark px-3 py-2 fw-semibold">🟡 Fase Inicial</span>';
+  if (percent >= 100) {
+    fillClass = "fill-green";
+    badgeHtml = '<span class="badge bg-success px-3 py-2 fw-semibold">✅ Requisito Cumplido</span>';
+  } else if (percent >= 75) {
+    fillClass = "fill-purple";
+    badgeHtml = '<span class="badge bg-info text-dark px-3 py-2 fw-semibold">🟣 Fase Final</span>';
+  } else if (percent >= 30) {
+    fillClass = "fill-blue";
+    badgeHtml = '<span class="badge bg-primary px-3 py-2 fw-semibold">🔵 En Progreso</span>';
+  }
+
+  const hoursProgressCard = `
+    <article class="hours-progress-card full">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span style="font-size: 1.4rem;">📊</span>
+            <h3 class="mb-0 fw-bold" style="color: #004b87; font-size: 1.25rem;">
+              Avance Reglamentario de Práctica Pedagógica
+            </h3>
+          </div>
+          <p class="muted mb-0 small mt-1">
+            Cumplimiento normativo <strong>Decreto 1075 de 2015 (MEN)</strong> — Meta reglamentaria: <strong>${required} horas presenciales</strong>
+          </p>
         </div>
-      </article>
-      ${compact ? "" : `<article class="card full"><h2>Historial</h2>${activitiesTable(activities)}</article>`}
+        <div>${badgeHtml}</div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-baseline mt-3">
+        <div class="d-flex align-items-baseline gap-2">
+          <span style="font-size: 2.3rem; font-weight: 800; color: #0f172a; line-height: 1;">${hours}</span>
+          <span class="text-muted fs-5">/ ${required} horas validadas</span>
+        </div>
+        <div class="fw-bold fs-3 text-primary">${percent}%</div>
+      </div>
+
+      <div class="hours-bar-outer">
+        <div class="hours-bar-fill ${fillClass}" style="width: ${Math.max(6, percent)}%">
+          ${percent >= 10 ? percent + '%' : ''}
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2 pt-2 border-top small text-muted">
+        <div>
+          <span>⏳ <strong>${pendingHours} hrs</strong> en bitácoras pendientes de validación por tutor</span>
+        </div>
+        <div>
+          <span>${remainingHours > 0 ? `🎯 Faltan <strong>${remainingHours} horas</strong> para completar la práctica` : `🎉 <strong>¡Meta reglamentaria alcanzada con éxito!</strong>`}</span>
+        </div>
+      </div>
+    </article>
+  `;
+
+  return `
+    <section class="stack">
+      ${hoursProgressCard}
+      <section class="grid">
+        ${metricCard("Horas aprobadas", `${hours} / ${required}`, `${percent}% de avance`)}
+        ${metricCard("Actividades", activities.length, "Registros creados")}
+        ${metricCard("Pendientes", activities.filter((item) => item.status === "PENDIENTE").length, "Por validar")}
+        <article class="card wide">
+          <h2>Práctica activa</h2>
+          <p><strong>Institución:</strong> ${escapeHtml(d.institution?.name)}</p>
+          <p><strong>Docente asesor:</strong> ${escapeHtml(d.teacher?.name)}</p>
+          <p><strong>Periodo:</strong> ${d.period?.year}-${d.period?.semester}</p>
+        </article>
+        <article class="card">
+          <h2>Acciones</h2>
+          <div class="toolbar">
+            <button class="btn btn-primary button primary" data-view="student-activities">Registrar actividad</button>
+            <button class="btn btn-outline-secondary button" data-view="student-evidence">Registrar evidencia</button>
+          </div>
+        </article>
+        ${compact ? "" : `<article class="card full"><h2>Historial</h2>${activitiesTable(activities)}</article>`}
+      </section>
+      ${compact ? renderModuleCards(user) : ""}
     </section>
-    ${compact ? renderModuleCards(user) : ""}
   `;
 }
 
@@ -2627,6 +2787,14 @@ document.addEventListener("click", async (event) => {
   const action = event.target.closest("[data-action]");
   if (!action) return;
 
+    if (action.dataset.action === "preview-doc") {
+    const student = action.dataset.student || currentUser()?.name || "Estudiante Practicante";
+    const docType = action.dataset.doctype || "Documento Digital";
+    const filename = action.dataset.filename || "soporte.pdf";
+    openDocPreviewModal(student, docType, filename);
+    return;
+  }
+
   if (["edit-program", "delete-program", "cancel-program-edit"].includes(action.dataset.action)) {
     if (currentUser()?.role !== "COORDINADOR") { toast("Operacion no autorizada."); return; }
     const program = (data.programs || []).find((item) => item.id === Number(action.dataset.id));
@@ -2821,6 +2989,160 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") document.querySelector(".sigpra-modal-backdrop")?.remove();
 });
 
+
+function renderRequestStepper(status, hasAssignment) {
+  const isDraft = status === "BORRADOR";
+  const isPending = status === "PENDIENTE_REVISION";
+  const isApproved = status === "APROBADA";
+  const isReturned = status === "DEVUELTA";
+  const isRejected = status === "RECHAZADA";
+
+  // Step 1: Radicación
+  const step1Class = (!status || isDraft) ? "active" : "completed";
+  const step1Icon = (!status || isDraft) ? "📝" : "✓";
+  const step1Desc = (!status || isDraft) ? "Diligenciando" : "Soportes cargados";
+
+  // Step 2: Dictamen Director
+  let step2Class = "";
+  let step2Icon = "⚖️";
+  let step2Desc = "En espera";
+  if (isPending) {
+    step2Class = "in-review active";
+    step2Icon = "⏳";
+    step2Desc = "En revisión";
+  } else if (isApproved) {
+    step2Class = "completed";
+    step2Icon = "✓";
+    step2Desc = "Aprobado (Habilitado)";
+  } else if (isReturned) {
+    step2Class = "returned";
+    step2Icon = "⚠";
+    step2Desc = "Devuelto p/ corrección";
+  } else if (isRejected) {
+    step2Class = "returned";
+    step2Icon = "✕";
+    step2Desc = "Rechazado";
+  }
+
+  // Step 3: Asignación
+  let step3Class = "";
+  let step3Icon = "🏫";
+  let step3Desc = "Pendiente plaza";
+  if (hasAssignment) {
+    step3Class = "completed";
+    step3Icon = "✓";
+    step3Desc = "Plaza y tutor asignados";
+  } else if (isApproved) {
+    step3Class = "active";
+    step3Icon = "🔄";
+    step3Desc = "En asignación por Coord.";
+  }
+
+  // Step 4: En Ejecución
+  let step4Class = "";
+  let step4Icon = "⏱️";
+  let step4Desc = "Pendiente inicio";
+  if (hasAssignment) {
+    step4Class = "active";
+    step4Icon = "🚀";
+    step4Desc = "Bitácoras en curso";
+  }
+
+  return `
+    <div class="sigpra-stepper-box mb-4">
+      <div class="small fw-bold text-uppercase text-muted mb-2 text-center">Ruta del Trámite de Práctica Pedagógica (CU-08)</div>
+      <div class="sigpra-stepper">
+        <div class="sigpra-step ${step1Class}">
+          <div class="sigpra-step-bubble">${step1Icon}</div>
+          <div class="sigpra-step-title">1. Radicación</div>
+          <div class="sigpra-step-desc">${step1Desc}</div>
+        </div>
+        <div class="sigpra-step ${step2Class}">
+          <div class="sigpra-step-bubble">${step2Icon}</div>
+          <div class="sigpra-step-title">2. Dirección</div>
+          <div class="sigpra-step-desc">${step2Desc}</div>
+        </div>
+        <div class="sigpra-step ${step3Class}">
+          <div class="sigpra-step-bubble">${step3Icon}</div>
+          <div class="sigpra-step-title">3. Asignación</div>
+          <div class="sigpra-step-desc">${step3Desc}</div>
+        </div>
+        <div class="sigpra-step ${step4Class}">
+          <div class="sigpra-step-bubble">${step4Icon}</div>
+          <div class="sigpra-step-title">4. En Ejecución</div>
+          <div class="sigpra-step-desc">${step4Desc}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openDocPreviewModal(studentName, docType, filename) {
+  document.querySelector(".sigpra-modal-backdrop")?.remove();
+  const timestamp = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const hash = Array.from(filename + studentName).reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) >>> 0, 0x12345678).toString(16).toUpperCase();
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "sigpra-modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="sigpra-modal" style="max-width: 650px;">
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-4">📄</span>
+          <h3 class="mb-0 fw-bold" style="font-size: 1.15rem; color: #004b87;">Visor de Soporte Digital — SIGPRA</h3>
+        </div>
+        <button class="btn-close" type="button" data-action="close-modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="doc-modal-paper my-2">
+        <div class="doc-modal-watermark">EXPEDIENTE VERIFICADO</div>
+        <div class="text-center border-bottom pb-3 mb-3">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #004b87; letter-spacing: 1px;">UNIVERSIDAD DE INVESTIGACIÓN Y DESARROLLO — UDI</div>
+          <div style="font-size: 0.75rem; color: #64748b;">FACULTAD DE INGENIERÍAS · PROGRAMA DE INGENIERÍA DE SISTEMAS</div>
+          <div class="badge bg-success-subtle text-success border border-success-subtle mt-2 px-3 py-1">
+            ✓ Documento Oficial Radicado en Convocatoria
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <h4 style="font-size: 1.05rem; font-weight: 700; color: #1e293b;" class="mb-1">${escapeHtml(docType)}</h4>
+          <p class="small text-muted mb-2">Archivo digital: <code>${escapeHtml(filename)}</code></p>
+        </div>
+
+        <div class="bg-light p-3 rounded small mb-3 border">
+          <div class="row g-2">
+            <div class="col-sm-6"><strong>Estudiante:</strong> ${escapeHtml(studentName)}</div>
+            <div class="col-sm-6"><strong>Fecha Radicación:</strong> ${timestamp}</div>
+            <div class="col-sm-6"><strong>Tipo MIME:</strong> application/pdf</div>
+            <div class="col-sm-6"><strong>Firma SHA-256:</strong> <span class="text-primary font-monospace">${hash}4E8B</span></div>
+          </div>
+        </div>
+
+        <div class="p-3 border rounded text-center bg-white shadow-sm" style="min-height: 120px; display: grid; place-items: center;">
+          <div>
+            <div class="fs-1 text-primary mb-1">📋</div>
+            <div class="fw-bold small text-dark">${escapeHtml(docType)} Digitalizado</div>
+            <div class="text-muted" style="font-size: 0.75rem;">Verificado por el subsistema de radicación CU-08 conforme al Decreto 1075 de 2015.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+        <span class="small text-muted">ID de auditoría: SIGPRA-DOC-${hash}</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary btn-sm" type="button" onclick="toast('Descargando copia local de ' + '${escapeHtml(filename)}', 'info')">
+            ⬇️ Descargar Copia
+          </button>
+          <button class="btn btn-secondary btn-sm" type="button" data-action="close-modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+}
+
+
 function renderStudentRequest(user) {
   const publishedPeriods = (data.periods || []).filter((period) => period.status === "PUBLICADO");
   const activePeriod = publishedPeriods[0] || (data.periods || [])[0];
@@ -2855,8 +3177,11 @@ function renderStudentRequest(user) {
   const defaultModality = existingRequest?.modality || "Convenio institucional";
   const defaultComments = existingRequest?.comments || "";
 
+  const hasAssignment = (data.assignments || []).some(a => a.studentId === user.id && a.status === "ACTIVA");
+
   return `
     <section class="stack">
+      ${renderRequestStepper(existingRequest?.status, hasAssignment)}
       <article class="card full">
         <!-- Navegación de pestañas: Estado vs Formulario -->
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom pb-2">
@@ -3158,13 +3483,17 @@ function renderDirectorRequests(user) {
       <article class="card full mt-3">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <div>
-            <h2 class="mb-1">Bandeja de Solicitudes de Practica Academica </h2>
-            <p class="muted mb-0">Revisa la documentacion adjunta de los estudiantes y evalua su habilitacion formal en el sistema.</p>
+            <h2 class="mb-1">Bandeja de Solicitudes de Práctica Académica</h2>
+            <p class="muted mb-0">Revisa la documentación adjunta de los estudiantes y evalúa su habilitación formal en el sistema.</p>
+          </div>
+          <div class="table-search-bar">
+            <span class="text-muted">🔍</span>
+            <input type="text" placeholder="Filtrar por estudiante, código o estado..." data-table-filter="#director-requests-table">
           </div>
         </div>
 
         <div class="table-wrap table-responsive">
-          <table class="table table-hover align-middle">
+          <table class="table table-hover align-middle" id="director-requests-table">
             <thead class="table-light">
               <tr>
                 <th>ID</th>
@@ -3214,9 +3543,9 @@ function renderDirectorRequests(user) {
                     <td>${escapeHtml(req?.modality || 'No definida')}</td>
                     <td>
                       ${req ? `
-                        <small class="d-block">📄 Matricula</small>
-                        <small class="d-block">📄 EPS/ARL</small>
-                        <small class="d-block">📄 Paz y Salvo</small>
+                        <button class="btn btn-sm btn-link p-0 d-block text-start text-primary" style="font-size: 0.8rem; text-decoration: none;" type="button" data-action="preview-doc" data-student="${escapeHtml(student.name)}" data-doctype="Certificado de Matrícula" data-filename="${escapeHtml(req.documents?.matricula?.name || 'matricula.pdf')}">📄 Matrícula 👁️</button>
+                        <button class="btn btn-sm btn-link p-0 d-block text-start text-primary" style="font-size: 0.8rem; text-decoration: none;" type="button" data-action="preview-doc" data-student="${escapeHtml(student.name)}" data-doctype="Afiliación EPS/ARL" data-filename="${escapeHtml(req.documents?.epsArl?.name || 'eps_arl.pdf')}">📄 EPS/ARL 👁️</button>
+                        <button class="btn btn-sm btn-link p-0 d-block text-start text-primary" style="font-size: 0.8rem; text-decoration: none;" type="button" data-action="preview-doc" data-student="${escapeHtml(student.name)}" data-doctype="Paz y Salvo Académico" data-filename="${escapeHtml(req.documents?.pazYSalvo?.name || 'paz_y_salvo.pdf')}">📄 Paz y Salvo 👁️</button>
                       ` : '<span class="text-muted small fst-italic">Pendiente de anexar</span>'}
                     </td>
                     <td><small>${escapeHtml(req?.submittedAt || req?.updatedAt || 'No radicada')}</small></td>
@@ -3353,3 +3682,19 @@ function openRequestReviewModal(requestId) {
 
 
 initializeApi();
+
+
+// Global Live Table Search Filter (Microinteraction)
+document.addEventListener("input", (e) => {
+  const filterInput = e.target.closest("[data-table-filter]");
+  if (filterInput) {
+    const targetTable = document.querySelector(filterInput.dataset.tableFilter);
+    if (!targetTable) return;
+    const term = filterInput.value.toLowerCase().trim();
+    const rows = targetTable.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(term) ? "" : "none";
+    });
+  }
+});

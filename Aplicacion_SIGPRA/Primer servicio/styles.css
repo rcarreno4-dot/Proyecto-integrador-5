@@ -1334,3 +1334,278 @@ input[type="radio"] {
     min-height: 0;
   }
 }
+
+
+/* ========================================================
+   SIGPRA MODERN UI ENHANCEMENTS (MICROINTERACTIONS & UX)
+   ======================================================== */
+
+/* --- 1. Stepper Component (CU-08) --- */
+.sigpra-stepper-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+.sigpra-stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  margin: 18px 0 10px;
+  padding: 0 12px;
+}
+.sigpra-stepper::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 45px;
+  right: 45px;
+  height: 4px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+.sigpra-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+.sigpra-step-bubble {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #cbd5e1;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+.sigpra-step.completed .sigpra-step-bubble {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+.sigpra-step.active .sigpra-step-bubble {
+  background: #004b87;
+  border-color: #0072ce;
+  color: #ffffff;
+  box-shadow: 0 0 0 5px rgba(0, 114, 206, 0.2);
+  transform: scale(1.1);
+}
+.sigpra-step.in-review .sigpra-step-bubble {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #ffffff;
+  box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.2);
+}
+.sigpra-step.returned .sigpra-step-bubble {
+  background: #ef4444;
+  border-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+.sigpra-step-title {
+  margin-top: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+.sigpra-step-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 3px;
+  max-width: 140px;
+}
+
+/* --- 2. 160-Hour Progress Card (Decreto 1075) --- */
+.hours-progress-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+.hours-progress-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(180deg, #0072ce 0%, #004b87 100%);
+}
+.hours-bar-outer {
+  height: 26px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  padding: 3px;
+  margin: 14px 0 10px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+.hours-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0072ce 0%, #004b87 100%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 75, 135, 0.3);
+}
+.hours-bar-fill.fill-amber {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+.hours-bar-fill.fill-green {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+}
+.hours-bar-fill.fill-purple {
+  background: linear-gradient(90deg, #8b5cf6 0%, #6366f1 100%);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* --- 3. Enhanced KPI Metric Cards --- */
+.metric-card-kpi {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 22px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+.metric-card-kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.1);
+  border-color: #cbd5e1;
+}
+.metric-card-kpi .kpi-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+.metric-card-kpi:hover .kpi-icon {
+  transform: scale(1.08) rotate(3deg);
+}
+.metric-card-kpi.kpi-blue .kpi-icon { background: #eff6ff; color: #1d4ed8; }
+.metric-card-kpi.kpi-green .kpi-icon { background: #ecfdf5; color: #047857; }
+.metric-card-kpi.kpi-amber .kpi-icon { background: #fffbeb; color: #b45309; }
+.metric-card-kpi.kpi-purple .kpi-icon { background: #f5f3ff; color: #6d28d9; }
+
+/* --- 4. Modern Floating Toasts --- */
+#sigpra-toast-host {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.sigpra-toast-card {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.06);
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-left: 5px solid #004b87;
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.sigpra-toast-card.toast-success { border-left-color: #10b981; }
+.sigpra-toast-card.toast-warning { border-left-color: #f59e0b; }
+.sigpra-toast-card.toast-error { border-left-color: #ef4444; }
+.sigpra-toast-card.toast-info { border-left-color: #0072ce; }
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- 5. Live Table Search Bar --- */
+.table-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 14px;
+  max-width: 360px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.table-search-bar:focus-within {
+  border-color: #0072ce;
+  box-shadow: 0 0 0 3px rgba(0, 114, 206, 0.15);
+}
+.table-search-bar input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+  background: transparent;
+  color: #1e293b;
+}
+
+/* --- 6. Document Viewer Modal --- */
+.doc-modal-paper {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 30px 36px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+.doc-modal-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-20deg);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: rgba(16, 185, 129, 0.12);
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 3px;
+  border: 3px dashed rgba(16, 185, 129, 0.2);
+  padding: 8px 18px;
+  border-radius: 6px;
+}
