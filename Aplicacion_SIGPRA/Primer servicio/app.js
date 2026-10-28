@@ -1040,42 +1040,54 @@ function renderDashboard(user) {
       <!-- Tarjetas KPI Modernas con Microinteracciones -->
       <div class="row g-3 mb-3">
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-blue">
+          <div class="metric-card-kpi kpi-blue" data-nav="periods" title="Clic para gestionar periodos académicos">
             <div class="kpi-icon">📅</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Periodos Activos</span>
               <h3 class="mb-0 fw-bold">${publishedPeriods.length}</h3>
               <span class="text-primary small">${activePeriod ? `${activePeriod.year}-${activePeriod.semester} en curso` : 'Sin periodo'}</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-primary fw-bold d-flex justify-content-between align-items-center">
+                <span>Gestionar</span> <span>➔</span>
+              </div>
             </div>
           </div>
         </div>
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-green">
+          <div class="metric-card-kpi kpi-green" data-nav="agreements" title="Clic para gestionar convenios y plazas formativas">
             <div class="kpi-icon">🏫</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Convenios Vigentes</span>
               <h3 class="mb-0 fw-bold">${activeAgreements.length}</h3>
               <span class="text-success small">Instituciones aliadas</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-success fw-bold d-flex justify-content-between align-items-center">
+                <span>Gestionar</span> <span>➔</span>
+              </div>
             </div>
           </div>
         </div>
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-amber">
+          <div class="metric-card-kpi kpi-amber" data-nav="assignments" title="Clic para asignar plazas y docentes">
             <div class="kpi-icon">🎓</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Por Asignar</span>
               <h3 class="mb-0 fw-bold">${unassignedStudents}</h3>
               <span class="text-warning small">Estudiantes en espera</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-warning fw-bold d-flex justify-content-between align-items-center">
+                <span>Gestionar</span> <span>➔</span>
+              </div>
             </div>
           </div>
         </div>
         <div class="col-6 col-xl-3 col-md-6">
-          <div class="metric-card-kpi kpi-purple">
+          <div class="metric-card-kpi kpi-purple" data-nav="reports" title="Clic para ver consolidado e informes">
             <div class="kpi-icon">⏱️</div>
             <div class="flex-grow-1">
               <span class="text-muted small text-uppercase fw-bold">Horas Validadas</span>
               <h3 class="mb-0 fw-bold">${totalHours} hrs</h3>
-              <span class="text-muted small">Trazabilidad en tiempo real</span>
+              <span class="text-secondary small">Trazabilidad en tiempo real</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-secondary fw-bold d-flex justify-content-between align-items-center">
+                <span>Ver Informes</span> <span>➔</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1807,10 +1819,32 @@ function renderReports(user) {
   return `
     <section class="grid">
       <article class="card full">
-        <div class="toolbar">
-          <button class="btn btn-primary button primary" data-action="export-json">Exportar JSON</button>
-          <button class="btn btn-outline-secondary button" data-action="export-csv">Exportar CSV</button>
-          <button class="btn btn-outline-secondary button" data-action="export-print">Imprimir / guardar como PDF</button>
+        <!-- Encabezado Institucional Exclusivo para Impresión Oficial -->
+        <div class="print-official-header d-none">
+          <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+            <div class="d-flex align-items-center gap-3">
+              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" width="46" height="46" />
+              <div>
+                <h2 style="font-size: 1.1rem; margin: 0; color: #004b87; font-weight: 800;">UNIVERSIDAD DE INVESTIGACIÓN Y DESARROLLO — UDI</h2>
+                <div style="font-size: 0.85rem; color: #475569;">Facultad de Ingenierías · Programa de Ingeniería de Sistemas</div>
+                <div style="font-size: 0.75rem; color: #64748b;">SIGPRA — Software Integral de Gestión de Prácticas Académicas</div>
+              </div>
+            </div>
+            <div class="text-end" style="font-size: 0.75rem; color: #475569;">
+              <div class="fw-bold text-dark">INFORME OFICIAL CONSOLIDADO</div>
+              <div>Decreto 1075 de 2015</div>
+              <div>Fecha emisión: ${new Date().toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "2-digit" })}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar d-flex align-items-center gap-2 flex-wrap mb-3">
+          <button class="btn btn-success btn-sm button" data-action="export-csv" title="Descargar reporte en formato Excel/CSV estructurado">
+            📊 Exportar a Excel (CSV)
+          </button>
+          <button class="btn btn-primary btn-sm button primary" data-action="export-print" title="Generar versión oficial con membrete UDI para PDF">
+            🖨️ Imprimir / Guardar PDF Oficial
+          </button>
         </div>
         <h2>Periodo y filtros</h2>
         <form class="form-grid report-filters" data-submit="report-filters">
@@ -1862,7 +1896,11 @@ function renderReports(user) {
                 <tr>
                   <td>${row.d.period ? `${row.d.period.year}-${row.d.period.semester}` : ""}</td>
                   <td>${escapeHtml(row.d.period?.program)}</td>
-                  <td>${escapeHtml(row.d.student?.name)}</td>
+                  <td>
+                    <button class="btn btn-sm btn-link p-0 text-start text-primary fw-bold text-decoration-none" type="button" data-action="view-student-dossier" data-assignment-id="${row.assignment.id}" title="Clic para abrir el expediente completo del practicante">
+                      ${escapeHtml(row.d.student?.name)} 👁️
+                    </button>
+                  </td>
                   <td>${escapeHtml(row.d.institution?.name)}</td>
                   <td>${escapeHtml(row.d.teacher?.name)}</td>
                   <td>${row.hours} / ${row.required}</td>
@@ -1874,7 +1912,23 @@ function renderReports(user) {
           </table>
         </div>
         </div>
-        <p class="muted">El reporte se calcula con los datos registrados para el periodo y los filtros aplicados. PDF se genera con la opcion Imprimir del navegador.</p>
+        <p class="muted d-print-none">El reporte se calcula con los datos registrados para el periodo y los filtros aplicados. El PDF se genera con la opción Imprimir con formato oficial UDI.</p>
+
+      <!-- Bloque de Firmas Oficiales para Impresión -->
+      <div class="print-signatures-block d-none mt-5 pt-4">
+        <div class="row text-center">
+          <div class="col-6">
+            <div style="border-top: 1px solid #475569; width: 75%; margin: 45px auto 4px;"></div>
+            <strong style="font-size: 0.88rem;">Coordinación de Prácticas Académicas</strong>
+            <div class="small text-muted">Facultad de Ingenierías — UDI</div>
+          </div>
+          <div class="col-6">
+            <div style="border-top: 1px solid #475569; width: 75%; margin: 45px auto 4px;"></div>
+            <strong style="font-size: 0.88rem;">Dirección de Programa</strong>
+            <div class="small text-muted">Ingeniería de Sistemas — UDI</div>
+          </div>
+        </div>
+      </div>
       </article>
     </section>
   `;
@@ -2606,16 +2660,48 @@ function exportJson() {
 }
 
 function exportCsv() {
-  const header = ["estudiante", "institucion", "docente", "horas_aprobadas", "estado"];
   const assignments = filteredReportAssignments();
+  const header = [
+    "Código Estudiante",
+    "Estudiante Practicante",
+    "Correo Institucional",
+    "Institución / Centro de Práctica",
+    "Docente Asesor Asignado",
+    "Horas Validadas",
+    "Meta Normativa (Decreto 1075)",
+    "Porcentaje de Cumplimiento",
+    "Estado de la Práctica"
+  ];
+
   const rows = assignments.map((assignment) => {
     const d = assignmentDetails(assignment);
-    return [d.student?.name, d.institution?.name, d.teacher?.name, approvedHours(assignment.id) || assignment.approvedHours, assignment.status];
+    const hours = approvedHours(assignment.id) || assignment.approvedHours || 0;
+    const required = d.period?.minHours || 160;
+    const percent = Math.round((hours / required) * 100);
+    return [
+      d.student?.code || `UDI-${d.student?.id || "N/A"}`,
+      d.student?.name || "Sin nombre",
+      d.student?.email || "Sin correo",
+      d.institution?.name || "Sin institución",
+      d.teacher?.name || "Sin docente asignado",
+      `${hours} hrs`,
+      `${required} hrs`,
+      `${percent}%`,
+      assignment.status
+    ];
   });
-  const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
-  downloadFile("sigpra-consolidado.csv", csv, "text/csv");
-  audit(`Exporto consolidado CSV (${JSON.stringify(reportFilters)})`, "REPORTE");
+
+  // Use semicolon delimiter and CRLF for seamless opening in WPS Office & Excel
+  const csvContent = [header, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(";"))
+    .join("\r\n");
+
+  // Prepend UTF-8 BOM so Excel & WPS detect columns and Spanish accents automatically
+  const bom = "\ufeff";
+  downloadFile("SIGPRA_Consolidado_Practicas_UDI.csv", bom + csvContent, "text/csv;charset=utf-8");
+  audit(`Exporto consolidado tabular CSV oficial (${JSON.stringify(reportFilters)})`, "REPORTE");
   saveData();
+  toast("Archivo Excel/CSV generado con formato oficial de columnas y tildes", "success");
 }
 
 function downloadFile(name, content, type) {
@@ -3508,6 +3594,16 @@ function renderDirectorRequests(user) {
           </div>
         </div>
 
+        <!-- Chips de Filtro Rápido por Estado -->
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-3" id="director-status-chips">
+          <span class="small text-muted fw-bold">Filtrar por:</span>
+          <button class="btn btn-sm btn-outline-primary active py-1 px-2" data-status-filter="ALL" style="font-size: 0.8rem;">Todos (${requests.length})</button>
+          <button class="btn btn-sm btn-outline-warning py-1 px-2" data-status-filter="PENDIENTE_REVISION" style="font-size: 0.8rem;">⏳ Pendientes (${pending.length})</button>
+          <button class="btn btn-sm btn-outline-success py-1 px-2" data-status-filter="APROBADA" style="font-size: 0.8rem;">✅ Aprobadas (${approved.length})</button>
+          <button class="btn btn-sm btn-outline-info py-1 px-2" data-status-filter="DEVUELTA" style="font-size: 0.8rem;">↩️ Devueltas (${returned.length})</button>
+          <button class="btn btn-sm btn-outline-danger py-1 px-2" data-status-filter="RECHAZADA" style="font-size: 0.8rem;">❌ Rechazadas (${rejected.length})</button>
+        </div>
+
         <div class="table-wrap table-responsive">
           <table class="table table-hover align-middle" id="director-requests-table">
             <thead class="table-light">
@@ -3712,5 +3808,144 @@ document.addEventListener("input", (e) => {
       const text = row.textContent.toLowerCase();
       row.style.display = text.includes(term) ? "" : "none";
     });
+  }
+});
+
+
+function openStudentDossierModal(assignmentId) {
+  const assignment = data.assignments.find(a => a.id === Number(assignmentId));
+  if (!assignment) return;
+  const d = assignmentDetails(assignment);
+  const student = d.student;
+  const institution = d.institution;
+  const teacher = d.teacher;
+  const period = d.period;
+  const hours = approvedHours(assignment.id) || assignment.approvedHours || 0;
+  const required = period?.minHours || 160;
+  const percent = Math.min(100, Math.round((hours / required) * 100));
+
+  const studentActivities = (data.activities || []).filter(a => a.assignmentId === assignment.id);
+  const approvedActs = studentActivities.filter(a => a.status === "APROBADA");
+  const pendingActs = studentActivities.filter(a => a.status === "PENDIENTE");
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "sigpra-modal-backdrop";
+  backdrop.innerHTML = `
+    <div class="sigpra-modal" style="max-width: 680px;">
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-4">🎓</span>
+          <div>
+            <h3 class="mb-0 fw-bold" style="font-size: 1.15rem; color: #004b87;">Expediente de Práctica — ${escapeHtml(student?.name)}</h3>
+            <small class="text-muted">${escapeHtml(student?.code || student?.email)} · ${escapeHtml(period?.program || "Programa UDI")}</small>
+          </div>
+        </div>
+        <button class="btn-close" type="button" data-action="close-modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-sm-6">
+          <div class="p-2 border rounded bg-light small">
+            <span class="text-muted d-block">Institución Formativa:</span>
+            <strong>${escapeHtml(institution?.name || "Sin asignar")}</strong>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="p-2 border rounded bg-light small">
+            <span class="text-muted d-block">Docente Tutor / Asesor:</span>
+            <strong>${escapeHtml(teacher?.name || "Sin docente")}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Cumplimiento Normativo -->
+      <div class="hours-progress-card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="small fw-bold text-dark">Avance hacia las ${required} Horas Normativas</span>
+          <span class="badge ${percent >= 100 ? 'bg-success' : 'bg-primary'}">${percent}% Cumplido</span>
+        </div>
+        <div class="hours-bar-outer" style="height: 18px; margin: 6px 0;">
+          <div class="hours-bar-fill" style="width: ${percent}%;">${percent}%</div>
+        </div>
+        <div class="d-flex justify-content-between small text-muted">
+          <span>Horas aprobadas: <strong>${hours} hrs</strong></span>
+          <span>Faltan: <strong>${Math.max(0, required - hours)} hrs</strong></span>
+        </div>
+      </div>
+
+      <!-- Resumen de Bitácora -->
+      <h5 class="fw-bold fs-6 mb-2">Resumen de Bitácora (${studentActivities.length} actividades)</h5>
+      <div class="d-flex gap-2 mb-2">
+        <span class="badge bg-success-subtle text-success border border-success-subtle">✅ ${approvedActs.length} Aprobadas</span>
+        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">⏳ ${pendingActs.length} Por validar</span>
+      </div>
+
+      <div class="table-wrap table-responsive border rounded" style="max-height: 200px; overflow-y: auto;">
+        <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.8rem;">
+          <thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Horas</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${studentActivities.length ? studentActivities.map(a => `
+              <tr>
+                <td>${escapeHtml(a.date)}</td>
+                <td>${escapeHtml(a.type)}</td>
+                <td class="text-truncate" style="max-width: 180px;" title="${escapeHtml(a.description)}">${escapeHtml(a.description)}</td>
+                <td><strong>${a.hours}h</strong></td>
+                <td><span class="badge ${a.status === 'APROBADA' ? 'bg-success' : 'bg-warning text-dark'}">${escapeHtml(a.status)}</span></td>
+              </tr>
+            `).join("") : '<tr><td colspan="5" class="text-center text-muted py-3">Sin actividades registradas aún.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-end mt-3 pt-2 border-top">
+        <button class="btn btn-secondary btn-sm" type="button" data-action="close-modal">Cerrar Expediente</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+}
+
+
+// Global Click Listeners for Dynamic UI
+document.addEventListener("click", (e) => {
+  // 1. Data-nav shortcut cards
+  const navCard = e.target.closest("[data-nav]");
+  if (navCard) {
+    const target = navCard.dataset.nav;
+    if (target) {
+      currentView = target;
+      renderApp();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+  }
+
+  // 2. Student dossier modal in consolidado
+  const dossierBtn = e.target.closest('[data-action="view-student-dossier"]');
+  if (dossierBtn) {
+    openStudentDossierModal(dossierBtn.dataset.assignmentId);
+    return;
+  }
+
+  // 3. Status filter chips in Director requests table
+  const statusChip = e.target.closest("[data-status-filter]");
+  if (statusChip) {
+    const filter = statusChip.dataset.statusFilter;
+    const chips = statusChip.parentElement.querySelectorAll("[data-status-filter]");
+    chips.forEach(c => c.classList.remove("active", "btn-primary", "btn-success", "btn-warning", "btn-info", "btn-danger"));
+    statusChip.classList.add("active");
+
+    const table = document.querySelector("#director-requests-table");
+    if (!table) return;
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+      if (filter === "ALL") {
+        row.style.display = "";
+      } else {
+        const rowText = row.textContent.toUpperCase();
+        row.style.display = rowText.includes(filter) ? "" : "none";
+      }
+    });
+    return;
   }
 });
