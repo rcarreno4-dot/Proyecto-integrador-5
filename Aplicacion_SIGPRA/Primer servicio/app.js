@@ -648,11 +648,17 @@ function render() {
   app.innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="brand d-flex align-items-center gap-3">
-          <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="38" height="38" />
-          <div>
-            <strong>SIGPRA</strong>
-            <span>Gestion de practicas</span>
+        <div class="brand d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="34" height="34" />
+            <div>
+              <strong>SIGPRA</strong>
+              <span class="d-none d-sm-block">Gestión de prácticas</span>
+            </div>
+          </div>
+          <div class="mobile-user-actions d-md-none d-flex align-items-center gap-2">
+            <span class="badge bg-primary-subtle text-primary rounded-pill small fw-bold px-2 py-1">${escapeHtml(user.initials || "U")}</span>
+            <button class="btn btn-sm btn-outline-danger py-0 px-2" data-action="logout" title="Cerrar sesión" style="font-size: 0.78rem;">Salir 🚪</button>
           </div>
         </div>
         <nav class="nav nav-pills" aria-label="Navegacion de ${escapeHtml(roleLabel(user.role))}">
@@ -1023,7 +1029,7 @@ function renderDashboard(user) {
     <section class="stack">
       <!-- Tarjetas KPI Modernas con Microinteracciones -->
       <div class="row g-3 mb-3">
-        <div class="col-xl-3 col-md-6">
+        <div class="col-6 col-xl-3 col-md-6">
           <div class="metric-card-kpi kpi-blue">
             <div class="kpi-icon">📅</div>
             <div class="flex-grow-1">
@@ -1033,7 +1039,7 @@ function renderDashboard(user) {
             </div>
           </div>
         </div>
-        <div class="col-xl-3 col-md-6">
+        <div class="col-6 col-xl-3 col-md-6">
           <div class="metric-card-kpi kpi-green">
             <div class="kpi-icon">🏫</div>
             <div class="flex-grow-1">
@@ -1043,7 +1049,7 @@ function renderDashboard(user) {
             </div>
           </div>
         </div>
-        <div class="col-xl-3 col-md-6">
+        <div class="col-6 col-xl-3 col-md-6">
           <div class="metric-card-kpi kpi-amber">
             <div class="kpi-icon">🎓</div>
             <div class="flex-grow-1">
@@ -1053,7 +1059,7 @@ function renderDashboard(user) {
             </div>
           </div>
         </div>
-        <div class="col-xl-3 col-md-6">
+        <div class="col-6 col-xl-3 col-md-6">
           <div class="metric-card-kpi kpi-purple">
             <div class="kpi-icon">⏱️</div>
             <div class="flex-grow-1">
@@ -3453,25 +3459,25 @@ function renderDirectorRequests(user) {
     <section class="stack">
       <!-- Tarjetas de metricas rapidas -->
       <div class="row g-3">
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <div class="card p-3 border-start border-4 border-warning shadow-sm">
             <span class="text-muted small text-uppercase fw-bold">Pendientes de Revision</span>
             <h2 class="mb-0 text-warning">${pending.length}</h2>
           </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <div class="card p-3 border-start border-4 border-success shadow-sm">
             <span class="text-muted small text-uppercase fw-bold">Aprobadas (Habilitados)</span>
             <h2 class="mb-0 text-success">${approved.length}</h2>
           </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <div class="card p-3 border-start border-4 border-primary shadow-sm">
             <span class="text-muted small text-uppercase fw-bold">Devueltas p/ correccion</span>
             <h2 class="mb-0 text-primary">${returned.length}</h2>
           </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <div class="card p-3 border-start border-4 border-danger shadow-sm">
             <span class="text-muted small text-uppercase fw-bold">Rechazadas</span>
             <h2 class="mb-0 text-danger">${rejected.length}</h2>

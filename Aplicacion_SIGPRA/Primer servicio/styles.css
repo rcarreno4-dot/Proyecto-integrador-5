@@ -1609,3 +1609,308 @@ input[type="radio"] {
   padding: 8px 18px;
   border-radius: 6px;
 }
+
+
+/* ========================================================
+   SIGPRA MOBILE-FIRST RESPONSIVE OPTIMIZATION PACKAGE
+   ======================================================== */
+
+@media (max-width: 768px) {
+  /* 1. App-Bar & Header Layout */
+  .shell {
+    grid-template-columns: 1fr !important;
+    min-height: auto;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1020 !important;
+    background: #ffffff !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 10px 14px 6px !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .brand {
+    padding: 0 0 8px 0 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .sidebar-footer {
+    display: none !important;
+  }
+
+  .nav {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    margin-top: 0 !important;
+    gap: 6px !important;
+    padding: 2px 0 6px 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .nav button {
+    width: auto !important;
+    min-width: max-content !important;
+    padding: 7px 14px !important;
+    font-size: 0.84rem !important;
+    border-radius: 999px !important;
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .nav button:hover,
+  .nav button.active {
+    background: #004b87 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-color: #004b87 !important;
+  }
+
+  .nav-heading {
+    display: none !important;
+  }
+
+  /* 2. Content & Padding */
+  .content {
+    padding: 14px 12px 36px !important;
+    max-width: 100% !important;
+  }
+
+  .topbar {
+    margin-bottom: 14px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
+
+  .topbar h1 {
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .topbar .subtitle {
+    font-size: 0.82rem !important;
+  }
+
+  .topbar .userbox {
+    display: none !important;
+  }
+
+  .card {
+    padding: 16px 14px !important;
+    border-radius: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* 3. Search Bars */
+  .table-search-bar {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  /* 4. Responsive Tables with Touch Scrolling */
+  .table-wrap {
+    margin: 0 -14px !important;
+    padding: 0 14px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .table th {
+    white-space: nowrap !important;
+    font-size: 0.76rem !important;
+    padding: 8px 6px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .table td {
+    font-size: 0.82rem !important;
+    padding: 9px 6px !important;
+    vertical-align: middle;
+  }
+
+  /* 5. Mobile Login Page */
+  .login-page {
+    grid-template-columns: 1fr !important;
+    min-height: 100vh !important;
+  }
+
+  .login-aside {
+    padding: 22px 18px 18px !important;
+    min-height: auto !important;
+  }
+
+  .login-brand {
+    margin-bottom: 6px !important;
+  }
+
+  .login-brand-meta strong {
+    font-size: 1.25rem !important;
+  }
+
+  .login-features,
+  .login-quote {
+    display: none !important;
+  }
+
+  .login-main {
+    padding: 18px 14px 30px !important;
+  }
+
+  .login-card {
+    padding: 18px 16px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+  }
+}
+
+/* ========================================================
+   VERTICAL PROCESS STEPPER & METRIC CARDS ON SMALL PHONES
+   ======================================================== */
+
+@media (max-width: 640px) {
+  /* Stepper adaptativo vertical */
+  .sigpra-stepper-box {
+    padding: 14px 14px !important;
+    margin-bottom: 16px !important;
+    border-radius: 10px !important;
+  }
+
+  .sigpra-stepper {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    padding: 4px 0 !important;
+    margin: 10px 0 4px !important;
+  }
+
+  .sigpra-stepper::before {
+    top: 18px !important;
+    bottom: 18px !important;
+    left: 19px !important;
+    right: auto !important;
+    width: 3px !important;
+    height: auto !important;
+  }
+
+  .sigpra-step {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    gap: 14px !important;
+    flex: none !important;
+    width: 100% !important;
+  }
+
+  .sigpra-step-bubble {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 0.95rem !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .sigpra-step-title {
+    font-size: 0.88rem !important;
+    margin-top: 2px !important;
+  }
+
+  .sigpra-step-desc {
+    font-size: 0.78rem !important;
+  }
+
+  /* Barra 160 Horas */
+  .hours-progress-card {
+    padding: 14px 14px !important;
+    margin-bottom: 16px !important;
+    border-radius: 10px !important;
+  }
+
+  .hours-bar-outer {
+    height: 22px !important;
+    margin: 10px 0 8px !important;
+  }
+
+  .hours-bar-fill {
+    font-size: 0.72rem !important;
+  }
+
+  /* Modals & Viewer */
+  .sigpra-modal-backdrop {
+    padding: 8px !important;
+  }
+
+  .sigpra-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+    max-height: 94vh !important;
+  }
+
+  .doc-modal-paper {
+    padding: 14px 12px !important;
+    margin: 6px 0 !important;
+  }
+
+  .doc-modal-watermark {
+    font-size: 1.4rem !important;
+  }
+
+  /* Floating Toasts */
+  #sigpra-toast-host {
+    top: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+    max-width: none !important;
+  }
+
+  .sigpra-toast-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 10px 12px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  /* KPI Cards 2x2 grid */
+  .metric-card-kpi {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding: 12px 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .metric-card-kpi .kpi-icon {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1.15rem !important;
+  }
+
+  .metric-card-kpi h3 {
+    font-size: 1.35rem !important;
+    margin-top: 2px !important;
+  }
+
+  .metric-card-kpi span {
+    font-size: 0.72rem !important;
+  }
+}
