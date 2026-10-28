@@ -1,45 +1,25 @@
-# Entrega actual - SIGPRA
+# 📁 Entregables de Sustentación Final — SIGPRA
+### Universidad de Investigación y Desarrollo (UDI) · Proyecto Integrador V (Quinto Semestre)
 
-## Documento principal
+Este directorio consolida todos los componentes documentales, académicos y de diseño requeridos por la **rúbrica de evaluación final** para la defensa del proyecto:
 
-- `Propuesta_SIGPRA_Segunda_Entrega.docx`: propuesta, análisis de requerimientos, fichas de casos de uso, modelos de datos, prototipo y referencias.
+---
 
-## Modelos y diagramas
+## 📂 Estructura Oficial de la Entrega
 
-- `Diagramas UML/Arquitectura/`: diagrama de arquitectura.
-- `Diagramas UML/Casos de uso/`: diagrama de casos de uso.
-- `Diagramas UML/Dominio/`: diagrama conceptual de dominio.
-- `Diagramas UML/Secuencia/`: exportaciones de los diagramas de secuencia CU-01 a CU-07.
-- `Diagramas UML/Clases y modelos editables/Proyecto_astah_SIGPRA.asta`: archivo editable de Astah con los diagramas de casos de uso, clases, dominio y secuencia para CU-01 a CU-07.
-- `../Base_de_datos_SIGPRA/imagenes/Modelo_Entidad_Relacion_SIGPRA.png`: modelo ER alineado con el esquema PostgreSQL.
-- `../Base_de_datos_SIGPRA/imagenes/Modelo_Relacional_SIGPRA.png`: modelo relacional de las 16 tablas PostgreSQL.
-- `../Base_de_datos_SIGPRA/Diccionario_Datos_SIGPRA.md`: diccionario de tablas/columnas, colecciones MongoDB y objetos de almacenamiento de archivos.
+| # | Directorio | Contenido | Formatos |
+|---|------------|-----------|----------|
+| **1** | [**`01_Documento_Final/`**](./Documento_Final/) | Documento principal de propuesta de proyecto integrador (17 Puntos completos de la rúbrica). | `.docx` |
+| **2** | [**`02_Articulo_IEEE/`**](./Articulo_IEEE/) | Artículo científico en formato oficial IEEE (2 columnas, 6 páginas). | `.docx`, `.md` |
+| **3** | [**`03_Poster_Sustentacion/`**](./Poster_Sustentacion/) | Póster académico de defensa oficial (90x120 cm). | `.pptx`, `.pdf` |
+| **4** | [**`04_Guion_Video/`**](./Guion_Video/) | Guión técnico y libreto del video demostrativo funcional (≤ 5 min). | `.docx`, `.md` |
+| **5** | [**`05_Manuales_Sistema/`**](./Manuales_Sistema/) | Manual de Usuario (paso a paso por roles) y Manual Técnico (arquitectura y APIs). | `.docx`, `.md` |
+| **6** | [**`06_Actas_de_seguimiento/`**](./Actas%20de%20seguimiento/) | Actas de reuniones de seguimiento del semestre (incluyendo 26 y 27 de octubre). | `.docx`, `.md` |
+| **7** | [**`07_Vistas_Alta_Fidelidad/`**](./Vistas_actuales_SIGPRA/) | Prototipos de interfaz de alta fidelidad (CU-01 a CU-08 y barra 160h). | `.png`, `.md` |
+| **8** | [**`08_Diagramas_UML/`**](./Diagramas%20UML/) | Diagramas de Arquitectura, Casos de Uso, Secuencia, Clases y Dominio (.asta y .png). | `.png`, `.asta`, `.md` |
 
-## Persistencia SIGPRA
+---
 
-El modelado abarca los tres componentes de persistencia documentados para el
-sistema: PostgreSQL (base relacional), MongoDB (base documental) y
-almacenamiento de archivos (binarios de evidencias; no es un motor de base de
-datos). Los scripts fuente se encuentran en `../Base_de_datos_SIGPRA/`.
-
-## Prototipo y seguimiento
-
-- `Prototipos_Figma_SIGPRA.md`: enlace al prototipo de mediana fidelidad en Figma.
-- `Vistas_actuales_SIGPRA/`: capturas de las vistas actuales de la aplicacion para CU-01 a CU-07.
-- `Acta_segumiento_blank.docx` y `Actas de seguimiento/`: formatos y actas de seguimiento.
-
-## Aplicacion web y APIs
-
-- `../Aplicacion_SIGPRA/`: prototipo funcional web con backend Node.js, Express y TypeScript.
-- La aplicacion esta organizada con arquitectura MVC en `../Aplicacion_SIGPRA/src/`.
-- APIs principales: autenticacion, periodos, convenios/plazas, asignaciones, consolidado y sincronizacion de estado.
-- `Anexo_APIs_MVC_SIGPRA.md`: rutas consumidas por la interfaz, ejecucion y alcance real de la persistencia.
-- Ejecucion recomendada:
-
-```bash
-cd ../Aplicacion_SIGPRA
-npm install
-npm run dev
-```
-
-Luego abrir `http://localhost:3000`.
+## 🌐 Enlace a la Aplicación en la Nube
+* **URL en Producción (Render PaaS)**: [https://sigpra-udi.onrender.com](https://sigpra-udi.onrender.com)
+* **Marco Normativo Nacional**: Cumplimiento del **Decreto 1075 de 2015** (Mínimo 160 horas obligatorias de práctica).
