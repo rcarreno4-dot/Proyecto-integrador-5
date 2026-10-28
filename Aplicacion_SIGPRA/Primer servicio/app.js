@@ -254,6 +254,16 @@ let studentRequestTab = "status";
 let authMode = "login";
 let reportFilters = { periodId: "", program: "", institutionId: "", teacherId: "" };
 
+const _urlParams = new URLSearchParams(window.location.search);
+if (_urlParams.has("demoUser")) {
+  const uid = Number(_urlParams.get("demoUser"));
+  const found = (data.users || []).find(u => u.id === uid);
+  if (found) session = { userId: found.id };
+}
+if (_urlParams.has("demoView")) {
+  currentView = _urlParams.get("demoView");
+}
+
 const app = document.querySelector("#app");
 
 function loadData() {
