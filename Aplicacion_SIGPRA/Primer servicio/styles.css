@@ -2058,3 +2058,19 @@ input[type="radio"] {
     margin-bottom: 8px !important;
   }
 }
+
+
+/* Microinteracciones y Modales Apilables v7 */
+.metric-card-kpi[data-view] {
+  cursor: pointer;
+  user-select: none;
+}
+.metric-card-kpi[data-view]:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 28px rgba(0, 75, 135, 0.12);
+}
+.sigpra-doc-preview-backdrop {
+  z-index: 1060 !important;
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(4px);
+}

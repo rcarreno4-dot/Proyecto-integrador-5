@@ -1131,6 +1131,9 @@ function renderDashboard(user) {
 }
 
 function renderDirectorHome(user) {
+  const requests = data.requests || [];
+  const pendingRequests = requests.filter(r => r.status === "PENDIENTE_REVISION");
+  const approvedRequests = requests.filter(r => r.status === "APROBADA");
   const activeAssignments = data.assignments.filter((assignment) => assignment.status === "ACTIVA");
   const averageProgress = activeAssignments.length
     ? Math.round(activeAssignments.reduce((sum, assignment) => {
@@ -1142,36 +1145,200 @@ function renderDirectorHome(user) {
   const activeTeachers = new Set(activeAssignments.map((assignment) => assignment.teacherId)).size;
 
   return `
-    <section class="grid">
-      ${metricCard("Programas activos", data.periods.filter((period) => period.status === "PUBLICADO").length, "Periodos publicados")}
-      ${metricCard("Estudiantes en practica", activeAssignments.length, `${activeTeachers} docentes asesores`)}
-      ${metricCard("Avance promedio", `${averageProgress}%`, "Sobre horas requeridas")}
-      <article class="card full">
-        <h2>Acciones</h2>
-        <p class="muted">Revisa el estado consolidado del periodo.</p>
-        <div class="toolbar">
-          <button class="btn btn-primary button primary" data-view="reports">Ver consolidado de practicas</button>
+    <section class="stack">
+      <!-- Tarjetas KPI Modernas para el Director de Programa -->
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-amber" data-view="director-requests" title="Clic para evaluar solicitudes de práctica de estudiantes">
+            <div class="kpi-icon">⏳</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Por Dictaminar</span>
+              <h3 class="mb-0 fw-bold">${pendingRequests.length}</h3>
+              <span class="text-warning small">Solicitudes pendientes (CU-08)</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-warning fw-bold d-flex justify-content-between align-items-center">
+                <span>Evaluar Bandeja</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </article>
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-green" data-view="director-requests" title="Clic para consultar practicantes habilitados">
+            <div class="kpi-icon">✅</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Habilitados</span>
+              <h3 class="mb-0 fw-bold">${approvedRequests.length}</h3>
+              <span class="text-success small">Aprobados por Dirección</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-success fw-bold d-flex justify-content-between align-items-center">
+                <span>Ver Habilitados</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-blue" data-view="reports" title="Clic para consultar estudiantes en práctica">
+            <div class="kpi-icon">🎓</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">En Práctica</span>
+              <h3 class="mb-0 fw-bold">${activeAssignments.length}</h3>
+              <span class="text-primary small">${activeTeachers} docentes asesores</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-primary fw-bold d-flex justify-content-between align-items-center">
+                <span>Ver Consolidado</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-purple" data-view="reports" title="Clic para ver cumplimiento del Decreto 1075">
+            <div class="kpi-icon">📊</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Avance Reglamentario</span>
+              <h3 class="mb-0 fw-bold">${averageProgress}%</h3>
+              <span class="text-secondary small">Meta 160h obligatorias</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-secondary fw-bold d-flex justify-content-between align-items-center">
+                <span>Detalle Normativo</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="grid">
+        <article class="card wide">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div>
+              <h2 class="mb-0">Solicitudes pendientes de dictamen</h2>
+              <small class="text-muted">Estudiantes que radicaron soportes para inicio de práctica (CU-08)</small>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" data-view="director-requests">
+              Ir a la bandeja completa (${requests.length}) ➔
+            </button>
+          </div>
+          <div class="table-wrap table-responsive">
+            <table class="table table-hover align-middle">
+              <thead><tr><th>Estudiante</th><th>Periodo</th><th>Modalidad</th><th>Soportes</th><th>Acción</th></tr></thead>
+              <tbody>
+                ${pendingRequests.length ? pendingRequests.map(req => {
+                  const student = data.users.find(u => u.id === req.studentId);
+                  const period = data.periods.find(p => p.id === req.periodId);
+                  return `
+                    <tr>
+                      <td>
+                        <strong>${escapeHtml(student?.name || 'Estudiante')}</strong>
+                        <div class="text-muted small">${escapeHtml(student?.code || student?.email || '')}</div>
+                      </td>
+                      <td>${escapeHtml(period?.program || 'UDI')} (${period?.year}-${period?.semester})</td>
+                      <td>${escapeHtml(req.modality)}</td>
+                      <td>
+                        <button class="btn btn-sm btn-link p-0 text-primary" style="font-size: 0.8rem; text-decoration: none;" type="button" data-action="preview-doc" data-student="${escapeHtml(student?.name)}" data-doctype="Certificado de Matrícula" data-filename="${escapeHtml(req.documents?.matricula?.name || 'matricula.pdf')}">📄 Matrícula 👁️</button>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-primary" data-action="open-review-modal" data-id="${req.id}">
+                          🔍 Evaluar
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("") : `<tr><td colspan="5" class="text-center text-muted py-3">✅ No hay solicitudes pendientes de revisión. Todas han sido tramitadas.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="card">
+          <h2>Gestión de Dirección</h2>
+          <p class="muted">Acciones frecuentes para la dirección de programa.</p>
+          <div class="toolbar d-flex flex-column gap-2">
+            <button class="btn btn-primary button primary w-100" data-view="director-requests">Revisar Solicitudes</button>
+            <button class="btn btn-outline-secondary button w-100" data-view="reports">Consolidado e Informes</button>
+            <button class="btn btn-outline-secondary button w-100" data-view="audit">Registro de Auditoría</button>
+          </div>
+        </article>
+      </section>
+      ${renderModuleCards(user)}
     </section>
-    ${renderModuleCards(user)}
   `;
 }
 
 function renderTeacherHome(user) {
   const pending = pendingActivitiesForTeacher(user.id);
-  const teacherAssignments = data.assignments.filter((assignment) => assignment.teacherId === user.id);
+  const teacherAssignments = data.assignments.filter((assignment) => assignment.teacherId === user.id && assignment.status === "ACTIVA");
+  const teacherVisits = data.visits.filter((visit) => visit.teacherId === user.id);
+  const assignmentIds = teacherAssignments.map(a => a.id);
+  const teacherHours = (data.activities || [])
+    .filter(a => assignmentIds.includes(a.assignmentId) && a.status === "APROBADA")
+    .reduce((sum, a) => sum + (Number(a.hours) || 0), 0);
+
   return `
-    <section class="grid">
-      ${metricCard("Estudiantes asignados", teacherAssignments.length, "Practicas activas")}
-      ${metricCard("Pendientes", pending.length, "Actividades por revisar")}
-      ${metricCard("Visitas registradas", data.visits.filter((visit) => visit.teacherId === user.id).length, "Acompanamiento")}
-      <article class="card full">
-        <h2>Actividades pendientes</h2>
-        ${activitiesTable(pending, true)}
-      </article>
+    <section class="stack">
+      <!-- Tarjetas KPI Modernas para el Docente Asesor -->
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-blue" data-view="teacher-visits" title="Clic para consultar tus estudiantes en práctica">
+            <div class="kpi-icon">🎓</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Estudiantes</span>
+              <h3 class="mb-0 fw-bold">${teacherAssignments.length}</h3>
+              <span class="text-primary small">Prácticas activas asignadas</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-primary fw-bold d-flex justify-content-between align-items-center">
+                <span>Ver Estudiantes</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-amber" data-view="teacher-validations" title="Clic para revisar bitácoras pendientes">
+            <div class="kpi-icon">📝</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Por Validar</span>
+              <h3 class="mb-0 fw-bold">${pending.length}</h3>
+              <span class="text-warning small">Bitácoras pendientes</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-warning fw-bold d-flex justify-content-between align-items-center">
+                <span>Validar Horas</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-green" data-view="teacher-visits" title="Clic para registrar visitas de acompañamiento">
+            <div class="kpi-icon">🏫</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Visitas</span>
+              <h3 class="mb-0 fw-bold">${teacherVisits.length}</h3>
+              <span class="text-success small">Acompañamientos en centro</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-success fw-bold d-flex justify-content-between align-items-center">
+                <span>Registrar Visita</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3 col-md-6">
+          <div class="metric-card-kpi kpi-purple" data-view="reports" title="Clic para ver horas acumuladas">
+            <div class="kpi-icon">⏱️</div>
+            <div class="flex-grow-1">
+              <span class="text-muted small text-uppercase fw-bold">Horas Validadas</span>
+              <h3 class="mb-0 fw-bold">${teacherHours} hrs</h3>
+              <span class="text-secondary small">Supervisión formativa</span>
+              <div class="kpi-nav-cue mt-2 pt-1 border-top small text-secondary fw-bold d-flex justify-content-between align-items-center">
+                <span>Ver Informe</span> <span>➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="grid">
+        <article class="card full">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div>
+              <h2 class="mb-0">Actividades pendientes de validación</h2>
+              <small class="text-muted">Revisa las horas y soportes reportados por tus practicantes</small>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" data-view="teacher-validations">Gestionar todas (${pending.length}) ➔</button>
+          </div>
+          ${activitiesTable(pending, true)}
+        </article>
+      </section>
+      ${renderModuleCards(user)}
     </section>
-    ${renderModuleCards(user)}
   `;
 }
 
@@ -1409,7 +1576,7 @@ function assignmentWorkflowForm() {
             ${availablePlaces.map((place) => {
               const agreement = data.agreements.find((item) => item.id === place.agreementId);
               const institution = data.institutions.find((item) => item.id === agreement?.institutionId);
-              return `<option value="${place.id}">${escapeHtml(institution?.name)} - ${escapeHtml(place.level)} (${place.offered - place.occupied} cupos)</option>`;
+              return `<option value="${place.id}">${escapeHtml(institution?.name)} - [${escapeHtml(place.program || "General")}] ${escapeHtml(place.level)} (${place.offered - place.occupied} cupos)</option>`;
             }).join("")}
           </select>
         </label>
@@ -1445,7 +1612,22 @@ function assignmentWorkflowForm() {
 }
 
 function updateAssignmentWorkflow(form, changedField = "") {
-  if (changedField === "periodId" || changedField === "studentId") {
+  const selectedPid = Number(form.elements.periodId.value);
+  if (changedField === "periodId") {
+    const studentSelect = form.elements.studentId;
+    const currentStudentVal = studentSelect.value;
+    studentSelect.innerHTML = `<option value="">-- Seleccione un estudiante --</option>` +
+      studentUsers().map((student) => {
+        const req = (data.requests || []).find((r) => r.studentId === student.id && r.periodId === selectedPid);
+        const isApproved = req?.status === "APROBADA" || student.enabledForAssignment;
+        const tag = isApproved ? " [✅ Habilitado]" : " [⏳ Pendiente de Habilitación]";
+        return `<option value="${student.id}" ${student.id === Number(currentStudentVal) ? "selected" : ""}>${escapeHtml(student.name)} - ${escapeHtml(student.code || student.email)}${tag}</option>`;
+      }).join("");
+
+    form.elements.placeId.value = "";
+    form.elements.teacherId.value = "";
+    form.elements.reassignmentReason.value = "";
+  } else if (changedField === "studentId") {
     form.elements.placeId.value = "";
     form.elements.teacherId.value = "";
     form.elements.reassignmentReason.value = "";
@@ -1518,8 +1700,14 @@ function updateAssignmentWorkflow(form, changedField = "") {
 function assignmentsTable(assignments) {
   if (!assignments.length) return `<div class="empty">No hay asignaciones registradas.</div>`;
   return `
+    <div class="d-flex justify-content-end mb-2">
+      <div class="table-search-bar">
+        <span class="text-muted">🔍</span>
+        <input type="text" placeholder="Buscar por estudiante, plaza o tutor..." data-table-filter="#assignments-table">
+      </div>
+    </div>
     <div class="table-wrap table-responsive">
-      <table class="table table-hover align-middle">
+      <table class="table table-hover align-middle" id="assignments-table">
         <thead><tr><th>Estudiante</th><th>Institucion</th><th>Docente asesor</th><th>Periodo</th><th>Horas</th><th>Estado</th></tr></thead>
         <tbody>
           ${assignments.map((assignment) => {
@@ -1678,7 +1866,113 @@ function renderStudentValidations(user) {
 
 function renderStudentProgress(user, compact = false) {
   const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
-  if (!assignment) return `<div class="empty">No tienes una asignacion activa.</div>${compact ? renderModuleCards(user) : ""}`;
+  if (!assignment) {
+    const studentReq = (data.requests || []).find(r => r.studentId === user.id);
+    const publishedPeriods = (data.periods || []).filter((period) => period.status === "PUBLICADO");
+    const activePeriod = (studentReq ? data.periods.find(p => p.id === studentReq.periodId) : null) || publishedPeriods[0];
+
+    let studentStatusView = "";
+    if (studentReq) {
+      const isApproved = studentReq.status === "APROBADA";
+      const isReturned = studentReq.status === "DEVUELTA";
+      const isPending = studentReq.status === "PENDIENTE_REVISION";
+      const isDraft = studentReq.status === "BORRADOR";
+
+      studentStatusView = `
+        <section class="stack">
+          ${renderRequestStepper(studentReq.status, false)}
+          <article class="card full border-start border-4 ${isApproved ? 'border-success' : isPending ? 'border-warning' : isReturned ? 'border-danger' : 'border-secondary'} shadow-sm">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+              <div>
+                <span class="badge ${isApproved ? 'bg-success' : isPending ? 'bg-warning text-dark' : isReturned ? 'bg-danger' : 'bg-secondary'} px-3 py-2 fs-6 mb-2">
+                  ESTADO: ${escapeHtml(studentReq.status)}
+                </span>
+                <h2 class="mb-1" style="color: #004b87;">Estado Actual de tu Trámite de Práctica</h2>
+                <p class="muted mb-0">Periodo académico: <strong>${escapeHtml(activePeriod?.program || 'Programa UDI')} (${activePeriod?.year}-${activePeriod?.semester})</strong></p>
+              </div>
+              <button class="btn btn-primary" data-view="student-request">
+                📋 Ver Detalle del Trámite ➔
+              </button>
+            </div>
+
+            ${isApproved ? `
+              <div class="alert alert-success d-flex align-items-center gap-3">
+                <span class="fs-2">🎉</span>
+                <div>
+                  <h5 class="alert-heading mb-1">¡Solicitud Aprobada y Estudiante Habilitado!</h5>
+                  <p class="mb-0">Cumples con la totalidad de los prerrequisitos documentales y académicos. Tu expediente está en manos de la <strong>Coordinación de Prácticas</strong> para la asignación de plaza formativa y docente asesor.</p>
+                </div>
+              </div>
+            ` : isPending ? `
+              <div class="alert alert-info d-flex align-items-center gap-3">
+                <span class="fs-2">⏳</span>
+                <div>
+                  <h5 class="alert-heading mb-1">Solicitud en Revisión por la Dirección de Programa</h5>
+                  <p class="mb-0">Tu solicitud fue radicada el <strong>${escapeHtml(studentReq.submittedAt || studentReq.updatedAt || 'recientemente')}</strong>. El Director de Programa está revisando tu certificado de matrícula, afiliación a EPS/ARL y paz y salvo.</p>
+                </div>
+              </div>
+            ` : isReturned ? `
+              <div class="alert alert-danger d-flex align-items-center gap-3">
+                <span class="fs-2">⚠️</span>
+                <div>
+                  <h5 class="alert-heading mb-1">Solicitud Devuelta para Corrección:</h5>
+                  <p class="mb-0 fw-bold">"${escapeHtml(studentReq.justification || 'Ajustar documentos')}"</p>
+                  <button class="btn btn-sm btn-danger mt-2" data-view="student-request">Corregir Soportes Ahora</button>
+                </div>
+              </div>
+            ` : `
+              <div class="alert alert-secondary d-flex align-items-center gap-3">
+                <span class="fs-2">💾</span>
+                <div>
+                  <h5 class="alert-heading mb-1">Borrador Guardado</h5>
+                  <p class="mb-0">Tienes un borrador pendiente de radicar. Completa los datos para habilitar tu práctica.</p>
+                  <button class="btn btn-sm btn-primary mt-2" data-view="student-request">Continuar Radicación</button>
+                </div>
+              </div>
+            `}
+          </article>
+        </section>
+      `;
+    } else {
+      studentStatusView = `
+        <section class="stack">
+          <article class="card full p-4 text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border-radius: 16px;">
+            <div class="mb-3"><span style="font-size: 3.5rem;">🎓</span></div>
+            <h2 class="fw-bold mb-2" style="color: #004b87;">¡Bienvenido a SIGPRA, ${escapeHtml(user.name)}!</h2>
+            <p class="lead text-muted mx-auto mb-4" style="max-width: 650px;">
+              Sistema Integral de Gestión de Prácticas Académicas de la Universidad de Investigación y Desarrollo (UDI).
+            </p>
+            <div class="row g-3 justify-content-center text-start mb-4" style="max-width: 800px; margin: 0 auto;">
+              <div class="col-md-4">
+                <div class="card p-3 h-100 bg-white border shadow-xs">
+                  <div class="fw-bold text-primary mb-1">1. Radicación (CU-08)</div>
+                  <small class="text-muted">Carga tu certificado de matrícula, afiliación a EPS/ARL y paz y salvo académico.</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card p-3 h-100 bg-white border shadow-xs">
+                  <div class="fw-bold text-success mb-1">2. Habilitación</div>
+                  <small class="text-muted">La Dirección de Programa verifica tus soportes y emite el dictamen formal.</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card p-3 h-100 bg-white border shadow-xs">
+                  <div class="fw-bold text-purple mb-1">3. Ejecución de 160h</div>
+                  <small class="text-muted">Coordinación asigna tu plaza y comienzas a reportar tus bitácoras diarias.</small>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow" data-view="student-request">
+                📝 Radicar mi Solicitud de Práctica Ahora ➔
+              </button>
+            </div>
+          </article>
+        </section>
+      `;
+    }
+    return `${studentStatusView}${compact ? renderModuleCards(user) : ""}`;
+  }
   const d = assignmentDetails(assignment);
   const hours = Number(approvedHours(assignment.id) || assignment.approvedHours || 0);
   const required = Number(d.period?.minHours || 160);
@@ -1872,7 +2166,7 @@ function renderReports(user) {
         <form class="form-grid report-filters" data-submit="report-filters">
           <label>Periodo academico<select class="form-select" name="periodId">
             <option value="">Todos los periodos</option>
-            ${data.periods.map((period) => `<option value="${period.id}" ${selectedFilter(period.id, reportFilters.periodId)}>${period.year}-${period.semester}</option>`).join("")}
+            ${data.periods.map((period) => `<option value="${period.id}" ${selectedFilter(period.id, reportFilters.periodId)}>${period.year}-${period.semester} — ${escapeHtml(period.program)} (${escapeHtml(period.level)})</option>`).join("")}
           </select></label>
           <label>Programa<select class="form-select" name="program">
             <option value="">Todos</option>
@@ -1910,8 +2204,14 @@ function renderReports(user) {
           </table>
         </div>
         <h2>Detalle de practicas</h2>
+        <div class="d-flex justify-content-end mb-2">
+          <div class="table-search-bar">
+            <span class="text-muted">🔍</span>
+            <input type="text" placeholder="Filtrar por estudiante, institución o docente..." data-table-filter="#reports-table">
+          </div>
+        </div>
         <div class="table-wrap table-responsive">
-          <table class="table table-hover align-middle">
+          <table class="table table-hover align-middle" id="reports-table">
             <thead><tr><th>Periodo</th><th>Programa</th><th>Estudiante</th><th>Institucion</th><th>Docente</th><th>Horas</th><th>Avance</th><th>Estado</th></tr></thead>
             <tbody>
               ${rows.map((row) => `
@@ -2431,6 +2731,7 @@ function handleSubmit(form, submitter) {
     data.places.push({
       id: nextId(data.places),
       agreementId,
+      program: String(formData.program || "General / Interdisciplinar").trim(),
       level: String(formData.level).trim(),
       shift: formData.shift,
       offered: Number(formData.offered),
@@ -2441,7 +2742,7 @@ function handleSubmit(form, submitter) {
     audit("Registro un convenio y sus plazas", "CONVENIO_PLAZA");
   }
   if (type === "place") {
-    data.places.push({ id: nextId(data.places), agreementId: Number(formData.agreementId), level: formData.level, shift: formData.shift, offered: Number(formData.offered), occupied: 0, tutor: formData.tutor, status: "DISPONIBLE" });
+    data.places.push({ id: nextId(data.places), agreementId: Number(formData.agreementId), program: String(formData.program || "General / Interdisciplinar").trim(), level: formData.level, shift: formData.shift, offered: Number(formData.offered), occupied: 0, tutor: formData.tutor, status: "DISPONIBLE" });
     audit("Registro una plaza de practica", "PLAZA_PRACTICA");
   }
   if (type === "assignment") {
@@ -3208,20 +3509,21 @@ function renderRequestStepper(status, hasAssignment) {
 }
 
 function openDocPreviewModal(studentName, docType, filename) {
-  document.querySelector(".sigpra-modal-backdrop")?.remove();
+  document.querySelector(".sigpra-doc-preview-backdrop")?.remove();
   const timestamp = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   const hash = Array.from(filename + studentName).reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) >>> 0, 0x12345678).toString(16).toUpperCase();
 
   const backdrop = document.createElement("div");
-  backdrop.className = "sigpra-modal-backdrop";
+  backdrop.className = "sigpra-modal-backdrop sigpra-doc-preview-backdrop";
+  backdrop.style.zIndex = "1060";
   backdrop.innerHTML = `
-    <div class="sigpra-modal" style="max-width: 650px;">
+    <div class="sigpra-modal" style="max-width: 650px; z-index: 1061;">
       <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
         <div class="d-flex align-items-center gap-2">
           <span class="fs-4">📄</span>
           <h3 class="mb-0 fw-bold" style="font-size: 1.15rem; color: #004b87;">Visor de Soporte Digital — SIGPRA</h3>
         </div>
-        <button class="btn-close" type="button" data-action="close-modal" aria-label="Cerrar"></button>
+        <button class="btn-close" type="button" data-action="close-doc-preview" aria-label="Cerrar"></button>
       </div>
 
       <div class="doc-modal-paper my-2">
@@ -3250,7 +3552,7 @@ function openDocPreviewModal(studentName, docType, filename) {
 
         <div class="p-3 border rounded text-center bg-white shadow-sm" style="min-height: 120px; display: grid; place-items: center;">
           <div>
-            <div class="fs-1 text-primary mb-1">📋</div>
+            <div class="fs-1 text-primary mb-1">📑</div>
             <div class="fw-bold small text-dark">${escapeHtml(docType)} Digitalizado</div>
             <div class="text-muted" style="font-size: 0.75rem;">Verificado por el subsistema de radicación CU-08 conforme al Decreto 1075 de 2015.</div>
           </div>
@@ -3261,9 +3563,9 @@ function openDocPreviewModal(studentName, docType, filename) {
         <span class="small text-muted">ID de auditoría: SIGPRA-DOC-${hash}</span>
         <div class="d-flex gap-2">
           <button class="btn btn-outline-primary btn-sm" type="button" onclick="toast('Descargando copia local de ' + '${escapeHtml(filename)}', 'info')">
-            ⬇️ Descargar Copia
+            📥 Descargar Copia
           </button>
-          <button class="btn btn-secondary btn-sm" type="button" data-action="close-modal">Cerrar</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-action="close-doc-preview">Cerrar</button>
         </div>
       </div>
     </div>
@@ -3442,7 +3744,7 @@ function renderStudentRequest(user) {
             ` : ''}
 
             <form class="form-grid workflow-form" id="student-request-form">
-              <input type="hidden" name="periodId" value="${activePeriod.id}" />
+              <!-- periodId provisto por el selector de la etapa 1 -->
 
               <!-- Etapa 1: Periodo y Nivel -->
               <article class="card full mb-3">
@@ -3453,8 +3755,14 @@ function renderStudentRequest(user) {
                 <p class="muted small mb-3">Verifica que el periodo activo corresponda a tu semestre y programa de formacion.</p>
                 <div class="row g-3">
                   <div class="col-md-6">
-                    <label class="form-label fw-bold small">Periodo academico activo</label>
-                    <input type="text" class="form-control bg-light" readonly value="${escapeHtml(activePeriod.program)} - ${activePeriod.year}-${activePeriod.semester}" />
+                    <label class="form-label fw-bold small">Periodo académico / Convocatoria activa *</label>
+                    <select class="form-select" name="periodId" id="student-request-period-selector" required>
+                      ${publishedPeriods.map((p) => `
+                        <option value="${p.id}" ${p.id === activePeriod.id ? 'selected' : ''}>
+                          ${escapeHtml(p.program)} — ${escapeHtml(p.level)} (${p.year}-${p.semester})
+                        </option>
+                      `).join("")}
+                    </select>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label fw-bold small">Nivel de practica que vas a cursar *</label>
@@ -3765,21 +4073,30 @@ function openRequestReviewModal(requestId) {
               <strong>1. Certificado de Matrícula</strong>
               <div class="text-muted small">${escapeHtml(req.documents?.matricula?.name || 'matricula.pdf')}</div>
             </div>
-            <span class="badge bg-success">Cargado</span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-success">Cargado</span>
+              <button class="btn btn-sm btn-outline-primary py-0 px-2" type="button" data-action="preview-doc" data-student="${escapeHtml(student?.name)}" data-doctype="Certificado de Matrícula" data-filename="${escapeHtml(req.documents?.matricula?.name || 'matricula.pdf')}">👁️ Ver Soporte</button>
+            </div>
           </div>
           <div class="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <strong>2. Afiliación EPS / ARL vigente</strong>
               <div class="text-muted small">${escapeHtml(req.documents?.epsArl?.name || 'eps_arl.pdf')}</div>
             </div>
-            <span class="badge bg-success">Cargado</span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-success">Cargado</span>
+              <button class="btn btn-sm btn-outline-primary py-0 px-2" type="button" data-action="preview-doc" data-student="${escapeHtml(student?.name)}" data-doctype="Afiliación EPS/ARL" data-filename="${escapeHtml(req.documents?.epsArl?.name || 'eps_arl.pdf')}">👁️ Ver Soporte</button>
+            </div>
           </div>
           <div class="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <strong>3. Paz y Salvo Académico (Créditos aprobados)</strong>
               <div class="text-muted small">${escapeHtml(req.documents?.pazYSalvo?.name || 'paz_y_salvo.pdf')}</div>
             </div>
-            <span class="badge bg-success">Cargado</span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-success">Cargado</span>
+              <button class="btn btn-sm btn-outline-primary py-0 px-2" type="button" data-action="preview-doc" data-student="${escapeHtml(student?.name)}" data-doctype="Paz y Salvo Académico" data-filename="${escapeHtml(req.documents?.pazYSalvo?.name || 'paz_y_salvo.pdf')}">👁️ Ver Soporte</button>
+            </div>
           </div>
         </div>
 
