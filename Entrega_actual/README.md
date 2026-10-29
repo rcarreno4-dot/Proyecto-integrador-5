@@ -13,7 +13,7 @@ Este directorio consolida todos los componentes documentales, académicos y de d
 | **2** | [**`02_Articulo_IEEE/`**](./Articulo_IEEE/) | Artículo científico en formato oficial IEEE (2 columnas, 6 páginas). | `.docx`, `.md` |
 | **3** | [**`03_Poster_Sustentacion/`**](./Poster_Sustentacion/) | Póster académico de defensa oficial (90x120 cm). | `.pptx`, `.pdf` |
 | **4** | [**`04_Guion_Video/`**](./Guion_Video/) | Guión técnico y libreto del video demostrativo funcional (≤ 5 min). | `.docx`, `.md` |
-| **5** | [**`05_Manuales_Sistema/`**](./Manuales_Sistema/) | Manual de Usuario (paso a paso por roles) y Manual Técnico (arquitectura y APIs). | `.docx`, `.md` |
+| **5** | [**`05_Manuales_Sistema/`**](./Manuales_Sistema/) | Manual de Usuario, Manual Técnico y **[Guía de Validación para el Cliente](./Manuales_Sistema/Guia_Validacion_Cliente_SIGPRA.md)**. | `.docx`, `.md` |
 | **6** | [**`06_Actas_de_seguimiento/`**](./Actas%20de%20seguimiento/) | Actas de reuniones de seguimiento del semestre (incluyendo 26 y 27 de octubre). | `.docx`, `.md` |
 | **7** | [**`07_Vistas_Alta_Fidelidad/`**](./Vistas_actuales_SIGPRA/) | Prototipos de interfaz de alta fidelidad (CU-01 a CU-08 y barra 160h). | `.png`, `.md` |
 | **8** | [**`08_Diagramas_UML/`**](./Diagramas%20UML/) | Diagramas de Arquitectura, Casos de Uso, Secuencia, Clases y Dominio (.asta y .png). | `.png`, `.asta`, `.md` |

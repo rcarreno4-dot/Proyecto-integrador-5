@@ -30,6 +30,7 @@ La plataforma funcional está desplegada con certificado SSL HTTPS en:
 
 El repositorio se encuentra estructurado en módulos claros y desacoplados:
 
+* 📋 [**`Guia_Validacion_Cliente_SIGPRA.md`**](./Guia_Validacion_Cliente_SIGPRA.md): **Guía rápida de sustentación y validación funcional por roles para el cliente y evaluadores**.
 * 📁 [**`Entrega_actual/`**](./Entrega_actual/): **Todos los entregables académicos de la sustentación final** organizados por subcarpetas:
   * 📄 [**`Documento_Final/`**](./Entrega_actual/Documento_Final/): Documento de propuesta final de 17 puntos según la rúbrica oficial.
   * 🔬 [**`Articulo_IEEE/`**](./Entrega_actual/Articulo_IEEE/): Artículo científico en formato oficial IEEE (2 columnas).
