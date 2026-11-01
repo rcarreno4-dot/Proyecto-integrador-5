@@ -252,7 +252,7 @@ let session = loadSession();
 let currentView = "dashboard";
 let studentRequestTab = "status";
 let authMode = "login";
-let reportFilters = { periodId: "", program: "", institutionId: "", teacherId: "" };
+let reportFilters = { periodId: "", program: "", institutionId: "", teacherId: "", searched: false };
 
 const _urlParams = new URLSearchParams(window.location.search);
 if (_urlParams.has("demoUser")) {
@@ -702,8 +702,19 @@ function render() {
   app.querySelectorAll("form[data-guided-workflow]").forEach(updateGuidedWorkflow);
 }
 
-function navForRole(role) {
+function navForRole(role, user = currentUser()) {
   const shared = [{ id: "dashboard", label: "Inicio", group: "Principal", description: "Resumen de tus tareas y accesos frecuentes." }];
+  const hasActiveAssignment = user ? (data.assignments || []).some(a => a.studentId === user.id && a.status === "ACTIVA") : false;
+
+  const studentNav = [
+    ...shared,
+    ...(!hasActiveAssignment ? [{ id: "student-request", label: "Solicitar práctica", group: "Mi practica", description: "Radica tu solicitud formal y consulta su estado de aprobacion." }] : []),
+    { id: "student-progress", label: "Mi avance", group: "Mi practica", description: "Consulta tus horas aprobadas y el estado de tu practica." },
+    { id: "student-activities", label: "Mi bitacora", group: "Mi practica", description: "Registra el trabajo realizado y reporta tus horas." },
+    { id: "student-evidence", label: "Evidencias", group: "Mi practica", description: "Adjunta y consulta los soportes de tus actividades." },
+    { id: "student-validations", label: "Validaciones", group: "Mi practica", description: "Consulta las respuestas y observaciones de tu docente." }
+  ];
+
   const map = {
     COORDINADOR: [
       ...shared,
@@ -711,17 +722,10 @@ function navForRole(role) {
       { id: "agreements", label: "Convenios y plazas", group: "Preparar practicas", description: "Organiza instituciones, convenios y cupos disponibles." },
       { id: "assignments", label: "Asignaciones", group: "Seguimiento", description: "Consulta y organiza las practicas de los estudiantes." },
       { id: "director-requests", label: "Solicitudes de práctica", group: "Seguimiento", description: "Consulta las solicitudes radicadas por estudiantes." },
-      { id: "reports", label: "Consolidado", group: "Seguimiento", description: "Filtra el avance y consulta resultados de las practicas." },
-      { id: "audit", label: "Auditoria", group: "Seguimiento", description: "Revisa el historial de acciones registradas." }
+      { id: "reports", label: "Consolidado", group: "Seguimiento", description: "Filtra el avance y consulta resultados de las practicas." }
+      // Auditoria exclusiva para el rol Director
     ],
-    ESTUDIANTE: [
-      ...shared,
-      { id: "student-request", label: "Solicitar práctica", group: "Mi practica", description: "Radica tu solicitud formal y consulta su estado de aprobacion." },
-      { id: "student-progress", label: "Mi avance", group: "Mi practica", description: "Consulta tus horas aprobadas y el estado de tu practica." },
-      { id: "student-activities", label: "Mi bitacora", group: "Mi practica", description: "Registra el trabajo realizado y reporta tus horas." },
-      { id: "student-evidence", label: "Evidencias", group: "Mi practica", description: "Adjunta y consulta los soportes de tus actividades." },
-      { id: "student-validations", label: "Validaciones", group: "Mi practica", description: "Consulta las respuestas y observaciones de tu docente." }
-    ],
+    ESTUDIANTE: studentNav,
     DOCENTE_ASESOR: [
       ...shared,
       { id: "teacher-validations", label: "Validar actividades", group: "Seguimiento", description: "Revisa soportes y responde a los reportes pendientes." },
@@ -859,7 +863,13 @@ function renderView(user) {
     agreements: renderAgreements,
     assignments: renderAssignments,
     reports: () => renderReports(user),
-    audit: renderAudit,
+    audit: () => {
+      if (user?.role !== "DIRECTOR") {
+        toast("Acceso restringido: El registro de auditoría es exclusivo para la Dirección de Programa.", "warning");
+        return renderDashboard(user);
+      }
+      return renderAudit();
+    },
     "student-activities": () => renderStudentActivities(user),
     "student-evidence": () => renderStudentEvidence(user),
     "student-validations": () => renderStudentValidations(user),
@@ -2132,6 +2142,9 @@ function renderReports(user) {
     groups.set(key, group);
     return groups;
   }, new Map()).values()];
+
+  const isSearched = Boolean(reportFilters.searched);
+
   return `
     <section class="grid">
       <article class="card full">
@@ -2154,103 +2167,156 @@ function renderReports(user) {
           </div>
         </div>
 
-        <div class="toolbar d-flex align-items-center gap-2 flex-wrap mb-3">
-          <button class="btn btn-success btn-sm button" data-action="export-csv" title="Descargar reporte en formato Excel/CSV estructurado">
-            📊 Exportar a Excel (CSV)
-          </button>
-          <button class="btn btn-primary btn-sm button primary" data-action="export-print" title="Generar versión oficial con membrete UDI para PDF">
-            🖨️ Imprimir / Guardar PDF Oficial
-          </button>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h2 class="mb-0">Consulta y Consolidado de Prácticas</h2>
+            <small class="text-muted">Aplica los filtros de búsqueda para consultar el reporte detallado y habilitar opciones de exportación.</small>
+          </div>
         </div>
-        <h2>Periodo y filtros</h2>
+
+        <!-- Formulario de Filtros de Búsqueda -->
         <form class="form-grid report-filters" data-submit="report-filters">
-          <label>Periodo academico<select class="form-select" name="periodId">
+          <label>Periodo académico<select class="form-select" name="periodId">
             <option value="">Todos los periodos</option>
             ${data.periods.map((period) => `<option value="${period.id}" ${selectedFilter(period.id, reportFilters.periodId)}>${period.year}-${period.semester} — ${escapeHtml(period.program)} (${escapeHtml(period.level)})</option>`).join("")}
           </select></label>
-          <label>Programa<select class="form-select" name="program">
-            <option value="">Todos</option>
+          <label>Programa académico<select class="form-select" name="program">
+            <option value="">Todos los programas</option>
             ${programs.map((program) => `<option value="${escapeHtml(program)}" ${selectedFilter(program, reportFilters.program)}>${escapeHtml(program)}</option>`).join("")}
           </select></label>
-          <label>Institucion receptora<select class="form-select" name="institutionId">
-            <option value="">Todas</option>
+          <label>Institución receptora<select class="form-select" name="institutionId">
+            <option value="">Todas las instituciones</option>
             ${optionList(data.institutions, (item) => item.name, reportFilters.institutionId)}
           </select></label>
           <label>Docente asesor<select class="form-select" name="teacherId">
-            <option value="">Todos</option>
+            <option value="">Todos los docentes</option>
             ${optionList(teacherUsers(), (item) => item.name, reportFilters.teacherId)}
           </select></label>
-          <button class="btn btn-primary button primary full-field" type="submit">Aplicar filtros</button>
+          <div class="full-field d-flex gap-2">
+            <button class="btn btn-primary button primary flex-grow-1" type="submit">
+              🔍 Buscar / Generar Reporte
+            </button>
+            ${isSearched ? `
+              <button class="btn btn-outline-secondary button" type="button" data-action="reset-report-filters" title="Limpiar los filtros y volver a consultar">
+                🔄 Limpiar Filtros
+              </button>
+            ` : ""}
+          </div>
         </form>
-        ${pendingCount ? `<div class="alert alert-warning notice warning">Consolidado parcial: ${pendingCount} actividad(es) esperan validacion.</div>` : ""}
-        <div class="report-box ${rows.length ? "" : "hidden"}">
-          <article><strong>${rows.length}</strong><br><span class="muted">Practicas</span></article>
-          <article><strong>${rows.reduce((sum, row) => sum + row.hours, 0)}</strong><br><span class="muted">Horas aprobadas</span></article>
-          <article><strong>${reportActivities.filter((item) => item.status === "APROBADA").length}</strong><br><span class="muted">Actividades validadas</span></article>
-          <article><strong>${reportVisits.length}</strong><br><span class="muted">Visitas realizadas</span></article>
-        </div>
-        ${rows.length ? "" : `<div class="empty">No hay informacion para los filtros seleccionados. Ajusta los filtros para generar el consolidado.</div>`}
-        <div class="report-data ${rows.length ? "" : "hidden"}">
-        <h2>Consolidado por institucion</h2>
-        <div class="table-wrap table-responsive">
-          <table class="table table-hover align-middle">
-            <thead><tr><th>Institucion</th><th>Estudiantes activos</th><th>Horas aprobadas</th><th>Avance</th></tr></thead>
-            <tbody>
-              ${institutionGroups.map((group) => {
-                const percent = group.required ? Math.round(group.hours / group.required * 100) : 0;
-                return `<tr><td>${escapeHtml(group.name)}</td><td>${group.students}</td><td>${group.hours}</td><td>${percent}%</td></tr>`;
-              }).join("") || `<tr><td colspan="4">No hay instituciones para los filtros seleccionados.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-        <h2>Detalle de practicas</h2>
-        <div class="d-flex justify-content-end mb-2">
-          <div class="table-search-bar">
-            <span class="text-muted">🔍</span>
-            <input type="text" placeholder="Filtrar por estudiante, institución o docente..." data-table-filter="#reports-table">
-          </div>
-        </div>
-        <div class="table-wrap table-responsive">
-          <table class="table table-hover align-middle" id="reports-table">
-            <thead><tr><th>Periodo</th><th>Programa</th><th>Estudiante</th><th>Institucion</th><th>Docente</th><th>Horas</th><th>Avance</th><th>Estado</th></tr></thead>
-            <tbody>
-              ${rows.map((row) => `
-                <tr>
-                  <td>${row.d.period ? `${row.d.period.year}-${row.d.period.semester}` : ""}</td>
-                  <td>${escapeHtml(row.d.period?.program)}</td>
-                  <td>
-                    <button class="btn btn-sm btn-link p-0 text-start text-primary fw-bold text-decoration-none" type="button" data-action="view-student-dossier" data-assignment-id="${row.assignment.id}" title="Clic para abrir el expediente completo del practicante">
-                      ${escapeHtml(row.d.student?.name)} 👁️
-                    </button>
-                  </td>
-                  <td>${escapeHtml(row.d.institution?.name)}</td>
-                  <td>${escapeHtml(row.d.teacher?.name)}</td>
-                  <td>${row.hours} / ${row.required}</td>
-                  <td><div class="progress"><span class="progress-bar" style="width:${Math.min(100, row.percent)}%"></span></div>${row.percent}%</td>
-                  <td>${statusTag(row.assignment.status)}</td>
-                </tr>
-              `).join("") || `<tr><td colspan="8">No hay informacion para los filtros seleccionados.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-        </div>
-        <p class="muted d-print-none">El reporte se calcula con los datos registrados para el periodo y los filtros aplicados. El PDF se genera con la opción Imprimir con formato oficial UDI.</p>
 
-      <!-- Bloque de Firmas Oficiales para Impresión -->
-      <div class="print-signatures-block d-none mt-5 pt-4">
-        <div class="row text-center">
-          <div class="col-6">
-            <div style="border-top: 1px solid #475569; width: 75%; margin: 45px auto 4px;"></div>
-            <strong style="font-size: 0.88rem;">Coordinación de Prácticas Académicas</strong>
-            <div class="small text-muted">Facultad de Ingenierías — UDI</div>
+        ${!isSearched ? `
+          <!-- Estado inicial: Guía para realizar la búsqueda -->
+          <div class="card p-4 text-center border-0 shadow-sm mt-4" style="background: #f8fafc; border-radius: 12px;">
+            <div style="font-size: 2.8rem;" class="mb-2">📊</div>
+            <h3 class="fw-bold text-primary mb-1">Generación de Reporte y Consolidado</h3>
+            <p class="text-muted mx-auto mb-3" style="max-width: 580px;">
+              Configura los filtros de búsqueda en el formulario superior y haz clic en <strong>"Buscar / Generar Reporte"</strong> para desplegar la información consolidada, la tabla de avance y las opciones de exportación e impresión oficial.
+            </p>
+            <div>
+              <button class="btn btn-primary px-4 py-2" type="button" data-action="quick-generate-report">
+                🔍 Ver Consolidado General de Prácticas
+              </button>
+            </div>
           </div>
-          <div class="col-6">
-            <div style="border-top: 1px solid #475569; width: 75%; margin: 45px auto 4px;"></div>
-            <strong style="font-size: 0.88rem;">Dirección de Programa</strong>
-            <div class="small text-muted">Ingeniería de Sistemas — UDI</div>
+        ` : `
+          <!-- Resultados tras generar la búsqueda -->
+          ${pendingCount ? `<div class="alert alert-warning notice warning mt-3">Consolidado parcial: ${pendingCount} actividad(es) esperan validación.</div>` : ""}
+
+          <!-- Barra de Acciones de Exportación e Impresión (Aparece al generar los filtros) -->
+          <div class="toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 my-3 p-3 bg-light rounded border d-print-none">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-primary fs-6">${rows.length} práctica(s) encontrada(s)</span>
+              <span class="text-muted small">| Filtros aplicados</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <button class="btn btn-success btn-sm button" data-action="export-table-csv" title="Descargar en Excel los datos filtrados en la tabla">
+                📊 Exportar a Excel (CSV)
+              </button>
+              <button class="btn btn-primary btn-sm button primary" data-action="export-print" title="Generar versión oficial con membrete UDI para PDF">
+                🖨️ Imprimir / Guardar PDF Oficial
+              </button>
+            </div>
+          </div>
+
+          <div class="report-box ${rows.length ? "" : "hidden"}">
+            <article><strong>${rows.length}</strong><br><span class="muted">Prácticas</span></article>
+            <article><strong>${rows.reduce((sum, row) => sum + row.hours, 0)}</strong><br><span class="muted">Horas aprobadas</span></article>
+            <article><strong>${reportActivities.filter((item) => item.status === "APROBADA").length}</strong><br><span class="muted">Actividades validadas</span></article>
+            <article><strong>${reportVisits.length}</strong><br><span class="muted">Visitas realizadas</span></article>
+          </div>
+
+          ${rows.length === 0 ? `
+            <div class="alert alert-warning mt-3">
+              ⚠️ No se encontró información para los filtros seleccionados. Intenta ajustar los parámetros de búsqueda.
+            </div>
+          ` : `
+            <div class="report-data">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <h2 class="mb-0">Detalle de prácticas encontradas</h2>
+                <div class="table-search-bar d-print-none">
+                  <span class="text-muted">🔍</span>
+                  <input type="text" placeholder="Filtrar por estudiante, institución o docente..." data-table-filter="#reports-table">
+                </div>
+              </div>
+              <div class="table-wrap table-responsive">
+                <table class="table table-hover align-middle" id="reports-table">
+                  <thead><tr><th>Periodo</th><th>Programa</th><th>Estudiante</th><th>Institución</th><th>Docente</th><th>Horas</th><th>Avance</th><th>Estado</th></tr></thead>
+                  <tbody>
+                    ${rows.map((row) => `
+                      <tr>
+                        <td>${row.d.period ? `${row.d.period.year}-${row.d.period.semester}` : ""}</td>
+                        <td>${escapeHtml(row.d.period?.program)}</td>
+                        <td>
+                          <button class="btn btn-sm btn-link p-0 text-start text-primary fw-bold text-decoration-none" type="button" data-action="view-student-dossier" data-assignment-id="${row.assignment.id}" title="Clic para abrir el expediente completo del practicante">
+                            ${escapeHtml(row.d.student?.name)} 👁️
+                          </button>
+                        </td>
+                        <td>${escapeHtml(row.d.institution?.name)}</td>
+                        <td>${escapeHtml(row.d.teacher?.name)}</td>
+                        <td>${row.hours} / ${row.required}</td>
+                        <td><div class="progress"><span class="progress-bar" style="width:${Math.min(100, row.percent)}%"></span></div>${row.percent}%</td>
+                        <td>${statusTag(row.assignment.status)}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Consolidado por institución (oculto en impresión para imprimir únicamente el detalle de prácticas buscadas) -->
+              <div class="mt-4 d-print-none">
+                <h2>Consolidado por institución</h2>
+                <div class="table-wrap table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead><tr><th>Institución</th><th>Estudiantes activos</th><th>Horas aprobadas</th><th>Avance</th></tr></thead>
+                    <tbody>
+                      ${institutionGroups.map((group) => {
+                        const percent = group.required ? Math.round(group.hours / group.required * 100) : 0;
+                        return `<tr><td>${escapeHtml(group.name)}</td><td>${group.students}</td><td>${group.hours}</td><td>${percent}%</td></tr>`;
+                      }).join("") || `<tr><td colspan="4">No hay instituciones para los filtros seleccionados.</td></tr>`}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <p class="muted d-print-none mt-3">El reporte se calcula con los datos registrados para el periodo y los filtros aplicados. El PDF oficial se genera con la opción Imprimir con formato oficial UDI.</p>
+          `}
+        `}
+
+        <!-- Bloque de Firmas Oficiales para Impresión -->
+        <div class="print-signatures-block d-none mt-5 pt-4">
+          <div class="row text-center">
+            <div class="col-6">
+              <div style="border-top: 1px solid #475569; width: 75%; margin: 45px auto 4px;"></div>
+              <strong style="font-size: 0.88rem;">Coordinación de Prácticas Académicas</strong>
+              <div class="small text-muted">Facultad de Ingenierías — UDI</div>
+            </div>
+            <div class="col-6">
+              <div style="border-top: 1px solid #475569; width: 75%; margin: 45px auto 4px;"></div>
+              <strong style="font-size: 0.88rem;">Dirección de Programa</strong>
+              <div class="small text-muted">Ingeniería de Sistemas — UDI</div>
+            </div>
           </div>
         </div>
-      </div>
       </article>
     </section>
   `;
@@ -2343,15 +2409,15 @@ function modalForm(type, id) {
               ${levels.map((level) => `<option value="${escapeHtml(level)}" ${level === period?.level ? "selected" : ""}>${escapeHtml(level)}</option>`).join("")}
             </select>
           </label>
-          <label>Anio<input class="form-control" name="year" type="number" value="${period?.year || 2026}" required></label>
+          <label>Año académico<input class="form-control" name="year" type="number" min="2020" max="2035" value="${period?.year || new Date().getFullYear()}" required></label>
           <label>Semestre<select class="form-select" name="semester"><option value="1" ${period?.semester === 1 ? "selected" : ""}>1</option><option value="2" ${!period || period.semester === 2 ? "selected" : ""}>2</option></select></label>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">2</span> Fechas e intensidad horaria</h3>
-          <label>Fecha inicio<input class="form-control" name="start" type="date" value="${escapeHtml(period?.start || "")}" required></label>
-          <label>Fecha fin<input class="form-control" name="end" type="date" value="${escapeHtml(period?.end || "")}" required></label>
-          <label>Fecha limite de reporte<input class="form-control" name="reportLimit" type="date" value="${escapeHtml(period?.reportLimit || "")}" required></label>
-          <label>Intensidad horaria minima<input class="form-control" name="minHours" type="number" min="1" value="${period?.minHours || 320}" required></label>
+          <label>Fecha inicio<input class="form-control" name="start" type="date" min="${new Date().toISOString().split('T')[0]}" value="${escapeHtml(period?.start || "")}" required></label>
+          <label>Fecha fin<input class="form-control" name="end" type="date" min="${new Date().toISOString().split('T')[0]}" value="${escapeHtml(period?.end || "")}" required></label>
+          <label>Fecha límite de reporte<input class="form-control" name="reportLimit" type="date" min="${new Date().toISOString().split('T')[0]}" value="${escapeHtml(period?.reportLimit || "")}" required></label>
+          <label>Intensidad horaria mínima (máx. 320 hrs)<input class="form-control" name="minHours" type="number" min="1" max="320" value="${period?.minHours || 160}" required></label>
         </article>
         <article class="card full workflow-step" data-workflow-step hidden>
           <h3><span class="step-number">3</span> Criterios de evaluacion y publicacion</h3>
@@ -2646,9 +2712,30 @@ function handleSubmit(form, submitter) {
       .map((period) => Number(period.minHours)));
     const periodStatus = submitter?.value || "PUBLICADO";
     const existingPeriod = form.dataset.id ? data.periods.find((period) => period.id === Number(form.dataset.id)) : null;
+
+    // Validación de fechas antiguas al crear o publicar periodo
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(`${formData.start}T00:00:00`);
+    if (!existingPeriod && startDate < todayDate) {
+      toast("La fecha de inicio del periodo no puede ser anterior a la fecha actual.");
+      return;
+    }
+
     if (new Date(`${formData.start}T00:00:00`) > new Date(`${formData.end}T00:00:00`) ||
       new Date(`${formData.reportLimit}T00:00:00`) < new Date(`${formData.end}T00:00:00`)) {
       toast("Verifica las fechas: el inicio debe preceder al fin y el limite de reporte no puede ser anterior al fin.");
+      return;
+    }
+
+    // Validación de tope reglamentario de 320 horas
+    const hoursNum = Number(formData.minHours);
+    if (hoursNum > 320) {
+      toast("La intensidad horaria mínima no puede exceder las 320 horas reglamentarias.");
+      return;
+    }
+    if (hoursNum < 1) {
+      toast("La intensidad horaria mínima debe ser de al menos 1 hora.");
       return;
     }
     if (data.periods.some((period) => period.id !== existingPeriod?.id &&
@@ -2968,11 +3055,12 @@ function handleSubmit(form, submitter) {
       periodId: String(formData.periodId || ""),
       program: String(formData.program || ""),
       institutionId: String(formData.institutionId || ""),
-      teacherId: String(formData.teacherId || "")
+      teacherId: String(formData.teacherId || ""),
+      searched: true
     };
-    audit(`Aplico filtros al consolidado (${JSON.stringify(reportFilters)})`, "CONSULTA_CONSOLIDADA");
+    audit(`Generó búsqueda y aplicó filtros al consolidado (${JSON.stringify(reportFilters)})`, "CONSULTA_CONSOLIDADA");
     saveData();
-    toast("Filtros aplicados; consolidado actualizado.");
+    toast("Filtros aplicados; reporte generado exitosamente.", "success");
     render();
     return;
   }
@@ -2988,7 +3076,55 @@ function exportJson() {
   saveData();
 }
 
+
+function exportTableToCsv(tableSelector = "#reports-table", filename = "SIGPRA_Consolidado_Practicas_UDI.csv") {
+  const table = document.querySelector(tableSelector);
+  if (!table) {
+    exportCsv();
+    return;
+  }
+
+  // Extraer encabezados de la tabla visible
+  const headerCells = Array.from(table.querySelectorAll("thead th"));
+  const headers = headerCells.map(th => th.textContent.trim().replace(/\s+/g, " "));
+
+  // Extraer filas visibles de la tabla (omitiendo filas ocultas por búsqueda o vacías)
+  const bodyRows = Array.from(table.querySelectorAll("tbody tr")).filter(row => {
+    if (row.style.display === "none" || row.classList.contains("d-none")) return false;
+    if (row.querySelector("td[colspan]")) return false;
+    return true;
+  });
+
+  if (bodyRows.length === 0) {
+    toast("No hay filas visibles para exportar en la tabla.", "warning");
+    return;
+  }
+
+  const rows = bodyRows.map(tr => {
+    return Array.from(tr.querySelectorAll("td")).map(td => {
+      let text = td.textContent.trim().replace(/\s+/g, " ");
+      text = text.replace(/👁️/g, "").trim();
+      return text;
+    });
+  });
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(";"))
+    .join("\r\n");
+
+  const bom = "\ufeff";
+  downloadFile(filename, bom + csvContent, "text/csv;charset=utf-8");
+  audit(`Exportó tabla visible a CSV oficial (${filename}, ${rows.length} registros)`, "REPORTE");
+  saveData();
+  toast(`Tabla exportada exitosamente (${rows.length} registros con tildes y formato Excel).`, "success");
+}
+
 function exportCsv() {
+  const table = document.querySelector("#reports-table");
+  if (table) {
+    exportTableToCsv("#reports-table", "SIGPRA_Consolidado_Practicas_UDI.csv");
+    return;
+  }
   const assignments = filteredReportAssignments();
   const header = [
     "Código Estudiante",
@@ -3409,6 +3545,16 @@ document.addEventListener("click", async (event) => {
   }
   if (action.dataset.action === "export-json") exportJson();
   if (action.dataset.action === "export-csv") exportCsv();
+  if (action.dataset.action === "export-table-csv") exportTableToCsv("#reports-table", "SIGPRA_Consolidado_Practicas_UDI.csv");
+  if (action.dataset.action === "reset-report-filters") {
+    reportFilters = { periodId: "", program: "", institutionId: "", teacherId: "", searched: false };
+    toast("Filtros limpiados.");
+    render();
+  }
+  if (action.dataset.action === "quick-generate-report") {
+    reportFilters.searched = true;
+    render();
+  }
   if (action.dataset.action === "export-print") {
     audit(`Preparo impresion PDF del consolidado (${JSON.stringify(reportFilters)})`, "REPORTE");
     saveData();
@@ -3611,6 +3757,73 @@ function renderStudentRequest(user) {
 
   const hasAssignment = (data.assignments || []).some(a => a.studentId === user.id && a.status === "ACTIVA");
 
+  if (hasAssignment) {
+    const assignment = (data.assignments || []).find(a => a.studentId === user.id && a.status === "ACTIVA");
+    const d = assignmentDetails(assignment);
+    const hours = approvedHours(assignment.id) || assignment.approvedHours || 0;
+    const required = d.period?.minHours || 160;
+    const percent = Math.min(100, Math.round((hours / required) * 100));
+
+    return `
+      <section class="stack">
+        ${renderRequestStepper("APROBADA", true)}
+        <article class="card full border-start border-4 border-success shadow-sm">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="fs-1">🎓</span>
+            <div>
+              <span class="badge bg-success px-3 py-1 fs-6 mb-1">PRÁCTICA ACADÉMICA EN CURSO</span>
+              <h2 class="mb-0 text-primary">Práctica Académica Asignada y Activa</h2>
+              <small class="text-muted">Tu proceso de solicitud y habilitación se encuentra formalizado y en ejecución.</small>
+            </div>
+          </div>
+
+          <div class="alert alert-info">
+            <strong>Información para el practicante:</strong> Actualmente ya cuentas con una práctica académica activa y en curso. No requieres solicitar ni subir una nueva solicitud de práctica. Gestiona tus actividades diarias desde tu bitácora.
+          </div>
+
+          <div class="card p-3 bg-light border-0 mb-3">
+            <h5 class="fw-bold mb-3">Detalle de tu plaza formativa asignada</h5>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <span class="text-muted d-block small">Institución receptora:</span>
+                <strong class="fs-6">${escapeHtml(d.institution?.name || "Asignada")}</strong>
+              </div>
+              <div class="col-md-4">
+                <span class="text-muted d-block small">Docente asesor UDI:</span>
+                <strong class="fs-6">${escapeHtml(d.teacher?.name || "Asignado")}</strong>
+              </div>
+              <div class="col-md-4">
+                <span class="text-muted d-block small">Periodo académico:</span>
+                <strong class="fs-6">${escapeHtml(d.period?.program || "Ingeniería de Sistemas")} (${d.period?.year || 2026}-${d.period?.semester || 2})</strong>
+              </div>
+              <div class="col-md-4">
+                <span class="text-muted d-block small">Avance registrado:</span>
+                <strong class="fs-6 text-success">${hours} / ${required} hrs (${percent}%)</strong>
+              </div>
+              <div class="col-md-4">
+                <span class="text-muted d-block small">Jornada / Horario:</span>
+                <strong class="fs-6">${escapeHtml(d.place?.shift || "Diurna")}</strong>
+              </div>
+              <div class="col-md-4">
+                <span class="text-muted d-block small">Tutor institucional:</span>
+                <strong class="fs-6">${escapeHtml(d.place?.tutor || "Designado")}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolbar d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary" data-view="student-activities">
+              📝 Ir a Mi Bitácora (Reportar Horas)
+            </button>
+            <button class="btn btn-outline-secondary" data-view="student-progress">
+              📊 Consultar Mi Avance Detallado
+            </button>
+          </div>
+        </article>
+      </section>
+    `;
+  }
+
   return `
     <section class="stack">
       ${renderRequestStepper(existingRequest?.status, hasAssignment)}
@@ -3625,11 +3838,13 @@ function renderStudentRequest(user) {
                 </button>
               </li>
             ` : ''}
-            <li class="nav-item">
-              <button class="nav-link ${currentTab === 'form' ? 'active' : 'btn-outline-primary'}" data-action="switch-request-tab" data-tab="form">
-                📝 ${existingRequest ? 'Diligenciar / Nueva Solicitud (Formulario)' : 'Diligenciar Formulario de Solicitud '}
-              </button>
-            </li>
+            ${!isApproved ? `
+              <li class="nav-item">
+                <button class="nav-link ${currentTab === 'form' ? 'active' : 'btn-outline-primary'}" data-action="switch-request-tab" data-tab="form">
+                  📝 ${existingRequest ? 'Diligenciar / Modificar Solicitud' : 'Diligenciar Formulario de Solicitud'}
+                </button>
+              </li>
+            ` : ''}
           </ul>
 
           <div>
@@ -3717,11 +3932,18 @@ function renderStudentRequest(user) {
                 </div>
               ` : ''}
 
-              <div class="mt-4 pt-3 border-top d-flex justify-content-end">
-                <button class="btn btn-outline-primary" data-action="switch-request-tab" data-tab="form">
-                  ✏️ Diligenciar / Modificar formulario de solicitud
-                </button>
-              </div>
+              ${!isApproved ? `
+                <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+                  <button class="btn btn-outline-primary" data-action="switch-request-tab" data-tab="form">
+                    ✏️ Diligenciar / Modificar formulario de solicitud
+                  </button>
+                </div>
+              ` : `
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                  <span class="text-success small fw-bold">✅ Solicitud formal habilitada. Esperando asignación de plaza.</span>
+                  <button class="btn btn-outline-secondary btn-sm" data-view="student-progress">Ver mi avance ➔</button>
+                </div>
+              `}
             </div>
           </div>
         ` : `
@@ -4151,7 +4373,13 @@ document.addEventListener("input", (e) => {
     const rows = targetTable.querySelectorAll("tbody tr");
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(term) ? "" : "none";
+      const matches = text.includes(term);
+      row.style.display = matches ? "" : "none";
+      if (matches) {
+        row.classList.remove("d-none");
+      } else {
+        row.classList.add("d-none");
+      }
     });
   }
 });

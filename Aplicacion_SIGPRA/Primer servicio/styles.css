@@ -1951,8 +1951,15 @@ input[type="radio"] {
   .btn,
   button,
   .nav,
+  .table-search-bar,
   #sigpra-toast-host,
   .d-print-none {
+    display: none !important;
+  }
+
+  tr[style*="display: none"],
+  tr[style*="display:none"],
+  tr.d-none {
     display: none !important;
   }
 
