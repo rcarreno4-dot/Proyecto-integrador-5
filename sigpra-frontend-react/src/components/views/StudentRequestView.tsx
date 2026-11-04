@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSigpra } from "../../context/SigpraContext";
 
 export const StudentRequestView: React.FC = () => {
-  const { currentUser, assignments, requests, periods, places, institutions, users, setCurrentView, showToast } = useSigpra();
+  const { currentUser, assignments, requests, periods, places, agreements, institutions, users, setCurrentView, showToast, createRequest } = useSigpra();
 
   const activeAssignment = assignments.find(
     a => a.studentId === currentUser.id && a.status === "ACTIVA"
@@ -13,11 +13,14 @@ export const StudentRequestView: React.FC = () => {
   const [level, setLevel] = useState("IX semestre");
   const [modality, setModality] = useState("Convenio institucional");
   const [comments, setComments] = useState("");
+  const [periodId, setPeriodId] = useState(() => String(periods.find(period => period.status === "PUBLICADO")?.id || ""));
+  const [documentNames, setDocumentNames] = useState<string[]>([]);
 
   if (activeAssignment) {
     const period = periods.find(p => p.id === activeAssignment.periodId);
     const place = places.find(p => p.id === activeAssignment.placeId);
-    const institution = institutions.find(i => i.id === place?.agreementId);
+    const agreement = agreements.find(item => item.id === place?.agreementId);
+    const institution = institutions.find(i => i.id === agreement?.institutionId);
     const teacher = users.find(u => u.id === activeAssignment.teacherId);
 
     return (
@@ -98,10 +101,42 @@ export const StudentRequestView: React.FC = () => {
     );
   }
 
+  if (existingRequest && existingRequest.status === "PENDIENTE_REVISION") {
+    return (
+      <div className="card p-4 border-start border-4 border-info shadow-sm rounded-3">
+        <h2 className="h4 fw-bold text-primary">Solicitud en revisión</h2>
+        <p className="mb-2">Radicada el {existingRequest.submittedAt}. La Dirección de Programa revisará tus soportes.</p>
+        <p className="mb-3"><strong>Estado:</strong> {existingRequest.status}</p>
+        <button className="btn btn-outline-primary align-self-start" onClick={() => setCurrentView("dashboard")} type="button">Volver a mi inicio</button>
+      </div>
+    );
+  }
+
   const handleRadicar = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast("✅ Solicitud formal de práctica radicada con éxito. Queda en revisión por Dirección.");
+    if (documentNames.length !== 3 || documentNames.some(name => !name.trim())) {
+      showToast("❌ Adjunta los tres documentos requeridos antes de radicar.");
+      return;
+    }
+    if (documentNames.some(name => !name.toLowerCase().endsWith(".pdf"))) {
+      showToast("❌ Los tres soportes deben estar en formato PDF.");
+      return;
+    }
+    if (!periodId) {
+      showToast("❌ No hay un periodo publicado disponible para solicitar práctica.");
+      return;
+    }
+    createRequest({
+      studentId: currentUser.id,
+      periodId: Number(periodId),
+      level,
+      modality,
+      comments: comments.trim(),
+      documentNames
+    });
   };
+
+  const publishedPeriods = periods.filter(period => period.status === "PUBLICADO");
 
   return (
     <div className="card p-4 border rounded-3 shadow-xs">
@@ -111,6 +146,19 @@ export const StudentRequestView: React.FC = () => {
       </p>
 
       <form onSubmit={handleRadicar} className="row g-3">
+        {existingRequest && (existingRequest.status === "DEVUELTA" || existingRequest.status === "RECHAZADA") && (
+          <div className="col-12 alert alert-warning">
+            Tu solicitud fue {existingRequest.status.toLowerCase()}. Revisa la observación y vuelve a adjuntar los soportes para radicarla nuevamente.
+            {existingRequest.justification && <div className="mt-1"><strong>Observación:</strong> {existingRequest.justification}</div>}
+          </div>
+        )}
+        <div className="col-md-6">
+          <label className="form-label small fw-bold">Convocatoria publicada *</label>
+          <select className="form-select form-select-sm" required value={periodId} onChange={event => setPeriodId(event.target.value)}>
+            <option value="">Selecciona un periodo</option>
+            {publishedPeriods.map(period => <option key={period.id} value={period.id}>{period.year}-{period.semester} — {period.program} ({period.level})</option>)}
+          </select>
+        </div>
         <div className="col-md-6">
           <label className="form-label small fw-bold">Nivel formativo *</label>
           <select className="form-select form-select-sm" value={level} onChange={e => setLevel(e.target.value)}>
@@ -129,18 +177,19 @@ export const StudentRequestView: React.FC = () => {
 
         <div className="col-md-4">
           <label className="form-label small fw-bold">Certificado de Matrícula (PDF) *</label>
-          <input type="file" className="form-control form-control-sm" required />
+          <input type="file" accept=".pdf,application/pdf" className="form-control form-control-sm" required onChange={event => setDocumentNames(current => [event.target.files?.[0]?.name || "", current[1] || "", current[2] || ""])} />
         </div>
 
         <div className="col-md-4">
           <label className="form-label small fw-bold">Afiliación EPS / ARL vigente (PDF) *</label>
-          <input type="file" className="form-control form-control-sm" required />
+          <input type="file" accept=".pdf,application/pdf" className="form-control form-control-sm" required onChange={event => setDocumentNames(current => [current[0] || "", event.target.files?.[0]?.name || "", current[2] || ""])} />
         </div>
 
         <div className="col-md-4">
           <label className="form-label small fw-bold">Paz y Salvo Académico (PDF) *</label>
-          <input type="file" className="form-control form-control-sm" required />
+          <input type="file" accept=".pdf,application/pdf" className="form-control form-control-sm" required onChange={event => setDocumentNames(current => [current[0] || "", current[1] || "", event.target.files?.[0]?.name || ""])} />
         </div>
+        <div className="col-12"><small className="text-muted">Los archivos se validan en esta demostración por nombre y no se transmiten ni almacenan sus contenidos.</small></div>
 
         <div className="col-12">
           <label className="form-label small fw-bold">Observaciones adicionales</label>
@@ -155,7 +204,7 @@ export const StudentRequestView: React.FC = () => {
 
         <div className="col-12 mt-4">
           <button type="submit" className="btn btn-primary px-4 fw-bold shadow-xs">
-            📤 Radicar Solicitud Formal (CU-08)
+            📤 Radicar Solicitud Formal
           </button>
         </div>
       </form>

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { SigpraProvider, useSigpra } from "./context/SigpraContext";
 import { Navbar } from "./components/layout/Navbar";
 import { Sidebar } from "./components/layout/Sidebar";
+import { LoginView } from "./components/views/LoginView";
 import { CoordinatorDashboard } from "./components/views/CoordinatorDashboard";
 import { DirectorDashboard } from "./components/views/DirectorDashboard";
 import { StudentDashboard } from "./components/views/StudentDashboard";
@@ -10,9 +11,22 @@ import { ReportsView } from "./components/views/ReportsView";
 import { PeriodsView } from "./components/views/PeriodsView";
 import { AuditView } from "./components/views/AuditView";
 import { StudentRequestView } from "./components/views/StudentRequestView";
+import { AgreementsView } from "./components/views/AgreementsView";
+import { AssignmentsView } from "./components/views/AssignmentsView";
+import { StudentActivitiesView } from "./components/views/StudentActivitiesView";
+import { TeacherValidationsView } from "./components/views/TeacherValidationsView";
+import { TeacherVisitsView } from "./components/views/TeacherVisitsView";
 
 const MainContent: React.FC = () => {
-  const { currentUser, currentView, toastMessage } = useSigpra();
+  const { currentUser, currentView, toastMessage, setCurrentView } = useSigpra();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  if (!isAuthenticated) {
+    return <LoginView onLogin={() => {
+      setCurrentView("dashboard");
+      setIsAuthenticated(true);
+    }} />;
+  }
 
   const renderView = () => {
     switch (currentView) {
@@ -29,22 +43,35 @@ const MainContent: React.FC = () => {
       case "periods":
         return <PeriodsView />;
 
+      case "agreements":
+        return <AgreementsView />;
+
+      case "assignments":
+        return <AssignmentsView />;
+
       case "audit":
         return <AuditView />;
 
       case "student-request":
         return <StudentRequestView />;
 
+      case "student-activities":
+        return <StudentActivitiesView />;
+
       case "director-requests":
         return <DirectorDashboard />;
 
+      case "director-approved":
+        return <DirectorDashboard />;
+
       case "student-progress":
-      case "student-activities":
         return <StudentDashboard />;
 
       case "teacher-validations":
+        return <TeacherValidationsView />;
+
       case "teacher-visits":
-        return <TeacherDashboard />;
+        return <TeacherVisitsView />;
 
       default:
         return <CoordinatorDashboard />;
@@ -53,7 +80,10 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      <Navbar />
+      <Navbar onLogout={() => {
+        setCurrentView("dashboard");
+        setIsAuthenticated(false);
+      }} />
 
       {/* Notificación flotante Toast */}
       {toastMessage && (

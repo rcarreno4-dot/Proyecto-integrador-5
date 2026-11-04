@@ -81,6 +81,7 @@ export interface Activity {
   hours: number;
   status: "PENDIENTE" | "APROBADA" | "DEVUELTA" | "RECHAZADA";
   feedback?: string;
+  evidenceNames?: string[];
 }
 
 export interface StudentRequest {
@@ -94,6 +95,17 @@ export interface StudentRequest {
   justification?: string;
   submittedAt?: string;
   reviewedAt?: string;
+  documentNames?: string[];
+}
+
+export interface Visit {
+  id: number;
+  assignmentId: number;
+  teacherId: number;
+  date: string;
+  institutionContact: string;
+  observations: string;
+  assessment: number;
 }
 
 export interface AuditEvent {

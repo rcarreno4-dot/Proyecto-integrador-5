@@ -78,7 +78,8 @@ export const initialActivities: Activity[] = [
   { id: 1, assignmentId: 1, date: "2026-09-13", type: "Desarrollo de Software", description: "Diseño de base de datos PostgreSQL e integración de vistas MVC.", hours: 24, status: "APROBADA", feedback: "Excelente estructura relacional." },
   { id: 2, assignmentId: 1, date: "2026-09-20", type: "Pruebas de Calidad", description: "Elaboración de pruebas unitarias y validación con usuarios.", hours: 32, status: "APROBADA", feedback: "Cumple con los criterios de aceptación." },
   { id: 3, assignmentId: 1, date: "2026-10-05", type: "Despliegue en la Nube", description: "Configuración de CI/CD y despliegue en entorno Render PaaS.", hours: 40, status: "APROBADA", feedback: "Despliegue operativo y con SSL." },
-  { id: 4, assignmentId: 2, date: "2026-09-15", type: "Levantamiento de Requisitos", description: "Entrevistas a usuarios de la institución y matriz de trazabilidad.", hours: 48, status: "APROBADA", feedback: "Documentación clara." }
+  { id: 4, assignmentId: 2, date: "2026-09-15", type: "Levantamiento de Requisitos", description: "Entrevistas a usuarios de la institución y matriz de trazabilidad.", hours: 48, status: "APROBADA", feedback: "Documentación clara." },
+  { id: 5, assignmentId: 1, date: "2026-10-28", type: "Documentación técnica", description: "Actualización de la guía técnica y registro de pruebas de aceptación.", hours: 8, status: "PENDIENTE", evidenceNames: ["guia-tecnica.pdf"] }
 ];
 
 export const initialRequests: StudentRequest[] = [

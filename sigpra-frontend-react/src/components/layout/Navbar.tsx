@@ -1,16 +1,13 @@
 import React from "react";
 import { useSigpra } from "../../context/SigpraContext";
+import { NotificationBell } from "./NotificationBell";
 
-export const Navbar: React.FC = () => {
-  const { currentUser, setCurrentUser, users, setCurrentView } = useSigpra();
+interface NavbarProps {
+  onLogout: () => void;
+}
 
-  const handleUserChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = users.find(u => u.id === Number(e.target.value));
-    if (selected) {
-      setCurrentUser(selected);
-      setCurrentView("dashboard");
-    }
-  };
+export const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
+  const { currentUser } = useSigpra();
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -43,26 +40,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         <div className="d-flex align-items-center gap-3">
-          <div className="d-flex align-items-center gap-2">
-            <span className="text-light small d-none d-md-inline">Cambiar rol / cuenta:</span>
-            <select
-              className="form-select form-select-sm bg-secondary text-white border-0"
-              style={{ width: "auto", minWidth: 230 }}
-              value={currentUser.id}
-              onChange={handleUserChange}
-            >
-              <optgroup label="Cuentas Institucionales UDI">
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.role})
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-
-          <div className="vr bg-secondary d-none d-md-block" style={{ height: 28 }} />
-
+          <NotificationBell />
           <div className="d-flex align-items-center gap-2">
             <div
               className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
@@ -77,6 +55,10 @@ export const Navbar: React.FC = () => {
               </span>
             </div>
           </div>
+
+          <button className="btn btn-outline-light btn-sm" onClick={onLogout} type="button">
+            Cerrar sesión
+          </button>
         </div>
       </div>
     </header>

@@ -107,7 +107,7 @@ export const CoordinatorDashboard: React.FC = () => {
                 ➕ Nuevo Periodo Académico
               </button>
               <button onClick={() => setCurrentView("assignments")} className="btn btn-outline-primary text-start">
-                👥 Asignar Practicantes (CU-03)
+                👥 Asignar Practicantes
               </button>
               <button onClick={() => setCurrentView("reports")} className="btn btn-outline-secondary text-start">
                 📊 Consolidado e Informes Oficiales

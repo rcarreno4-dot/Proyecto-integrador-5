@@ -26,7 +26,7 @@ export const Sidebar: React.FC = () => {
           ...shared,
           { id: "periods", label: "Periodos de práctica", icon: "📅", group: "Gestión Formativa" },
           { id: "agreements", label: "Convenios y plazas", icon: "🏫", group: "Gestión Formativa" },
-          { id: "assignments", label: "Asignaciones (CU-03)", icon: "🎓", group: "Seguimiento" },
+          { id: "assignments", label: "Asignaciones", icon: "🎓", group: "Seguimiento" },
           { id: "director-requests", label: "Solicitudes radicadas", icon: "📑", group: "Seguimiento" },
           { id: "reports", label: "Consolidado de horas", icon: "📊", group: "Seguimiento" }
         ];
@@ -34,7 +34,7 @@ export const Sidebar: React.FC = () => {
       case "DIRECTOR":
         return [
           ...shared,
-          { id: "director-requests", label: "Dictamen de solicitudes (CU-08)", icon: "⚖️", group: "Gestión y Habilitación" },
+          { id: "director-requests", label: "Dictamen de solicitudes", icon: "⚖️", group: "Gestión y Habilitación" },
           { id: "reports", label: "Consolidado general", icon: "📊", group: "Auditoría e Informes" },
           { id: "audit", label: "Registro de auditoría", icon: "🔒", group: "Auditoría e Informes" }
         ];
@@ -43,7 +43,7 @@ export const Sidebar: React.FC = () => {
         return [
           ...shared,
           ...(!hasActiveAssignment
-            ? [{ id: "student-request", label: "Solicitar práctica (CU-08)", icon: "📝", group: "Mi Práctica" }]
+            ? [{ id: "student-request", label: "Solicitar práctica", icon: "📝", group: "Mi Práctica" }]
             : []),
           { id: "student-progress", label: "Mi avance (160h)", icon: "⏱️", group: "Mi Práctica" },
           { id: "student-activities", label: "Mi bitácora diaria", icon: "📋", group: "Mi Práctica" }

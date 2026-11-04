@@ -2,7 +2,7 @@ import React from "react";
 import { useSigpra } from "../../context/SigpraContext";
 
 export const StudentDashboard: React.FC = () => {
-  const { currentUser, assignments, activities, periods, places, institutions, users, requests, setCurrentView } = useSigpra();
+  const { currentUser, assignments, activities, periods, places, agreements, institutions, users, requests, setCurrentView } = useSigpra();
 
   const activeAssignment = assignments.find(
     a => a.studentId === currentUser.id && a.status === "ACTIVA"
@@ -14,7 +14,8 @@ export const StudentDashboard: React.FC = () => {
   if (activeAssignment) {
     const period = periods.find(p => p.id === activeAssignment.periodId);
     const place = places.find(p => p.id === activeAssignment.placeId);
-    const institution = institutions.find(i => i.id === place?.agreementId);
+    const agreement = agreements.find(item => item.id === place?.agreementId);
+    const institution = institutions.find(i => i.id === agreement?.institutionId);
     const teacher = users.find(u => u.id === activeAssignment.teacherId);
 
     const studentActivities = activities.filter(a => a.assignmentId === activeAssignment.id);
@@ -167,7 +168,7 @@ export const StudentDashboard: React.FC = () => {
       <div className="row g-3 justify-content-center text-start mb-4" style={{ maxWidth: 800, margin: "0 auto" }}>
         <div className="col-md-4">
           <div className="card p-3 h-100 bg-white border shadow-xs">
-            <div className="fw-bold text-primary mb-1">1. Radicación (CU-08)</div>
+            <div className="fw-bold text-primary mb-1">1. Radicación</div>
             <small className="text-muted">Carga tu certificado de matrícula, afiliación a EPS/ARL y paz y salvo.</small>
           </div>
         </div>

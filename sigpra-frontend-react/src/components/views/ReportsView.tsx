@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { useSigpra } from "../../context/SigpraContext";
+import { createExcelTable } from "../../utils/excelExport";
 
 export const ReportsView: React.FC = () => {
-  const { periods, institutions, users, assignments, activities, places, auditAction } = useSigpra();
+  const { periods, agreements, institutions, users, assignments, activities, places, auditAction } = useSigpra();
 
   const [periodId, setPeriodId] = useState<string>("");
   const [program, setProgram] = useState<string>("");
@@ -35,7 +36,8 @@ export const ReportsView: React.FC = () => {
       if (a.status !== "ACTIVA") return false;
       const period = periods.find(p => p.id === a.periodId);
       const place = places.find(p => p.id === a.placeId);
-      const institution = institutions.find(i => i.id === place?.agreementId);
+      const agreement = agreements.find(item => item.id === place?.agreementId);
+      const institution = institutions.find(i => i.id === agreement?.institutionId);
 
       if (periodId && a.periodId !== Number(periodId)) return false;
       if (program && period?.program !== program) return false;
@@ -44,7 +46,7 @@ export const ReportsView: React.FC = () => {
 
       return true;
     });
-  }, [assignments, periods, places, institutions, periodId, program, institutionId, teacherId, hasSearched]);
+  }, [assignments, periods, places, agreements, institutions, periodId, program, institutionId, teacherId, hasSearched]);
 
   const visibleRows = useMemo(() => {
     if (!searchTerm.trim()) return filteredAssignments;
@@ -53,7 +55,8 @@ export const ReportsView: React.FC = () => {
       const student = users.find(u => u.id === a.studentId);
       const teacher = users.find(u => u.id === a.teacherId);
       const place = places.find(p => p.id === a.placeId);
-      const institution = institutions.find(i => i.id === place?.agreementId);
+      const agreement = agreements.find(item => item.id === place?.agreementId);
+      const institution = institutions.find(i => i.id === agreement?.institutionId);
 
       return (
         student?.name.toLowerCase().includes(term) ||
@@ -61,9 +64,9 @@ export const ReportsView: React.FC = () => {
         institution?.name.toLowerCase().includes(term)
       );
     });
-  }, [filteredAssignments, searchTerm, users, places, institutions]);
+  }, [filteredAssignments, searchTerm, users, places, agreements, institutions]);
 
-  const handleExportCsv = () => {
+  const handleExportExcel = () => {
     const headers = [
       "Periodo", "Programa", "Código", "Estudiante", "Institución", "Docente", "Horas", "Meta", "Avance", "Estado"
     ];
@@ -73,7 +76,8 @@ export const ReportsView: React.FC = () => {
       const teacher = users.find(u => u.id === a.teacherId);
       const period = periods.find(p => p.id === a.periodId);
       const place = places.find(p => p.id === a.placeId);
-      const institution = institutions.find(i => i.id === place?.agreementId);
+      const agreement = agreements.find(item => item.id === place?.agreementId);
+      const institution = institutions.find(i => i.id === agreement?.institutionId);
 
       const approvedHours = activities
         .filter(act => act.assignmentId === a.id && act.status === "APROBADA")
@@ -89,25 +93,26 @@ export const ReportsView: React.FC = () => {
         student?.name || "N/A",
         institution?.name || "N/A",
         teacher?.name || "N/A",
-        `${approvedHours} hrs`,
-        `${required} hrs`,
-        `${percent}%`,
+        approvedHours,
+        required,
+        percent / 100,
         a.status
       ];
     });
 
-    const csvContent = [headers, ...rows]
-      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
-      .join("\r\n");
-
-    const bom = "\ufeff";
-    const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8" });
+    const blob = createExcelTable(
+      headers,
+      rows,
+      "SIGPRA — Consolidado de Prácticas",
+      `Universidad de Investigación y Desarrollo — UDI · Generado el ${new Date().toLocaleDateString("es-CO")}`
+    );
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `SIGPRA_Consolidado_Practicas_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `SIGPRA_Consolidado_Practicas_${new Date().toISOString().split("T")[0]}.xlsx`;
     link.click();
-    auditAction(`Exportó reporte tabular CSV (${rows.length} registros)`, "REPORTE");
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    auditAction(`Exportó consolidado para Excel (${rows.length} registros)`, "REPORTE");
   };
 
   const handlePrint = () => {
@@ -123,7 +128,7 @@ export const ReportsView: React.FC = () => {
   }, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 report-print-root">
       <div className="d-none d-print-block border-bottom pb-3 mb-4">
         <div className="d-flex align-items-center justify-content-between">
           <div>
@@ -242,8 +247,8 @@ export const ReportsView: React.FC = () => {
               <span className="text-muted small">| Filtros aplicados</span>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <button onClick={handleExportCsv} className="btn btn-success btn-sm fw-bold shadow-xs">
-                📊 Exportar a Excel (CSV)
+              <button onClick={handleExportExcel} className="btn btn-success btn-sm fw-bold shadow-xs">
+                📊 Exportar Excel (.xlsx)
               </button>
               <button onClick={handlePrint} className="btn btn-primary btn-sm fw-bold shadow-xs">
                 🖨️ Imprimir / Guardar PDF Oficial
@@ -292,7 +297,7 @@ export const ReportsView: React.FC = () => {
             </div>
           </div>
 
-          <div className="table-responsive border rounded-3 bg-white shadow-xs">
+          <div className="table-responsive border rounded-3 bg-white shadow-xs report-table-wrapper">
             <table className="table table-hover align-middle mb-0" id="reports-table">
               <thead className="table-light">
                 <tr>
@@ -319,7 +324,8 @@ export const ReportsView: React.FC = () => {
                     const teacher = users.find(u => u.id === a.teacherId);
                     const period = periods.find(p => p.id === a.periodId);
                     const place = places.find(p => p.id === a.placeId);
-                    const institution = institutions.find(i => i.id === place?.agreementId);
+                    const agreement = agreements.find(item => item.id === place?.agreementId);
+                    const institution = institutions.find(i => i.id === agreement?.institutionId);
 
                     const approvedHours = activities
                       .filter(act => act.assignmentId === a.id && act.status === "APROBADA")
@@ -342,7 +348,7 @@ export const ReportsView: React.FC = () => {
                           <span className="fw-bold">{approvedHours}</span> / {required} hrs
                         </td>
                         <td style={{ minWidth: 120 }}>
-                          <div className="progress" style={{ height: 6 }}>
+                          <div className="progress report-progress-bar" style={{ height: 6 }}>
                             <div className="progress-bar bg-success" style={{ width: `${percent}%` }} />
                           </div>
                           <span className="small text-muted">{percent}%</span>
@@ -360,7 +366,7 @@ export const ReportsView: React.FC = () => {
             </table>
           </div>
 
-          <div className="d-none d-print-block mt-5 pt-4">
+          <div className="d-none d-print-block report-signatures">
             <div className="row text-center">
               <div className="col-6">
                 <div style={{ borderTop: "1px solid #475569", width: "75%", margin: "45px auto 4px" }} />

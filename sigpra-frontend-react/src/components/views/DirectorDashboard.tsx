@@ -3,11 +3,13 @@ import { useSigpra } from "../../context/SigpraContext";
 import { KPICard } from "../common/KPICard";
 
 export const DirectorDashboard: React.FC = () => {
-  const { requests, assignments, users, periods, updateRequestStatus, setCurrentView } = useSigpra();
+  const { requests, assignments, users, periods, updateRequestStatus, setCurrentView, currentView } = useSigpra();
 
   const pendingRequests = requests.filter(r => r.status === "PENDIENTE_REVISION");
   const approvedRequests = requests.filter(r => r.status === "APROBADA");
   const activeAssignments = assignments.filter(a => a.status === "ACTIVA");
+  const showingApproved = currentView === "director-approved";
+  const visibleRequests = showingApproved ? approvedRequests : pendingRequests;
 
   const [evaluatingReqId, setEvaluatingReqId] = useState<number | null>(null);
   const [justification, setJustification] = useState("");
@@ -34,7 +36,7 @@ export const DirectorDashboard: React.FC = () => {
           <KPICard
             title="Por Dictaminar"
             value={pendingRequests.length}
-            subtitle="Solicitudes pendientes (CU-08)"
+            subtitle="Solicitudes pendientes"
             icon="⏳"
             variant="amber"
             onClick={() => setCurrentView("director-requests")}
@@ -48,7 +50,7 @@ export const DirectorDashboard: React.FC = () => {
             subtitle="Listos para asignación"
             icon="✅"
             variant="green"
-            onClick={() => setCurrentView("director-requests")}
+            onClick={() => setCurrentView("director-approved")}
             ctaText="Ver habilitados"
           />
         </div>
@@ -70,8 +72,8 @@ export const DirectorDashboard: React.FC = () => {
             subtitle="Decreto 1075 de 2015"
             icon="⚖️"
             variant="purple"
-            onClick={() => setCurrentView("reports")}
-            ctaText="Detalle legal"
+            onClick={() => setCurrentView("periods")}
+            ctaText="Ver periodos"
           />
         </div>
       </div>
@@ -79,12 +81,31 @@ export const DirectorDashboard: React.FC = () => {
       <div className="card border rounded-3 shadow-xs">
         <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
           <div>
-            <h5 className="mb-0 fw-bold text-dark">Solicitudes Pendientes de Dictamen Formal</h5>
-            <small className="text-muted">Estudiantes que radicaron soportes documentales para inicio de práctica</small>
+            <h5 className="mb-0 fw-bold text-dark">
+              {showingApproved ? "Estudiantes habilitados para asignación" : "Solicitudes Pendientes de Dictamen Formal"}
+            </h5>
+            <small className="text-muted">
+              {showingApproved
+                ? "Solicitudes aprobadas que pueden continuar con la asignación de plaza."
+                : "Estudiantes que radicaron soportes documentales para inicio de práctica"}
+            </small>
           </div>
-          <span className="badge bg-warning text-dark px-3 py-2">
-            {pendingRequests.length} pendientes
-          </span>
+          <div className="d-flex align-items-center gap-2">
+            <button
+              className={`btn btn-sm ${showingApproved ? "btn-outline-secondary" : "btn-warning"}`}
+              onClick={() => setCurrentView("director-requests")}
+              type="button"
+            >
+              Pendientes ({pendingRequests.length})
+            </button>
+            <button
+              className={`btn btn-sm ${showingApproved ? "btn-success" : "btn-outline-secondary"}`}
+              onClick={() => setCurrentView("director-approved")}
+              type="button"
+            >
+              Habilitados ({approvedRequests.length})
+            </button>
+          </div>
         </div>
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
@@ -93,21 +114,26 @@ export const DirectorDashboard: React.FC = () => {
                 <th>Estudiante</th>
                 <th>Periodo</th>
                 <th>Modalidad</th>
-                <th>Soportes Anexos</th>
-                <th className="text-end">Acción</th>
+                {showingApproved ? <th>Estado de asignación</th> : <th>Soportes Anexos</th>}
+                {!showingApproved && <th className="text-end">Acción</th>}
               </tr>
             </thead>
             <tbody>
-              {pendingRequests.length === 0 ? (
+              {visibleRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-4 text-muted">
-                    ✅ No hay solicitudes pendientes de revisión. Todas han sido tramitadas.
+                  <td colSpan={showingApproved ? 4 : 5} className="text-center py-4 text-muted">
+                    {showingApproved
+                      ? "No hay estudiantes habilitados pendientes de asignación."
+                      : "✅ No hay solicitudes pendientes de revisión. Todas han sido tramitadas."}
                   </td>
                 </tr>
               ) : (
-                pendingRequests.map(req => {
+                visibleRequests.map(req => {
                   const student = users.find(u => u.id === req.studentId);
                   const period = periods.find(p => p.id === req.periodId);
+                  const hasAssignment = assignments.some(assignment =>
+                    assignment.studentId === req.studentId && assignment.status === "ACTIVA"
+                  );
                   return (
                     <tr key={req.id}>
                       <td>
@@ -116,22 +142,32 @@ export const DirectorDashboard: React.FC = () => {
                       </td>
                       <td>{period?.program} ({period?.year}-{period?.semester})</td>
                       <td>{req.modality}</td>
-                      <td>
-                        <span className="badge bg-secondary-subtle text-dark border me-1">Matrícula.pdf</span>
-                        <span className="badge bg-secondary-subtle text-dark border me-1">EPS_ARL.pdf</span>
-                        <span className="badge bg-secondary-subtle text-dark border">PazSalvo.pdf</span>
-                      </td>
-                      <td className="text-end">
-                        <button
-                          onClick={() => {
-                            setEvaluatingReqId(req.id);
-                            setJustification("Cumple con totalidad de prerrequisitos documentales y académicos.");
-                          }}
-                          className="btn btn-primary btn-sm fw-bold shadow-xs"
-                        >
-                          🔍 Evaluar Solicitud
-                        </button>
-                      </td>
+                      {showingApproved ? (
+                        <td>
+                          <span className={`badge ${hasAssignment ? "bg-success" : "bg-info text-dark"}`}>
+                            {hasAssignment ? "Asignado" : "Listo para asignación"}
+                          </span>
+                        </td>
+                      ) : (
+                        <>
+                          <td>
+                            {(req.documentNames?.length ? req.documentNames : ["Matrícula.pdf (demo)", "EPS_ARL.pdf (demo)", "PazSalvo.pdf (demo)"]).map(document => (
+                              <span key={document} className="badge bg-secondary-subtle text-dark border me-1">{document}</span>
+                            ))}
+                          </td>
+                          <td className="text-end">
+                            <button
+                              onClick={() => {
+                                setEvaluatingReqId(req.id);
+                                setJustification("Cumple con totalidad de prerrequisitos documentales y académicos.");
+                              }}
+                              className="btn btn-primary btn-sm fw-bold shadow-xs"
+                            >
+                              🔍 Evaluar Solicitud
+                            </button>
+                          </td>
+                        </>
+                      )}
                     </tr>
                   );
                 })
@@ -168,15 +204,9 @@ export const DirectorDashboard: React.FC = () => {
                 <div className="mb-3">
                   <label className="form-label small fw-bold">Soportes Digitales Radicados:</label>
                   <div className="d-flex gap-2 flex-wrap">
-                    <button type="button" className="btn btn-outline-primary btn-sm">
-                      📄 Certificado Matrícula (SHA-256) 👁️
-                    </button>
-                    <button type="button" className="btn btn-outline-primary btn-sm">
-                      📄 Afiliación EPS/ARL 👁️
-                    </button>
-                    <button type="button" className="btn btn-outline-primary btn-sm">
-                      📄 Paz y Salvo Académico 👁️
-                    </button>
+                    {(selectedReq.documentNames?.length ? selectedReq.documentNames : ["Matrícula.pdf (demo)", "EPS_ARL.pdf (demo)", "PazSalvo.pdf (demo)"]).map(document => (
+                      <span key={document} className="badge bg-secondary-subtle text-dark border p-2">📄 {document}</span>
+                    ))}
                   </div>
                 </div>
 

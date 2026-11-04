@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" fill="none">
+  <defs>
+    <linearGradient id="background" x1="86" y1="68" x2="786" y2="1044" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#073B68"/>
+      <stop offset="1" stop-color="#071D3B"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="178" y1="420" x2="726" y2="840" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#35C5B0"/>
+      <stop offset="1" stop-color="#57A9F2"/>
+    </linearGradient>
+    <pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#A9D7F2" fill-opacity=".26"/>
+    </pattern>
+  </defs>
+  <path fill="url(#background)" d="M0 0h900v1100H0z"/>
+  <circle cx="730" cy="210" r="240" fill="#1C76A8" fill-opacity=".16"/>
+  <circle cx="174" cy="734" r="280" fill="#10A58E" fill-opacity=".12"/>
+  <path fill="url(#dots)" d="M560 0h340v310H560zM0 780h230v320H0z"/>
+  <path d="M116 154h668" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>
+  <path d="M116 946h668" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>
+
+  <g transform="translate(116 206)">
+    <path d="M0 57 74 0l74 57v142H0V57Z" fill="url(#accent)"/>
+    <path d="M30 74h19v22H30V74Zm49 0h19v22H79V74Zm-49 42h19v22H30v-22Zm49 0h19v22H79v-22Z" fill="#073B68"/>
+    <path d="M62 145h24v54H62v-54Z" fill="#073B68"/>
+    <text x="179" y="91" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="700" letter-spacing="3">UDI</text>
+    <text x="182" y="130" fill="#C5E7F7" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="2">UNIVERSIDAD DE INVESTIGACIÓN Y DESARROLLO</text>
+  </g>
+
+  <text x="116" y="524" fill="#75D7CA" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="4">FORMACIÓN · INNOVACIÓN · FUTURO</text>
+  <text x="116" y="601" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">Tu práctica,</text>
+  <text x="116" y="668" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">una experiencia</text>
+  <text x="116" y="735" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700">que transforma.</text>
+  <text x="118" y="789" fill="#D1E2EF" font-family="Arial, Helvetica, sans-serif" font-size="22">Conecta tu talento con el mundo profesional.</text>
+
+  <g transform="translate(116 852)">
+    <rect width="668" height="4" rx="2" fill="#fff" fill-opacity=".18"/>
+    <rect width="224" height="4" rx="2" fill="url(#accent)"/>
+    <circle cx="600" cy="54" r="22" stroke="#fff" stroke-opacity=".45" stroke-width="2"/>
+    <path d="m590 54 7 7 14-16" stroke="#75D7CA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="0" y="64" fill="#C5E7F7" font-family="Arial, Helvetica, sans-serif" font-size="17" letter-spacing="1">SISTEMA INTEGRAL DE GESTIÓN DE PRÁCTICAS</text>
+  </g>
+</svg>

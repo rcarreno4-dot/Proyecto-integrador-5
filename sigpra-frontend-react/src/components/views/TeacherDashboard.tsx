@@ -3,7 +3,7 @@ import { useSigpra } from "../../context/SigpraContext";
 import { KPICard } from "../common/KPICard";
 
 export const TeacherDashboard: React.FC = () => {
-  const { currentUser, assignments, activities, users, periods, institutions, places } = useSigpra();
+  const { currentUser, assignments, activities, users, periods, agreements, institutions, places, visits, setCurrentView } = useSigpra();
 
   const myAssignments = assignments.filter(a => a.teacherId === currentUser.id && a.status === "ACTIVA");
   const myAssignmentIds = myAssignments.map(a => a.id);
@@ -52,10 +52,12 @@ export const TeacherDashboard: React.FC = () => {
         <div className="col-md-3">
           <KPICard
             title="Visitas"
-            value="3"
+            value={visits.filter(visit => visit.teacherId === currentUser.id).length}
             subtitle="Seguimiento institucional"
             icon="📍"
             variant="purple"
+            onClick={() => setCurrentView("teacher-visits")}
+            ctaText="Gestionar visitas"
           />
         </div>
       </div>
@@ -89,7 +91,8 @@ export const TeacherDashboard: React.FC = () => {
                   const student = users.find(u => u.id === a.studentId);
                   const period = periods.find(p => p.id === a.periodId);
                   const place = places.find(p => p.id === a.placeId);
-                  const institution = institutions.find(i => i.id === place?.agreementId);
+                  const agreement = agreements.find(item => item.id === place?.agreementId);
+                  const institution = institutions.find(i => i.id === agreement?.institutionId);
                   const studentHours = activities
                     .filter(act => act.assignmentId === a.id && act.status === "APROBADA")
                     .reduce((sum, act) => sum + act.hours, 0) || a.approvedHours;
@@ -107,7 +110,7 @@ export const TeacherDashboard: React.FC = () => {
                         <span className="fw-bold text-success">{studentHours}</span> / {period?.minHours || 160} hrs
                       </td>
                       <td>
-                        <button className="btn btn-outline-primary btn-sm">
+                        <button className="btn btn-outline-primary btn-sm" onClick={() => setCurrentView("teacher-validations")}>
                           👁️ Ver Bitácoras
                         </button>
                       </td>
