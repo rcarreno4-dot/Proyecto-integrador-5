@@ -1719,22 +1719,44 @@ input[type="radio"] {
 
   .topbar {
     margin-bottom: 14px !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 2px !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
   }
 
   .topbar h1 {
     font-size: 1.35rem !important;
     line-height: 1.25 !important;
+    margin: 0 !important;
   }
 
   .topbar .subtitle {
     font-size: 0.82rem !important;
+    margin-top: 2px !important;
   }
 
   .topbar .userbox {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-left: auto !important;
+  }
+
+  .topbar .userbox > div.text-end {
     display: none !important;
+  }
+
+  .topbar .userbox .avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .topbar .userbox button[data-action="logout"] {
+    padding: 3px 8px !important;
+    font-size: 0.75rem !important;
   }
 
   .card {
