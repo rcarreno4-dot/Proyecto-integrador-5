@@ -20,8 +20,8 @@ export const DirectorDashboard: React.FC = () => {
 
   const handleDecision = (status: "APROBADA" | "DEVUELTA" | "RECHAZADA") => {
     if (!evaluatingReqId) return;
-    if (status !== "APROBADA" && !justification.trim()) {
-      alert("La justificación es obligatoria para devolver o rechazar una solicitud.");
+    if (status !== "APROBADA" && justification.trim().length < 10) {
+      alert("Según el Caso de Uso CU-08, la justificación es obligatoria y debe contener al menos 10 caracteres explicando el motivo al estudiante.");
       return;
     }
     updateRequestStatus(evaluatingReqId, status, justification);
