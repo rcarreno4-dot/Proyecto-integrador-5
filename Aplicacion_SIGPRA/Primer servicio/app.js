@@ -591,17 +591,18 @@ function roleLabel(role) {
 
 function statusTag(status) {
   const ok = ["APROBADA", "PUBLICADO", "VIGENTE", "ACTIVA", "VALIDADA", "REGISTRADA"];
-  const warn = ["PENDIENTE", "CONFIGURACION", "DEVUELTA", "BORRADOR"];
-  const bad = ["RECHAZADA", "VENCIDO", "CANCELADA", "INACTIVA"];
+  const warn = ["PENDIENTE", "CONFIGURACION", "DEVUELTA", "BORRADOR", "SUSPENDIDO"];
+  const bad = ["RECHAZADA", "VENCIDO", "CANCELADA", "INACTIVA", "CERRADO"];
   const cls = ok.includes(status) ? "ok" : warn.includes(status) ? "warn" : bad.includes(status) ? "bad" : "";
   return `<span class="badge rounded-pill tag ${cls}">${escapeHtml(status)}</span>`;
 }
 
 function agreementStatus(agreement) {
+  if (agreement.status === "SUSPENDIDO") return "SUSPENDIDO";
   const today = new Date().toISOString().slice(0, 10);
-  return Boolean(String(agreement.document || "").trim()) && agreement.end >= today
-    ? "VIGENTE"
-    : "INACTIVA";
+  if (!Boolean(String(agreement.document || "").trim())) return "INACTIVA";
+  if (agreement.end < today) return "VENCIDO";
+  return "VIGENTE";
 }
 
 function placeStatus(place, agreement) {
@@ -1420,7 +1421,11 @@ function renderPeriods() {
                   <td>${moneyDate(period.reportLimit)}</td>
                   <td>${period.minHours}</td>
                   <td>${(period.rubric || []).map((criterion) => `${escapeHtml(criterion.name)} (${criterion.weight}%)`).join("<br>") || "Sin criterios configurados"}</td>
-                  <td>${statusTag(period.status)}${period.status === "BORRADOR" ? `<br><button class="btn btn-outline-secondary button" data-modal="period" data-id="${period.id}">Continuar borrador</button>` : ""}</td>
+                  <td>
+                    ${statusTag(period.status)}
+                    ${period.status === "BORRADOR" ? `<br><button class="btn btn-outline-secondary button btn-sm mt-1" data-modal="period" data-id="${period.id}">Continuar borrador</button>` : ""}
+                    ${period.status === "PUBLICADO" ? `<br><button class="btn btn-outline-danger btn-sm mt-1" data-action="close-period" data-id="${period.id}" title="Cerrar periodo académico definitivamente">🔒 Cerrar periodo</button>` : ""}
+                  </td>
                 </tr>
               `).join("") || `<tr><td colspan="8">No hay periodos registrados.</td></tr>`}
             </tbody>
@@ -1432,6 +1437,36 @@ function renderPeriods() {
 }
 
 function renderAgreements() {
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const expiringAgreements = (data.agreements || []).filter((agreement) => {
+    if (agreement.status === "SUSPENDIDO") return false;
+    if (!agreement.end) return false;
+    const end = new Date(agreement.end);
+    const diffDays = Math.ceil((end - todayDate) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 60;
+  });
+
+  const expiringNotice = expiringAgreements.length ? `
+    <div class="alert alert-warning mb-3 d-flex align-items-center gap-3 border-warning shadow-sm" style="background-color: #fff9e6; border-left: 5px solid #f59e0b; border-radius: 8px;">
+      <span style="font-size: 1.8rem;">⏳</span>
+      <div>
+        <strong class="text-dark">Aviso de Convenios Próximos a Vencer (Alerta Temprana a 60 días):</strong>
+        <p class="mb-1 text-secondary small">
+          Se identificaron <strong>${expiringAgreements.length}</strong> convenio(s) con fecha de vencimiento dentro de los próximos 60 días. Se recomienda coordinar la prórroga o renovación contractual con las entidades receptoras.
+        </p>
+        <div class="d-flex flex-wrap gap-1">
+          ${expiringAgreements.map((a) => {
+            const inst = data.institutions.find((i) => i.id === a.institutionId);
+            const diffDays = Math.ceil((new Date(a.end) - todayDate) / (1000 * 60 * 60 * 24));
+            return `<span class="badge bg-warning text-dark border border-warning">⚠️ ${escapeHtml(a.number)} (${escapeHtml(inst?.name || 'Entidad')} — vence en ${diffDays} días)</span>`;
+          }).join("")}
+        </div>
+      </div>
+    </div>
+  ` : "";
+
   return `
     <section class="stack">
       <article class="card full">
@@ -1443,6 +1478,7 @@ function renderAgreements() {
         ${modalForm("agreement-place")}
       </article>
       <article class="card full">
+        ${expiringNotice}
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
           <h2 class="mb-0">Convenios y plazas registrados</h2>
           <div class="table-search-bar">
@@ -1452,14 +1488,22 @@ function renderAgreements() {
         </div>
         <div class="table-wrap table-responsive">
           <table class="table table-hover align-middle" id="agreements-table">
-            <thead><tr><th>Institucion</th><th>Convenio</th><th>Vigencia</th><th>Plazas</th><th>Cupos</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Institucion</th><th>Convenio</th><th>Vigencia</th><th>Plazas</th><th>Cupos</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>
               ${data.agreements.map((agreement) => {
                 const institution = data.institutions.find((item) => item.id === agreement.institutionId);
                 const places = data.places.filter((place) => place.agreementId === agreement.id);
-                const cupos = agreementStatus(agreement) === "VIGENTE"
+                const status = agreementStatus(agreement);
+                const cupos = status === "VIGENTE"
                   ? places.reduce((sum, place) => sum + (place.offered - place.occupied), 0)
                   : 0;
+
+                const endDate = new Date(agreement.end);
+                const diffDays = Math.ceil((endDate - todayDate) / (1000 * 60 * 60 * 24));
+                const notice60 = (status === "VIGENTE" && diffDays >= 0 && diffDays <= 60)
+                  ? `<br><span class="badge bg-warning text-dark mt-1" style="font-size: 0.72rem;">⚠️ Vence en ${diffDays} días</span>`
+                  : "";
+
                 return `
                   <tr>
                     <td>${escapeHtml(institution?.name)}</td>
@@ -1467,10 +1511,17 @@ function renderAgreements() {
                     <td>${moneyDate(agreement.start)} - ${moneyDate(agreement.end)}</td>
                     <td>${places.length}</td>
                     <td>${cupos}</td>
-                    <td>${statusTag(agreementStatus(agreement))}</td>
+                    <td>${statusTag(status)}${notice60}</td>
+                    <td>
+                      ${status === "VIGENTE" ? `
+                        <button class="btn btn-outline-warning btn-sm py-0 px-2" data-action="toggle-agreement-suspend" data-id="${agreement.id}" title="Suspender convenio temporalmente">⏸️ Suspender</button>
+                      ` : status === "SUSPENDIDO" ? `
+                        <button class="btn btn-outline-success btn-sm py-0 px-2" data-action="toggle-agreement-suspend" data-id="${agreement.id}" title="Reactivar convenio">▶️ Reactivar</button>
+                      ` : `<span class="text-muted small">—</span>`}
+                    </td>
                   </tr>
                 `;
-              }).join("") || `<tr><td colspan="6">No hay convenios registrados.</td></tr>`}
+              }).join("") || `<tr><td colspan="7">No hay convenios registrados.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -2097,7 +2148,7 @@ function renderTeacherVisits(user) {
               ${data.visits.filter((visit) => visit.teacherId === user.id).map((visit) => {
                 const assignment = assignments.find((item) => item.id === visit.assignmentId);
                 const d = assignmentDetails(assignment || {});
-                return `<tr><td>${moneyDate(visit.date)}</td><td>${escapeHtml(d.student?.name)}</td><td>${escapeHtml(visit.mode)}</td><td>${visit.attendance ? "Asistio" : "No asistio"}</td><td>${escapeHtml(visit.concept || "Sin evaluacion")}</td><td>${visit.score}</td><td>${escapeHtml(visit.observation)}${visit.supportFileName ? `<br><span class="muted">Soporte: ${escapeHtml(visit.supportFileName)}</span>` : ""}</td><td>${statusTag(visit.status)}</td></tr>`;
+                return `<tr><td>${moneyDate(visit.date)}</td><td>${escapeHtml(d.student?.name)}</td><td>${escapeHtml(visit.mode)}</td><td>${visit.attendance ? "Asistio" : "No asistio"}</td><td>${escapeHtml(visit.concept || "Sin evaluacion")}</td><td><span class="badge ${Number(visit.score) >= 3.0 ? 'bg-success' : 'bg-danger'}">${Number(visit.score || 0).toFixed(1)} / 5.0</span></td><td>${escapeHtml(visit.observation)}${visit.supportFileName ? `<br><span class="muted">Soporte: ${escapeHtml(visit.supportFileName)}</span>` : ""}</td><td>${statusTag(visit.status)}</td></tr>`;
               }).join("") || `<tr><td colspan="8">No hay visitas registradas.</td></tr>`}
             </tbody>
           </table>
@@ -2350,6 +2401,83 @@ function renderAudit() {
       </article>
     </section>
   `;
+}
+
+
+function showRadicadoReceiptModal(reqData, user, documents) {
+  const existing = document.querySelector(".sigpra-modal-backdrop");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.className = "sigpra-modal-backdrop";
+  modal.innerHTML = `
+    <section class="sigpra-modal" style="max-width: 650px;">
+      <div class="sigpra-modal-header border-bottom pb-2">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: 1.5rem;">📜</span>
+          <h2 class="mb-0 fs-5">Confirmación Oficial de Radicación</h2>
+        </div>
+        <button class="close" data-action="close-receipt-modal" type="button">✕</button>
+      </div>
+      <div class="p-4" id="radicado-receipt-printable">
+        <div class="text-center p-3 mb-3 bg-light rounded border">
+          <div class="text-muted small text-uppercase fw-bold">Número de Radicado Oficial</div>
+          <div class="display-6 fw-bold text-primary my-1">${escapeHtml(reqData.radicadoCode || `RAD-${reqData.id}`)}</div>
+          <div class="badge bg-success text-white px-3 py-1 fw-bold">SOLICITUD RADICADA Y RECIBIDA CON ÉXITO</div>
+        </div>
+
+        <div class="row g-2 mb-3 small">
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Estudiante:</span>
+            <strong class="text-dark">${escapeHtml(user.name)} (${escapeHtml(user.code || 'UDI-EST')})</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Fecha y Hora de Radicación:</span>
+            <strong class="text-dark">${escapeHtml(reqData.submittedAt || new Date().toISOString().replace('T', ' ').slice(0, 16))}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Programa y Nivel:</span>
+            <strong class="text-dark">${escapeHtml(user.program || 'Ingeniería de Sistemas')} — ${escapeHtml(reqData.level)}</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted d-block">Modalidad:</span>
+            <strong class="text-dark">${escapeHtml(reqData.modality)}</strong>
+          </div>
+        </div>
+
+        <div class="card p-3 border mb-3 bg-white">
+          <div class="fw-bold mb-2 small text-uppercase text-secondary">Documentos Soporte Recibidos (Verificados):</div>
+          <ul class="list-unstyled mb-0 small">
+            <li class="py-1 border-bottom d-flex align-items-center justify-content-between">
+              <span>📄 <strong>Matrícula académica:</strong></span>
+              <span class="badge bg-light text-primary border text-truncate ms-2" style="max-width: 280px;">${escapeHtml(documents.docMatricula)}</span>
+            </li>
+            <li class="py-1 border-bottom d-flex align-items-center justify-content-between">
+              <span>📄 <strong>Certificación EPS / ARL:</strong></span>
+              <span class="badge bg-light text-primary border text-truncate ms-2" style="max-width: 280px;">${escapeHtml(documents.docEps)}</span>
+            </li>
+            <li class="py-1 d-flex align-items-center justify-content-between">
+              <span>📄 <strong>Paz y Salvo institucional:</strong></span>
+              <span class="badge bg-light text-primary border text-truncate ms-2" style="max-width: 280px;">${escapeHtml(documents.docPaz)}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="alert alert-info py-2 px-3 small mb-0">
+          ℹ️ Tu trámite ha sido registrado formalmente en SIGPRA y remitido a la <strong>Dirección de Programa</strong> para su evaluación y emisión de concepto. Conserva este radicado como comprobante de entrega oficial.
+        </div>
+      </div>
+      <div class="p-3 border-top d-flex justify-content-end gap-2 bg-light rounded-bottom">
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-action="print-receipt-modal">
+          🖨️ Imprimir Comprobante
+        </button>
+        <button class="btn btn-primary btn-sm px-4 fw-bold" type="button" data-action="close-receipt-modal">
+          Aceptar y Ver Estado
+        </button>
+      </div>
+    </section>
+  `;
+  document.body.appendChild(modal);
 }
 
 function openModal(type, id = null) {
@@ -2657,16 +2785,10 @@ function visitRubricFields(assignmentId) {
   const rubric = period?.rubric || [];
   if (!rubric.length) return `<div class="alert alert-warning notice warning full-field">No existe una rubrica configurada para el periodo. El coordinador debe configurar criterios antes de registrar la evaluacion.</div>`;
   return rubric.map((criterion, index) => `
-    <label>${escapeHtml(criterion.name)} (${criterion.weight}%)
-      <select class="form-select" name="score-${index}" required>
-        <option value="">Seleccione puntaje</option>
-        <option value="4">Excelente</option>
-        <option value="3">Bueno</option>
-        <option value="2">Aceptable</option>
-        <option value="1">Insuficiente</option>
-      </select>
+    <label>${escapeHtml(criterion.name)} (${criterion.weight}%) — Calificación Numérica (0.0 a 5.0)
+      <input type="number" class="form-control" name="score-${index}" min="0.0" max="5.0" step="0.1" placeholder="Ej: 4.5" required>
     </label>
-    <label>Comentario<input class="form-control" name="comment-${index}" placeholder="Comentario del criterio"></label>
+    <label>Observaciones del criterio<input class="form-control" name="comment-${index}" placeholder="Comentario u observación del criterio"></label>
   `).join("");
 }
 
@@ -3015,9 +3137,9 @@ function handleSubmit(form, submitter) {
       score: Number(formData[`score-${index}`]),
       comment: String(formData[`comment-${index}`] || "").trim()
     }));
-    if (ratings.some((rating) => !Number.isFinite(rating.score) || rating.score < 1 || rating.score > 4) ||
+    if (ratings.some((rating) => !Number.isFinite(rating.score) || rating.score < 0 || rating.score > 5) ||
       rubric.reduce((sum, criterion) => sum + Number(criterion.weight), 0) !== 100) {
-      toast("Completa todos los criterios y verifica que la rubrica del periodo sume 100%.");
+      toast("Completa todos los criterios con notas válidas entre 0.0 y 5.0 y verifica que la rúbrica del periodo sume 100%.");
       return;
     }
     if (formData.mode === "VIRTUAL" && !support) {
@@ -3030,7 +3152,8 @@ function handleSubmit(form, submitter) {
       return;
     }
     const weightedScore = ratings.reduce((sum, rating) => sum + rating.score * rating.weight, 0) / 100;
-    const concept = weightedScore >= 3.5 ? "Excelente" : weightedScore >= 2.5 ? "Bueno" : weightedScore >= 1.5 ? "Aceptable" : "Insuficiente";
+    const roundedScore = Math.round(weightedScore * 10) / 10;
+    const concept = roundedScore >= 4.5 ? "Excelente" : roundedScore >= 3.8 ? "Bueno" : roundedScore >= 3.0 ? "Aceptable" : "Insuficiente";
     data.visits.push({
       id: nextId(data.visits),
       assignmentId: assignment.id,
@@ -3039,7 +3162,7 @@ function handleSubmit(form, submitter) {
       mode: formData.mode,
       attendance: form.querySelector('[name="attendance"]').checked,
       observation: String(formData.observation).trim(),
-      score: Math.round(weightedScore * 100) / 100,
+      score: roundedScore,
       concept,
       rubric: ratings,
       supportFileName: support?.name || "",
@@ -3354,7 +3477,64 @@ document.addEventListener("click", async (event) => {
   const action = event.target.closest("[data-action]");
   if (!action) return;
 
-    if (action.dataset.action === "preview-doc") {
+    
+  if (action.dataset.action === "close-receipt-modal") {
+    document.querySelector(".sigpra-modal-backdrop")?.remove();
+    render();
+    return;
+  }
+
+  if (action.dataset.action === "print-receipt-modal") {
+    window.print();
+    return;
+  }
+
+  
+  if (action.dataset.action === "close-period") {
+    const user = currentUser();
+    if (user?.role !== "COORDINADOR" && user?.role !== "DIRECTOR") {
+      alert("Operación no autorizada: Solo la Coordinación o Dirección de Programa pueden cerrar un periodo académico.");
+      return;
+    }
+    const periodId = Number(action.dataset.id);
+    const period = (data.periods || []).find(p => p.id === periodId);
+    if (!period) return;
+
+    if (confirm(`¿Confirma el cierre definitivo del periodo académico "${period.program} ${period.year}-${period.semester}"?\n\nAl cerrar el periodo no se admitirán nuevas radicaciones ni asignaciones para esta cohorte.`)) {
+      period.status = "CERRADO";
+      audit(`Cerró el periodo académico ${period.program} ${period.year}-${period.semester}`, "PERIODO_PRACTICA");
+      saveData();
+      toast(`Periodo ${period.year}-${period.semester} cerrado correctamente.`);
+      render();
+    }
+    return;
+  }
+
+  if (action.dataset.action === "toggle-agreement-suspend") {
+    const user = currentUser();
+    if (user?.role !== "COORDINADOR" && user?.role !== "DIRECTOR") {
+      alert("Operación no autorizada: Solo Coordinación o Dirección pueden suspender o reactivar convenios.");
+      return;
+    }
+    const id = Number(action.dataset.id);
+    const agreement = (data.agreements || []).find(a => a.id === id);
+    if (!agreement) return;
+
+    if (agreement.status === "SUSPENDIDO") {
+      agreement.status = "VIGENTE";
+      audit(`Reactivó el convenio institucional ${agreement.number}`, "CONVENIO");
+      toast(`Convenio ${agreement.number} reactivado como VIGENTE.`);
+    } else {
+      agreement.status = "SUSPENDIDO";
+      audit(`Suspendió temporalmente el convenio institucional ${agreement.number}`, "CONVENIO");
+      toast(`Convenio ${agreement.number} ha sido puesto en estado SUSPENDIDO.`);
+    }
+    saveData();
+    render();
+    return;
+  }
+
+  if (action.dataset.action === "preview-doc") {
     const student = action.dataset.student || currentUser()?.name || "Estudiante Practicante";
     const docType = action.dataset.doctype || "Documento Digital";
     const filename = action.dataset.filename || "soporte.pdf";
@@ -3426,15 +3606,38 @@ document.addEventListener("click", async (event) => {
 
     const timestamp = new Date().toISOString().replace("T", " ").substring(0, 16);
     let reqIndex = (data.requests || []).findIndex(r => r.studentId === user.id && r.periodId === periodId);
+    const existingReq = reqIndex >= 0 ? data.requests[reqIndex] : null;
 
-    const docMatricula = form.elements.fileMatricula?.files?.[0]?.name || "matricula_" + user.name.toLowerCase().replace(/ /g, '_') + ".pdf";
-    const docEps = form.elements.fileEps?.files?.[0]?.name || "eps_arl_" + user.name.toLowerCase().replace(/ /g, '_') + ".pdf";
-    const docPaz = form.elements.filePazYSalvo?.files?.[0]?.name || "paz_y_salvo_" + user.name.toLowerCase().replace(/ /g, '_') + ".pdf";
+    const fileMatricula = form.elements.fileMatricula?.files?.[0];
+    const fileEps = form.elements.fileEps?.files?.[0];
+    const filePaz = form.elements.filePazYSalvo?.files?.[0];
+
+    const docMatricula = fileMatricula?.name || existingReq?.documents?.matricula?.name || "";
+    const docEps = fileEps?.name || existingReq?.documents?.epsArl?.name || "";
+    const docPaz = filePaz?.name || existingReq?.documents?.pazYSalvo?.name || "";
+
+    // Validación estricta según CU-08: en radicación formal NO se permiten nombres por defecto ni radicar sin soportes
+    if (!isDraft) {
+      const missing = [];
+      if (!docMatricula) missing.push("Matrícula académica (PDF)");
+      if (!docEps) missing.push("Certificado de afiliación EPS / ARL (PDF)");
+      if (!docPaz) missing.push("Paz y Salvo institucional (PDF)");
+
+      if (missing.length > 0) {
+        alert("Según el Caso de Uso CU-08, para radicar la solicitud es obligatorio adjuntar todos los soportes documentales requeridos.\n\nFaltan los siguientes documentos obligatorios:\n• " + missing.join("\n• "));
+        toast("Faltan soportes documentales requeridos.");
+        return;
+      }
+    }
 
     if (!data.requests) data.requests = [];
 
+    const reqId = reqIndex >= 0 ? data.requests[reqIndex].id : nextId(data.requests);
+    const radicadoCode = existingReq?.radicadoCode || `RAD-${new Date().getFullYear()}-${String(reqId).padStart(4, "0")}`;
+
     const reqData = {
-      id: reqIndex >= 0 ? data.requests[reqIndex].id : nextId(data.requests),
+      id: reqId,
+      radicadoCode,
       studentId: user.id,
       periodId,
       level,
@@ -3443,12 +3646,12 @@ document.addEventListener("click", async (event) => {
       suggestedCompany,
       status: isDraft ? "BORRADOR" : "PENDIENTE_REVISION",
       documents: {
-        matricula: { name: docMatricula, type: "application/pdf", uploadedAt: timestamp },
-        epsArl: { name: docEps, type: "application/pdf", uploadedAt: timestamp },
-        pazYSalvo: { name: docPaz, type: "application/pdf", uploadedAt: timestamp }
+        matricula: docMatricula ? { name: docMatricula, type: "application/pdf", uploadedAt: timestamp } : undefined,
+        epsArl: docEps ? { name: docEps, type: "application/pdf", uploadedAt: timestamp } : undefined,
+        pazYSalvo: docPaz ? { name: docPaz, type: "application/pdf", uploadedAt: timestamp } : undefined
       },
       comments,
-      submittedAt: isDraft ? undefined : timestamp,
+      submittedAt: isDraft ? (existingReq?.submittedAt || undefined) : timestamp,
       createdAt: reqIndex >= 0 ? data.requests[reqIndex].createdAt : timestamp,
       updatedAt: timestamp
     };
@@ -3459,10 +3662,16 @@ document.addEventListener("click", async (event) => {
       data.requests.push(reqData);
     }
 
-    audit(isDraft ? `Guardó borrador de solicitud #${reqData.id}` : `Radicó solicitud formal de práctica #${reqData.id} `, "SOLICITUD");
+    audit(isDraft ? `Guardó borrador de solicitud #${reqData.id}` : `Radicó solicitud formal de práctica #${reqData.id} (${radicadoCode})`, "SOLICITUD");
     studentRequestTab = "status";
     saveData();
-    toast(isDraft ? "Borrador guardado exitosamente." : "¡Solicitud formal de práctica radicada exitosamente!");
+
+    if (!isDraft) {
+      toast(`¡Solicitud formal de práctica ${radicadoCode} radicada exitosamente!`);
+      showRadicadoReceiptModal(reqData, user, { docMatricula, docEps, docPaz });
+    } else {
+      toast("Borrador guardado exitosamente.");
+    }
     render();
     return;
   }
@@ -3485,7 +3694,13 @@ document.addEventListener("click", async (event) => {
     req.status = "APROBADA";
     req.reviewedAt = timestamp;
     req.reviewedBy = user?.id || 4;
-    req.justification = document.querySelector("#review-justification-input")?.value?.trim() || "Cumple requisitos y soportes verificados.";
+    const inputJust = document.querySelector("#review-justification-input")?.value?.trim();
+    if (inputJust && inputJust.length < 10) {
+      alert("Según el Caso de Uso CU-08, si ingresas una justificación debe contener mínimo 10 caracteres.");
+      document.querySelector("#review-justification-input")?.focus();
+      return;
+    }
+    req.justification = inputJust || "Cumple requisitos y soportes verificados.";
 
     const student = data.users.find(u => u.id === req.studentId);
     if (student) student.enabledForAssignment = true;
@@ -3508,9 +3723,10 @@ document.addEventListener("click", async (event) => {
     const reqId = Number(action.dataset.id);
     const req = (data.requests || []).find(r => r.id === reqId);
     if (!req) return;
-    const justification = document.querySelector("#review-justification-input")?.value?.trim();
-    if (!justification) {
-      alert("La justificación es obligatoria para devolver o rechazar una solicitud.");
+    const justification = document.querySelector("#review-justification-input")?.value?.trim() || "";
+    if (!justification || justification.length < 10) {
+      alert("Según el Caso de Uso CU-08, la justificación es obligatoria y debe contener mínimo 10 caracteres explicando el motivo al estudiante.");
+      document.querySelector("#review-justification-input")?.focus();
       return;
     }
     const timestamp = new Date().toISOString().replace("T", " ").substring(0, 16);
@@ -4325,8 +4541,8 @@ function openRequestReviewModal(requestId) {
         ${isDirector ? `
           <div class="mb-3">
             <label class="form-label fw-bold">Observación / Justificación de la Dirección de Programa</label>
-            <textarea class="form-control" id="review-justification-input" rows="3" placeholder="Ingresa tus observaciones. (Obligatorio en caso de devolver para corrección o rechazar)...">${escapeHtml(req.justification || '')}</textarea>
-            <div class="form-text">La justificación es obligatoria para devolver o rechazar una solicitud.</div>
+            <textarea class="form-control" id="review-justification-input" rows="3" minlength="10" placeholder="Ingresa tus observaciones (mínimo 10 caracteres obligatorios para devolver o rechazar)...">${escapeHtml(req.justification || '')}</textarea>
+            <div class="form-text text-danger-emphasis">Según el CU-08, la justificación es obligatoria y debe tener al menos 10 caracteres al devolver o rechazar una solicitud.</div>
           </div>
         ` : `
           ${req.justification ? `

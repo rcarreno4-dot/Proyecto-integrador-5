@@ -59,6 +59,18 @@ En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista d
     - La nueva función `exportTableToCsv` recorre dinámicamente las filas visibles del DOM de la tabla `#reports-table`, extrayendo con total fidelidad lo que el usuario está viendo en pantalla (respetando filtros de búsqueda en vivo, con BOM UTF-8 y `;` para Excel/WPS).
 12. **Impresión Enfocada Exclusiva de los Datos Buscados**:
     - La hoja de estilo `@media print` oculta estrictamente cualquier fila descartada por el buscador (`display: none !important`), ocultando elementos auxiliares para imprimir **únicamente la tabla filtrada** con membrete oficial y firmas de Coordinación y Dirección.
+13. **CU-08: Validación Estricta de Soportes (Eliminación de Nombres por Defecto)**:
+    - En la radicación formal, el sistema exige obligatoriamente los tres archivos PDF (Matrícula, EPS/ARL y Paz y Salvo). Si falta alguno, se bloquea la radicación con una alerta descriptiva, eliminando la asignación de nombres ficticios por defecto.
+14. **CU-08: Comprobante de Radicación y Acuse de Recibo Oficial**:
+    - Tras radicar formalmente, el sistema genera un **Acuse de Recibo** con número de radicado (`RAD-2026-XXXX`), fecha/hora exacta e inventario de soportes verificados, listo para consultar o imprimir.
+15. **CU-08: Justificación del Director con Mínimo 10 Caracteres**:
+    - Al devolver o rechazar una solicitud, la Dirección debe ingresar una justificación detallada de mínimo 10 caracteres (`minlength="10"`), garantizando el debido proceso al practicante.
+16. **Escala Numérica Oficial UDI de 0.0 a 5.0 en Evaluación y Rúbrica**:
+    - En el módulo de visitas de acompañamiento, el docente califica numéricamente cada criterio de 0.0 a 5.0 (con decimales). El sistema calcula la nota ponderada oficial sobre 5.0 y deriva el concepto (*Excelente, Bueno, Aceptable, Insuficiente*).
+17. **Cierre de Periodo, Alerta Temprana a 60 Días y Estados Vencido / Suspendido**:
+    - **Cerrar Periodo**: Opción para Coordinador y Director de dar por finalizado un periodo (`CERRADO`), bloqueando nuevas radicaciones para esa cohorte.
+    - **Alerta 60 días en Convenios**: Detección automática con banner institucional y badges de advertencia para convenios a menos de 60 días de vencer.
+    - **Estados VENCIDO y SUSPENDIDO**: Clasificación automática según vigencia y botón para suspender/reactivar convenios institucionales.
 
 ---
 

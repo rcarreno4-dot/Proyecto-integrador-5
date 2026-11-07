@@ -81,7 +81,7 @@ const createZip = (files: Array<{ name: string; content: string }>) => {
   write32(endView, 12, centralSize);
   write32(endView, 16, localOffset);
 
-  return new Blob([...localParts, ...centralParts, endRecord], {
+  return new Blob([...localParts, ...centralParts, endRecord] as any[], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   });
 };
