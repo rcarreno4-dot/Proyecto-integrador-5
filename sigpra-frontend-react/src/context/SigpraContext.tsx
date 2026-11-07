@@ -1,5 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, Period, Institution, Agreement, Place, Assignment, Activity, StudentRequest, AuditEvent, Visit } from "../types";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import {
+  User,
+  Period,
+  Institution,
+  Agreement,
+  Place,
+  Assignment,
+  Activity,
+  StudentRequest,
+  AuditEvent,
+  Visit,
+  AcademicProgram
+} from "../types";
 import {
   initialUsers,
   initialPeriods,
@@ -11,6 +23,13 @@ import {
   initialRequests,
   initialAudit
 } from "../data/seedData";
+import { api, BackendState } from "../services/api";
+
+const initialPrograms: AcademicProgram[] = [
+  { id: 1, name: "Ingeniería de Sistemas", levels: ["IX semestre", "Práctica profesional II"], active: true },
+  { id: 2, name: "Licenciatura en Educación Infantil", levels: ["VIII semestre"], active: true },
+  { id: 3, name: "Licenciatura en Pedagogía", levels: ["Práctica I", "Práctica II"], active: true }
+];
 
 interface SigpraContextType {
   currentUser: User;
@@ -26,12 +45,16 @@ interface SigpraContextType {
   requests: StudentRequest[];
   visits: Visit[];
   auditLogs: AuditEvent[];
+  programs: AcademicProgram[];
   currentView: string;
   setCurrentView: (view: string) => void;
   addPeriod: (period: Omit<Period, "id">) => boolean;
+  closePeriod: (periodId: number) => void;
   addInstitution: (institution: Omit<Institution, "id">) => void;
   addAgreement: (agreement: Omit<Agreement, "id">) => void;
+  toggleAgreementStatus: (agreementId: number) => void;
   addPlace: (place: Omit<Place, "id" | "occupied" | "status">) => void;
+  addProgram: (name: string, levels: string[]) => void;
   createRequest: (request: Omit<StudentRequest, "id" | "status" | "submittedAt">) => void;
   updateRequestStatus: (requestId: number, status: StudentRequest["status"], justification?: string) => void;
   createAssignment: (studentId: number, placeId: number, teacherId: number, periodId: number) => void;
@@ -42,6 +65,9 @@ interface SigpraContextType {
   auditAction: (event: string, entity: string) => void;
   toastMessage: string | null;
   showToast: (msg: string) => void;
+  dbConnected: boolean;
+  isSyncing: boolean;
+  refreshFromBackend: () => Promise<void>;
 }
 
 const SigpraContext = createContext<SigpraContextType | undefined>(undefined);
@@ -66,10 +92,12 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const saved = localStorage.getItem("sigpra_react_institutions");
     return saved ? JSON.parse(saved) : initialInstitutions;
   });
+
   const [agreements, setAgreements] = useState<Agreement[]>(() => {
     const saved = localStorage.getItem("sigpra_react_agreements");
     return saved ? JSON.parse(saved) : initialAgreements;
   });
+
   const [places, setPlaces] = useState<Place[]>(() => {
     const saved = localStorage.getItem("sigpra_react_places");
     return saved ? JSON.parse(saved) : initialPlaces;
@@ -100,13 +128,137 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return saved ? JSON.parse(saved) : initialAudit;
   });
 
+  const [programs, setPrograms] = useState<AcademicProgram[]>(() => {
+    const saved = localStorage.getItem("sigpra_react_programs");
+    return saved ? JSON.parse(saved) : initialPrograms;
+  });
+
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [dbConnected, setDbConnected] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  const showToast = (msg: string) => {
+  const stateRef = useRef({
+    users,
+    periods,
+    institutions,
+    agreements,
+    places,
+    assignments,
+    activities,
+    requests,
+    visits,
+    auditLogs,
+    programs
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      users,
+      periods,
+      institutions,
+      agreements,
+      places,
+      assignments,
+      activities,
+      requests,
+      visits,
+      auditLogs,
+      programs
+    };
+  }, [users, periods, institutions, agreements, places, assignments, activities, requests, visits, auditLogs, programs]);
+
+  const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
-  };
+  }, []);
+
+  // Persists current snapshot to backend
+  const pushToBackend = useCallback(async (overrides?: Partial<BackendState>) => {
+    setIsSyncing(true);
+    const snapshot: BackendState = {
+      ...stateRef.current,
+      ...overrides
+    };
+    try {
+      const ok = await api.saveState(snapshot);
+      if (ok) {
+        setDbConnected(true);
+      }
+    } catch (err) {
+      console.warn("Error guardando en backend:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  // Fetch initial or refreshed data from backend
+  const refreshFromBackend = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      const remote = await api.getState();
+      if (remote) {
+        setDbConnected(true);
+        if (remote.users && remote.users.length > 0) {
+          setUsers(remote.users);
+          localStorage.setItem("sigpra_react_users", JSON.stringify(remote.users));
+        }
+        if (remote.periods) {
+          setPeriods(remote.periods);
+          localStorage.setItem("sigpra_react_periods", JSON.stringify(remote.periods));
+        }
+        if (remote.institutions) {
+          setInstitutions(remote.institutions);
+          localStorage.setItem("sigpra_react_institutions", JSON.stringify(remote.institutions));
+        }
+        if (remote.agreements) {
+          setAgreements(remote.agreements);
+          localStorage.setItem("sigpra_react_agreements", JSON.stringify(remote.agreements));
+        }
+        if (remote.places) {
+          setPlaces(remote.places);
+          localStorage.setItem("sigpra_react_places", JSON.stringify(remote.places));
+        }
+        if (remote.assignments) {
+          setAssignments(remote.assignments);
+          localStorage.setItem("sigpra_react_assignments", JSON.stringify(remote.assignments));
+        }
+        if (remote.activities) {
+          setActivities(remote.activities);
+          localStorage.setItem("sigpra_react_activities", JSON.stringify(remote.activities));
+        }
+        if (remote.requests) {
+          setRequests(remote.requests);
+          localStorage.setItem("sigpra_react_requests", JSON.stringify(remote.requests));
+        }
+        if (remote.visits) {
+          setVisits(remote.visits);
+          localStorage.setItem("sigpra_react_visits", JSON.stringify(remote.visits));
+        }
+        if (remote.auditLogs) {
+          setAuditLogs(remote.auditLogs);
+          localStorage.setItem("sigpra_react_audit", JSON.stringify(remote.auditLogs));
+        }
+        if (remote.programs && remote.programs.length > 0) {
+          setPrograms(remote.programs);
+          localStorage.setItem("sigpra_react_programs", JSON.stringify(remote.programs));
+        }
+        showToast("🟢 Base de datos SIGPRA sincronizada");
+      } else {
+        setDbConnected(false);
+      }
+    } catch (err) {
+      console.warn("No se pudo conectar a la API:", err);
+      setDbConnected(false);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [showToast]);
+
+  // Initial load effect
+  useEffect(() => {
+    refreshFromBackend();
+  }, [refreshFromBackend]);
 
   const auditAction = (event: string, entity: string) => {
     const newLog: AuditEvent = {
@@ -119,6 +271,7 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = [newLog, ...auditLogs];
     setAuditLogs(updated);
     localStorage.setItem("sigpra_react_audit", JSON.stringify(updated));
+    pushToBackend({ auditLogs: updated });
   };
 
   const createStudent = (studentData: Omit<User, "id" | "role" | "initials">): User | null => {
@@ -145,6 +298,7 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setUsers(updated);
     localStorage.setItem("sigpra_react_users", JSON.stringify(updated));
     setCurrentUser(newStudent);
+
     const newLog: AuditEvent = {
       id: Date.now() + 1,
       date: new Date().toLocaleString("es-CO"),
@@ -155,6 +309,8 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updatedAudit = [newLog, ...auditLogs];
     setAuditLogs(updatedAudit);
     localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ users: updated, auditLogs: updatedAudit });
     return newStudent;
   };
 
@@ -184,25 +340,106 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = [...periods, newPeriod];
     setPeriods(updated);
     localStorage.setItem("sigpra_react_periods", JSON.stringify(updated));
-    auditAction(`Creó y publicó periodo ${newPeriod.program} (${newPeriod.year}-${newPeriod.semester})`, "PERIODO");
-    showToast("✅ Periodo académico publicado exitosamente.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Creó y publicó periodo ${newPeriod.program} (${newPeriod.year}-${newPeriod.semester})`,
+      entity: "PERIODO"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ periods: updated, auditLogs: updatedAudit });
+    showToast("✅ Periodo académico publicado y guardado en la base de datos.");
     return true;
+  };
+
+  const closePeriod = (periodId: number) => {
+    const target = periods.find(p => p.id === periodId);
+    if (!target) return;
+    const updated = periods.map(p => p.id === periodId ? { ...p, status: "CERRADO" as const } : p);
+    setPeriods(updated);
+    localStorage.setItem("sigpra_react_periods", JSON.stringify(updated));
+
+    const newLog: AuditEvent = {
+      id: Date.now(),
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Cerró formalmente periodo ${target.program} (${target.year}-${target.semester})`,
+      entity: "PERIODO"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ periods: updated, auditLogs: updatedAudit });
+    showToast("✅ Periodo académico cerrado exitosamente.");
   };
 
   const addInstitution = (institutionData: Omit<Institution, "id">) => {
     const updated = [...institutions, { ...institutionData, id: Date.now() }];
     setInstitutions(updated);
     localStorage.setItem("sigpra_react_institutions", JSON.stringify(updated));
-    auditAction(`Registró institución ${institutionData.name}`, "INSTITUCION");
-    showToast("✅ Institución registrada correctamente.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Registró institución ${institutionData.name}`,
+      entity: "INSTITUCION"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ institutions: updated, auditLogs: updatedAudit });
+    showToast("✅ Institución registrada y guardada en BD.");
   };
 
   const addAgreement = (agreementData: Omit<Agreement, "id">) => {
     const updated = [...agreements, { ...agreementData, id: Date.now() }];
     setAgreements(updated);
     localStorage.setItem("sigpra_react_agreements", JSON.stringify(updated));
-    auditAction(`Registró convenio ${agreementData.number}`, "CONVENIO");
-    showToast("✅ Convenio registrado correctamente.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Registró convenio ${agreementData.number}`,
+      entity: "CONVENIO"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ agreements: updated, auditLogs: updatedAudit });
+    showToast("✅ Convenio registrado y guardado en BD.");
+  };
+
+  const toggleAgreementStatus = (agreementId: number) => {
+    const target = agreements.find(a => a.id === agreementId);
+    if (!target) return;
+    const nextStatus = target.status === "SUSPENDIDO" ? "VIGENTE" : "SUSPENDIDO";
+    const updated = agreements.map(a => a.id === agreementId ? { ...a, status: nextStatus as Agreement["status"] } : a);
+    setAgreements(updated);
+    localStorage.setItem("sigpra_react_agreements", JSON.stringify(updated));
+
+    const newLog: AuditEvent = {
+      id: Date.now(),
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Cambió estado de convenio ${target.number} a ${nextStatus}`,
+      entity: "CONVENIO"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ agreements: updated, auditLogs: updatedAudit });
+    showToast(`✅ Convenio ${target.number} marcado como ${nextStatus}.`);
   };
 
   const addPlace = (placeData: Omit<Place, "id" | "occupied" | "status">) => {
@@ -215,8 +452,46 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = [...places, newPlace];
     setPlaces(updated);
     localStorage.setItem("sigpra_react_places", JSON.stringify(updated));
-    auditAction(`Registró plaza de práctica en convenio #${placeData.agreementId}`, "PLAZA");
-    showToast("✅ Plaza registrada correctamente.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Registró plaza de práctica en convenio #${placeData.agreementId}`,
+      entity: "PLAZA"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ places: updated, auditLogs: updatedAudit });
+    showToast("✅ Plaza registrada correctamente en BD.");
+  };
+
+  const addProgram = (name: string, levels: string[]) => {
+    const newProg: AcademicProgram = {
+      id: Date.now(),
+      name: name.trim(),
+      levels,
+      active: true
+    };
+    const updated = [...programs, newProg];
+    setPrograms(updated);
+    localStorage.setItem("sigpra_react_programs", JSON.stringify(updated));
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Registró programa académico ${newProg.name}`,
+      entity: "PROGRAMA_ACADEMICO"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ programs: updated, auditLogs: updatedAudit });
+    showToast("✅ Programa académico guardado en BD.");
   };
 
   const createRequest = (requestData: Omit<StudentRequest, "id" | "status" | "submittedAt">) => {
@@ -241,8 +516,20 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       : [newRequest, ...requests];
     setRequests(updated);
     localStorage.setItem("sigpra_react_requests", JSON.stringify(updated));
-    auditAction(`${previousRequest ? "Actualizó" : "Radicó"} solicitud de práctica #${newRequest.id}`, "SOLICITUD");
-    showToast("✅ Solicitud radicada. Está pendiente de revisión por la Dirección.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `${previousRequest ? "Actualizó" : "Radicó"} solicitud formal de práctica #${newRequest.id}`,
+      entity: "SOLICITUD"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ requests: updated, auditLogs: updatedAudit });
+    showToast("✅ Solicitud formal radicada y enviada a la base de datos.");
   };
 
   const updateRequestStatus = (requestId: number, status: StudentRequest["status"], justification?: string) => {
@@ -259,8 +546,20 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
     setRequests(updated);
     localStorage.setItem("sigpra_react_requests", JSON.stringify(updated));
-    auditAction(`Dictaminó solicitud #${requestId} como ${status}`, "SOLICITUD");
-    showToast(`✅ Solicitud #${requestId} dictaminada como ${status}.`);
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Dictaminó solicitud #${requestId} como ${status}`,
+      entity: "SOLICITUD"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ requests: updated, auditLogs: updatedAudit });
+    showToast(`✅ Solicitud #${requestId} dictaminada como ${status} en BD.`);
   };
 
   const createAssignment = (studentId: number, placeId: number, teacherId: number, periodId: number) => {
@@ -283,6 +582,7 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = [...assignments, newAssignment];
     setAssignments(updated);
     localStorage.setItem("sigpra_react_assignments", JSON.stringify(updated));
+
     const updatedPlaces = places.map(place => place.id === placeId
       ? {
           ...place,
@@ -293,14 +593,32 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
     setPlaces(updatedPlaces);
     localStorage.setItem("sigpra_react_places", JSON.stringify(updatedPlaces));
+
     const updatedRequests = requests.map(request => request.studentId === studentId && request.status === "APROBADA"
       ? { ...request, status: "APROBADA" as const, justification: `${request.justification || ""} Asignación realizada.`.trim() }
       : request
     );
     setRequests(updatedRequests);
     localStorage.setItem("sigpra_react_requests", JSON.stringify(updatedRequests));
-    auditAction(`Asignó plaza de práctica para estudiante ID ${studentId}`, "ASIGNACION");
-    showToast("✅ Asignación de práctica realizada con éxito.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Asignó plaza de práctica para estudiante ID ${studentId}`,
+      entity: "ASIGNACION"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({
+      assignments: updated,
+      places: updatedPlaces,
+      requests: updatedRequests,
+      auditLogs: updatedAudit
+    });
+    showToast("✅ Asignación guardada en BD exitosamente.");
   };
 
   const addActivity = (actData: Omit<Activity, "id">) => {
@@ -311,8 +629,20 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = [newAct, ...activities];
     setActivities(updated);
     localStorage.setItem("sigpra_react_activities", JSON.stringify(updated));
-    auditAction(`Registró reporte de actividad (${newAct.hours} hrs)`, "BITACORA");
-    showToast("✅ Actividad y horas registradas en bitácora.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Registró reporte de actividad (${newAct.hours} hrs)`,
+      entity: "BITACORA"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ activities: updated, auditLogs: updatedAudit });
+    showToast("✅ Actividad y horas registradas en BD.");
   };
 
   const resubmitActivity = (activityId: number, actData: Omit<Activity, "id" | "status">) => {
@@ -327,8 +657,20 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
     setActivities(updated);
     localStorage.setItem("sigpra_react_activities", JSON.stringify(updated));
-    auditAction(`Corrigió y reenvió actividad #${activityId}`, "BITACORA");
-    showToast("✅ Actividad corregida y reenviada para validación.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Corrigió y reenvió actividad #${activityId}`,
+      entity: "BITACORA"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ activities: updated, auditLogs: updatedAudit });
+    showToast("✅ Actividad corregida y sincronizada con BD.");
   };
 
   const updateActivityStatus = (activityId: number, status: Activity["status"], feedback?: string) => {
@@ -343,16 +685,40 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
     setActivities(updated);
     localStorage.setItem("sigpra_react_activities", JSON.stringify(updated));
-    auditAction(`Validó actividad #${activityId} como ${status}`, "BITACORA");
-    showToast(`✅ Actividad marcada como ${status}.`);
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Validó actividad #${activityId} como ${status}`,
+      entity: "BITACORA"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ activities: updated, auditLogs: updatedAudit });
+    showToast(`✅ Actividad marcada como ${status} en BD.`);
   };
 
   const addVisit = (visitData: Omit<Visit, "id">) => {
     const updated = [{ ...visitData, id: Date.now() }, ...visits];
     setVisits(updated);
     localStorage.setItem("sigpra_react_visits", JSON.stringify(updated));
-    auditAction(`Registró visita de acompañamiento para asignación #${visitData.assignmentId}`, "VISITA");
-    showToast("✅ Visita y evaluación registradas.");
+
+    const newLog: AuditEvent = {
+      id: Date.now() + 1,
+      date: new Date().toLocaleString("es-CO"),
+      user: currentUser.name,
+      event: `Registró visita de acompañamiento para asignación #${visitData.assignmentId}`,
+      entity: "VISITA"
+    };
+    const updatedAudit = [newLog, ...auditLogs];
+    setAuditLogs(updatedAudit);
+    localStorage.setItem("sigpra_react_audit", JSON.stringify(updatedAudit));
+
+    pushToBackend({ visits: updated, auditLogs: updatedAudit });
+    showToast("✅ Visita y evaluación registradas en BD.");
   };
 
   useEffect(() => {
@@ -375,12 +741,16 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         requests,
         visits,
         auditLogs,
+        programs,
         currentView,
         setCurrentView,
         addPeriod,
+        closePeriod,
         addInstitution,
         addAgreement,
+        toggleAgreementStatus,
         addPlace,
+        addProgram,
         createRequest,
         updateRequestStatus,
         createAssignment,
@@ -390,7 +760,10 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addVisit,
         auditAction,
         toastMessage,
-        showToast
+        showToast,
+        dbConnected,
+        isSyncing,
+        refreshFromBackend
       }}
     >
       {children}

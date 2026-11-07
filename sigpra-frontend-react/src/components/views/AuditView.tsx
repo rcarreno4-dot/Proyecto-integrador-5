@@ -9,11 +9,11 @@ export const AuditView: React.FC = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  if (currentUser.role !== "DIRECTOR") {
+  if (currentUser.role !== "DIRECTOR" && currentUser.role !== "COORDINADOR") {
     return (
       <div className="alert alert-danger p-4 text-center">
         <h4>🔒 Acceso Restringido</h4>
-        <p className="mb-0">El registro de auditoría del sistema es exclusivo para la Dirección de Programa.</p>
+        <p className="mb-0">El registro de auditoría del sistema es exclusivo para la Coordinación y Dirección de Programa.</p>
       </div>
     );
   }

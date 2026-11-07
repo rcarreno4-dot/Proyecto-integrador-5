@@ -15,6 +15,13 @@ export interface RubricCriterion {
   weight: number;
 }
 
+export interface AcademicProgram {
+  id: number;
+  name: string;
+  levels: string[];
+  active: boolean;
+}
+
 export interface Period {
   id: number;
   program: string;
@@ -25,7 +32,7 @@ export interface Period {
   end: string;
   reportLimit: string;
   minHours: number;
-  status: "BORRADOR" | "PUBLICADO";
+  status: "BORRADOR" | "PUBLICADO" | "CERRADO";
   rubric?: RubricCriterion[];
 }
 
@@ -45,7 +52,7 @@ export interface Agreement {
   number: string;
   start: string;
   end: string;
-  status: "VIGENTE" | "VENCIDO";
+  status: "VIGENTE" | "VENCIDO" | "SUSPENDIDO";
   document: string;
 }
 

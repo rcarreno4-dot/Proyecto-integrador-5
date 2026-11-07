@@ -9,7 +9,7 @@ interface NavItem {
 }
 
 export const Sidebar: React.FC = () => {
-  const { currentUser, currentView, setCurrentView, assignments } = useSigpra();
+  const { currentUser, currentView, setCurrentView, assignments, dbConnected, isSyncing, refreshFromBackend } = useSigpra();
 
   const hasActiveAssignment = assignments.some(
     a => a.studentId === currentUser.id && a.status === "ACTIVA"
@@ -27,8 +27,9 @@ export const Sidebar: React.FC = () => {
           { id: "periods", label: "Periodos de práctica", icon: "📅", group: "Gestión Formativa" },
           { id: "agreements", label: "Convenios y plazas", icon: "🏫", group: "Gestión Formativa" },
           { id: "assignments", label: "Asignaciones", icon: "🎓", group: "Seguimiento" },
-          { id: "director-requests", label: "Solicitudes radicadas", icon: "📑", group: "Seguimiento" },
-          { id: "reports", label: "Consolidado de horas", icon: "📊", group: "Seguimiento" }
+          { id: "director-requests", label: "Solicitudes de práctica", icon: "📑", group: "Seguimiento" },
+          { id: "reports", label: "Consolidado de horas", icon: "📊", group: "Seguimiento" },
+          { id: "audit", label: "Auditoría", icon: "🛡️", group: "Seguimiento" }
         ];
 
       case "DIRECTOR":
@@ -100,6 +101,27 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div className="p-3 bg-light rounded-3 border mt-auto text-center">
+        <div className="mb-2 d-flex flex-column align-items-center gap-1">
+          {dbConnected ? (
+            <span className="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 py-1 px-2">
+              <span className="spinner-grow spinner-grow-sm text-success" style={{ width: 7, height: 7 }} role="status"></span>
+              BD Conectada (API)
+            </span>
+          ) : (
+            <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-1 px-2">
+              🟡 Modo Local
+            </span>
+          )}
+          <button
+            onClick={() => refreshFromBackend()}
+            disabled={isSyncing}
+            className="btn btn-outline-secondary btn-sm py-0 px-2 mt-1"
+            style={{ fontSize: "0.72rem" }}
+            title="Sincronizar datos con la base de datos"
+          >
+            {isSyncing ? "⏳ Sincronizando..." : "🔄 Sincronizar BD"}
+          </button>
+        </div>
         <span className="badge bg-secondary-subtle text-dark border mb-1">Decreto 1075 de 2015</span>
         <div className="text-muted" style={{ fontSize: "0.72rem" }}>
           Meta: 160h mínimas · Tope: 320h

@@ -3,7 +3,18 @@ import { useSigpra } from "../../context/SigpraContext";
 import { KPICard } from "../common/KPICard";
 
 export const CoordinatorDashboard: React.FC = () => {
-  const { periods, agreements, assignments, activities, users, setCurrentView } = useSigpra();
+  const {
+    periods,
+    agreements,
+    institutions,
+    places,
+    assignments,
+    activities,
+    requests,
+    auditLogs,
+    users,
+    setCurrentView
+  } = useSigpra();
 
   const publishedPeriods = periods.filter(p => p.status === "PUBLICADO");
   const activeAgreements = agreements.filter(a => a.status === "VIGENTE");
@@ -12,6 +23,7 @@ export const CoordinatorDashboard: React.FC = () => {
     .reduce((sum, a) => sum + a.hours, 0);
 
   const studentsCount = users.filter(u => u.role === "ESTUDIANTE").length;
+  const pendingRequestsCount = requests.filter(r => r.status === "PENDIENTE_REVISION").length;
 
   return (
     <div>
@@ -62,7 +74,7 @@ export const CoordinatorDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="row g-4 mb-4">
         <div className="col-md-8">
           <div className="card border rounded-3 shadow-xs h-100">
             <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
@@ -83,15 +95,23 @@ export const CoordinatorDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {publishedPeriods.map(p => (
-                    <tr key={p.id}>
-                      <td><strong>{p.program}</strong></td>
-                      <td>{p.level}</td>
-                      <td>{p.start} a {p.end}</td>
-                      <td><span className="badge bg-secondary-subtle text-dark">{p.minHours} hrs</span></td>
-                      <td><span className="badge bg-success">{p.status}</span></td>
+                  {publishedPeriods.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center text-muted py-3">
+                        No hay periodos activos actualmente
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    publishedPeriods.map(p => (
+                      <tr key={p.id}>
+                        <td><strong>{p.program}</strong></td>
+                        <td>{p.level}</td>
+                        <td>{p.start} a {p.end}</td>
+                        <td><span className="badge bg-secondary-subtle text-dark">{p.minHours} hrs</span></td>
+                        <td><span className="badge bg-success">{p.status}</span></td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -99,7 +119,7 @@ export const CoordinatorDashboard: React.FC = () => {
         </div>
 
         <div className="col-md-4">
-          <div className="card border rounded-3 shadow-xs p-3">
+          <div className="card border rounded-3 shadow-xs p-3 h-100">
             <h5 className="fw-bold mb-2">Acciones Rápidas de Coordinación</h5>
             <p className="text-muted small mb-3">Accede directamente a los flujos operativos clave.</p>
             <div className="d-flex flex-column gap-2">
@@ -112,6 +132,112 @@ export const CoordinatorDashboard: React.FC = () => {
               <button onClick={() => setCurrentView("reports")} className="btn btn-outline-secondary text-start">
                 📊 Consolidado e Informes Oficiales
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <h5 className="fw-bold mb-1">Módulos de trabajo</h5>
+        <p className="text-muted small mb-3">Selecciona una opción para ir directamente a la tarea que necesitas.</p>
+        <div className="row g-3">
+          <div className="col-md-4">
+            <div
+              className="card border rounded-3 p-3 h-100 shadow-xs hover-bg-light transition-all"
+              style={{ cursor: "pointer" }}
+              onClick={() => setCurrentView("periods")}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h6 className="fw-bold mb-0 text-primary">Periodos de práctica</h6>
+                <span className="text-muted">➔</span>
+              </div>
+              <p className="text-muted small mb-2">Configura fechas, horas y criterios para cada periodo.</p>
+              <span className="badge bg-light text-dark border align-self-start">{periods.length} periodos</span>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div
+              className="card border rounded-3 p-3 h-100 shadow-xs hover-bg-light transition-all"
+              style={{ cursor: "pointer" }}
+              onClick={() => setCurrentView("agreements")}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h6 className="fw-bold mb-0 text-primary">Convenios y plazas</h6>
+                <span className="text-muted">➔</span>
+              </div>
+              <p className="text-muted small mb-2">Organiza instituciones, convenios y cupos disponibles.</p>
+              <span className="badge bg-light text-dark border align-self-start">
+                {institutions.length} instituciones · {places.length} plazas
+              </span>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div
+              className="card border rounded-3 p-3 h-100 shadow-xs hover-bg-light transition-all"
+              style={{ cursor: "pointer" }}
+              onClick={() => setCurrentView("assignments")}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h6 className="fw-bold mb-0 text-primary">Asignaciones</h6>
+                <span className="text-muted">➔</span>
+              </div>
+              <p className="text-muted small mb-2">Consulta y organiza las prácticas de los estudiantes habilitados.</p>
+              <span className="badge bg-light text-dark border align-self-start">
+                {assignments.length} prácticas activas
+              </span>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div
+              className="card border rounded-3 p-3 h-100 shadow-xs hover-bg-light transition-all"
+              style={{ cursor: "pointer" }}
+              onClick={() => setCurrentView("director-requests")}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h6 className="fw-bold mb-0 text-primary">Solicitudes de práctica</h6>
+                <span className="text-muted">➔</span>
+              </div>
+              <p className="text-muted small mb-2">Consulta las solicitudes radicadas por estudiantes.</p>
+              <span className="badge bg-light text-dark border align-self-start">
+                {pendingRequestsCount} solicitudes pendientes
+              </span>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div
+              className="card border rounded-3 p-3 h-100 shadow-xs hover-bg-light transition-all"
+              style={{ cursor: "pointer" }}
+              onClick={() => setCurrentView("reports")}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h6 className="fw-bold mb-0 text-primary">Consolidado</h6>
+                <span className="text-muted">➔</span>
+              </div>
+              <p className="text-muted small mb-2">Filtra el avance y consulta resultados de las prácticas.</p>
+              <span className="badge bg-light text-dark border align-self-start">
+                {assignments.length} prácticas para consultar
+              </span>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div
+              className="card border rounded-3 p-3 h-100 shadow-xs hover-bg-light transition-all"
+              style={{ cursor: "pointer" }}
+              onClick={() => setCurrentView("audit")}
+            >
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h6 className="fw-bold mb-0 text-primary">Auditoría</h6>
+                <span className="text-muted">➔</span>
+              </div>
+              <p className="text-muted small mb-2">Revisa el historial de acciones y eventos registrados en SIGPRA.</p>
+              <span className="badge bg-light text-dark border align-self-start">
+                {auditLogs.length} eventos registrados
+              </span>
             </div>
           </div>
         </div>

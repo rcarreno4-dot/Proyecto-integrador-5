@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSigpra } from "../../context/SigpraContext";
 
 export const PeriodsView: React.FC = () => {
-  const { periods, addPeriod } = useSigpra();
+  const { periods, addPeriod, closePeriod } = useSigpra();
 
   const [showModal, setShowModal] = useState(false);
   const [program, setProgram] = useState("Ingeniería de Sistemas");
@@ -70,6 +70,7 @@ export const PeriodsView: React.FC = () => {
               <th>Límite Reporte</th>
               <th>Horas Mínimas</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -82,9 +83,27 @@ export const PeriodsView: React.FC = () => {
                 <td>{p.reportLimit}</td>
                 <td><span className="badge bg-secondary-subtle text-dark">{p.minHours} hrs</span></td>
                 <td>
-                  <span className={`badge ${p.status === "PUBLICADO" ? "bg-success" : "bg-warning text-dark"}`}>
+                  <span className={`badge ${p.status === "PUBLICADO" ? "bg-success" : p.status === "CERRADO" ? "bg-secondary" : "bg-warning text-dark"}`}>
                     {p.status}
                   </span>
+                </td>
+                <td>
+                  {p.status === "PUBLICADO" ? (
+                    <button
+                      onClick={() => {
+                        if (confirm(`¿Está seguro de cerrar formalmente el periodo de ${p.program} (${p.year}-${p.semester})?`)) {
+                          closePeriod(p.id);
+                        }
+                      }}
+                      className="btn btn-outline-danger btn-sm py-0 px-2"
+                      style={{ fontSize: "0.78rem" }}
+                      title="Cerrar formalmente este periodo académico"
+                    >
+                      🔒 Cerrar
+                    </button>
+                  ) : (
+                    <span className="text-muted small">—</span>
+                  )}
                 </td>
               </tr>
             ))}
