@@ -1,8 +1,8 @@
 :root {
   --bg: #eef2f5;
   --panel: #ffffff;
-  --ink: #111827;
-  --muted: #5f6b7a;
+  --ink: #0f172a;
+  --muted: #334155;
   --line: #d8dee8;
   --soft: #f7f9fb;
   --teal: #0f766e;
@@ -276,7 +276,12 @@ button {
 
 .subtitle,
 .muted {
-  color: var(--muted);
+  color: #334155;
+}
+
+.subtitle {
+  color: #1e293b;
+  font-weight: 500;
 }
 
 .subtitle {
@@ -387,21 +392,41 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: var(--panel);
+  color: #0f172a !important;
 }
 
 th,
 td {
-  border-bottom: 1px solid #edf0f4;
+  border-bottom: 1px solid #cbd5e1;
   padding: 12px 10px;
   text-align: left;
   vertical-align: top;
+  color: #0f172a !important;
 }
 
 th {
-  color: var(--muted);
-  font-size: 12px;
+  color: #0f172a !important;
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
+  background: #f8fafc;
+}
+
+td {
+  font-size: 14px;
+}
+
+.table {
+  color: #0f172a !important;
+}
+
+.table th {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+.table td {
+  color: #0f172a !important;
 }
 
 .tag {
@@ -1147,7 +1172,8 @@ input[type="radio"] {
 
 .nav-heading {
   margin: 14px 10px 2px;
-  color: var(--muted);
+  color: #334155;
+  font-weight: 800;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;

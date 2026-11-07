@@ -688,12 +688,15 @@ function render() {
             <h1>${escapeHtml(viewTitle(currentView, user.role))}</h1>
             <p class="subtitle">${escapeHtml(viewSubtitle(currentView, user.role))}</p>
           </div>
-          <div class="userbox">
-            <div>
-              <strong>${escapeHtml(user.name)}</strong>
-              <div class="muted">${escapeHtml(user.email)}</div>
+          <div class="userbox d-flex align-items-center gap-3">
+            <div class="text-end">
+              <strong class="d-block" style="color: #0f172a; font-size: 0.95rem;">${escapeHtml(user.name)}</strong>
+              <div class="muted small" style="color: #334155;">${escapeHtml(user.email)}</div>
             </div>
             <span class="avatar">${escapeHtml(user.initials)}</span>
+            <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm px-2 py-1" data-action="logout" title="Cerrar sesión actual" style="font-weight: 600; font-size: 0.82rem;">
+              🚪 Cerrar sesión
+            </button>
           </div>
         </header>
         ${renderView(user)}
