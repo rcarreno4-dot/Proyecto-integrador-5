@@ -1,0 +1,104 @@
+%% Diagrama de clases SIGPRA - b) servidor MVC (controllers, services, SigpraStore)
+classDiagram
+direction LR
+class AuthController {
+  +login(req, res)$
+  +register(req, res)$
+}
+class StateController {
+  +show(req, res)$
+  +replace(req, res)$
+}
+class HealthController {
+  +show(req, res)$
+}
+class PeriodController {
+  +index(req, res)$
+  +store(req, res)$
+}
+class AgreementController {
+  +index(req, res)$
+  +store(req, res)$
+}
+class RequestController {
+  +getRequests(req, res)$
+  +getRequestById(req, res)$
+  +createOrUpdate(req, res)$
+  +review(req, res)$
+}
+class AssignmentController {
+  +index(req, res)$
+  +store(req, res)$
+}
+class TrackingController {
+  +listActivities(req, res)$
+  +createActivity(req, res)$
+  +updateActivity(req, res)$
+  +listVisits(req, res)$
+  +createVisit(req, res)$
+}
+class ReportController {
+  +consolidated(req, res)$
+}
+class AuthService {
+  +login(email, password)$
+  +register(data)$
+}
+class StateService {
+  +show()$
+  +replace(data)$
+}
+class PeriodService {
+  +list()$
+  +create(input)$
+}
+class AgreementService {
+  +list()$
+  +create(input)$
+}
+class AssignmentService {
+  +list()$
+  +create(input)$
+}
+class TrackingService {
+  +listActivities(assignmentId)$
+  +createActivity(input)$
+  +updateActivityStatus(id, status, observation)$
+  +listVisits(assignmentId)$
+  +createVisit(input)$
+}
+class ReportService {
+  +consolidated()$
+}
+class SigpraStore {
+  -data: SigpraData
+  +all() SigpraData
+  +replace(data)
+  +periods() / createPeriod(input)
+  +agreements() / createAgreement(input)
+  +requests(filter) / requestById(id)
+  +createOrUpdateRequest(input, userName)
+  +assignments() / createAssignment(input)
+  +activities() / createActivity(input) / updateActivity(id, input)
+  +visits() / createVisit(input)
+  +audit()
+  -load() SigpraData
+  -persist()
+}
+class SigpraData { <<modelo de datos>> }
+AuthController ..> AuthService
+StateController ..> StateService
+PeriodController ..> PeriodService
+AgreementController ..> AgreementService
+AssignmentController ..> AssignmentService
+TrackingController ..> TrackingService
+ReportController ..> ReportService
+RequestController ..> SigpraStore
+AuthService ..> SigpraStore
+StateService ..> SigpraStore
+PeriodService ..> SigpraStore
+AgreementService ..> SigpraStore
+AssignmentService ..> SigpraStore
+TrackingService ..> SigpraStore
+ReportService ..> SigpraStore
+SigpraStore *-- SigpraData

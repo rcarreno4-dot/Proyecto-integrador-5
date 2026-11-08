@@ -1,0 +1,160 @@
+%% Diagrama de clases SIGPRA - a) modelo de datos (src/models/types.ts)
+classDiagram
+direction TB
+class SigpraData {
+  programs: AcademicProgram[]
+  users: User[]
+  periods: Period[]
+  institutions: Institution[]
+  agreements: Agreement[]
+  places: Place[]
+  assignments: Assignment[]
+  activities: Activity[]
+  evidences: Evidence[]
+  visits: Visit[]
+  requests: PracticeRequest[]
+  audit: AuditEvent[]
+}
+class User {
+  id: number
+  name: string
+  email: string
+  password: string
+  role: Role
+  code?: string
+  semester?: number
+  enabledForAssignment?: boolean
+}
+class Role {
+  <<enumeration>>
+  COORDINADOR
+  ESTUDIANTE
+  DOCENTE_ASESOR
+  DIRECTOR
+}
+class AcademicProgram {
+  id: number
+  name: string
+  levels: string[]
+  active: boolean
+}
+class Period {
+  id: number
+  program: string
+  level: string
+  year: number
+  semester: number
+  start: string
+  end: string
+  reportLimit: string
+  minHours: number
+  status: string
+}
+class RubricCriterion {
+  name: string
+  weight: number
+}
+class Institution {
+  id: number
+  name: string
+  nit: string
+  contact: string
+  phone: string
+  email: string
+  active: boolean
+}
+class Agreement {
+  id: number
+  institutionId: number
+  number: string
+  start: string
+  end: string
+  document: string
+  status: string
+}
+class Place {
+  id: number
+  agreementId: number
+  level: string
+  shift: string
+  offered: number
+  occupied: number
+  tutor: string
+  status: string
+}
+class PracticeRequest {
+  id: number
+  studentId: number
+  periodId: number
+  level: string
+  modality: string
+  status: PracticeRequestStatus
+  submittedAt?: string
+  reviewedBy?: number
+  justification?: string
+}
+class PracticeRequestDocument {
+  name: string
+  type: string
+  uploadedAt: string
+}
+class Assignment {
+  id: number
+  studentId: number
+  teacherId: number
+  placeId: number
+  periodId: number
+  date: string
+  status: string
+  approvedHours: number
+  reassignmentReason?: string
+}
+class Activity {
+  id: number
+  assignmentId: number
+  date: string
+  type: string
+  description: string
+  hours: number
+  status: string
+  observation: string
+}
+class Evidence {
+  id: number
+  activityId: number
+  fileName: string
+  type: string
+  url: string
+  status: string
+}
+class Visit {
+  id: number
+  assignmentId: number
+  teacherId: number
+  date: string
+  mode: string
+  attendance: boolean
+  observation: string
+  score: number
+  status: string
+}
+class AuditEvent {
+  id: number
+  date: string
+  user: string
+  event: string
+  entity: string
+}
+User --> Role
+Period *-- "1..*" RubricCriterion : rubric
+Institution "1" -- "0..*" Agreement
+Agreement "1" -- "1..*" Place
+User "1" -- "0..*" PracticeRequest
+Period "1" -- "0..*" PracticeRequest
+PracticeRequest *-- "0..3" PracticeRequestDocument : documents
+User "1" -- "0..*" Assignment
+Place "1" -- "0..*" Assignment
+Period "1" -- "0..*" Assignment
+Assignment "1" -- "0..*" Activity
+Activity "1" -- "0..*" Evidence
+Assignment "1" -- "0..*" Visit
