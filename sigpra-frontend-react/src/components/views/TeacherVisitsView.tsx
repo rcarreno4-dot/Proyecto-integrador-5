@@ -33,7 +33,13 @@ export const TeacherVisitsView: React.FC = () => {
           <div className="col-md-4"><label className="form-label">Estudiante / asignación</label><select className="form-select" required value={assignmentId} onChange={event => setAssignmentId(event.target.value)} disabled={!myAssignments.length}><option value="">Selecciona estudiante</option>{myAssignments.map(assignment => <option key={assignment.id} value={assignment.id}>{users.find(user => user.id === assignment.studentId)?.name}</option>)}</select></div>
           <div className="col-md-2"><label className="form-label">Fecha de visita</label><input className="form-control" type="date" required value={date} onChange={event => setDate(event.target.value)} /></div>
           <div className="col-md-3"><label className="form-label">Contacto institucional</label><input className="form-control" required value={institutionContact} onChange={event => setInstitutionContact(event.target.value)} /></div>
-          <div className="col-md-3"><label className="form-label">Evaluación (1 a 5)</label><select className="form-select" value={assessment} onChange={event => setAssessment(Number(event.target.value))}>{[1, 2, 3, 4, 5].map(score => <option key={score} value={score}>{score} — {score === 5 ? "Excelente" : score === 1 ? "Insuficiente" : "Satisfactorio"}</option>)}</select></div>
+          <div className="col-md-3"><label className="form-label">Evaluación (1 a 5)</label><select className="form-select" value={assessment} onChange={event => setAssessment(Number(event.target.value))}>
+            <option value={5}>5.0 — Aprobado (Excelente)</option>
+            <option value={4}>4.0 — Aprobado (Bueno)</option>
+            <option value={3}>3.0 — Aprobado con recomendaciones (Aceptable)</option>
+            <option value={2}>2.0 — No aprobado (Insuficiente)</option>
+            <option value={1}>1.0 — No aprobado (Deficiente)</option>
+          </select></div>
           <div className="col-md-10"><label className="form-label">Observaciones y compromisos</label><textarea className="form-control" required rows={2} value={observations} onChange={event => setObservations(event.target.value)} /></div>
           <div className="col-md-2 d-flex align-items-end"><button className="btn btn-primary w-100" type="submit" disabled={!myAssignments.length}>Guardar visita</button></div>
         </div>
@@ -46,7 +52,11 @@ export const TeacherVisitsView: React.FC = () => {
             const assignment = assignments.find(item => item.id === visit.assignmentId);
             const place = places.find(item => item.id === assignment?.placeId);
             const agreement = agreements.find(item => item.id === place?.agreementId);
-            return <tr key={visit.id}><td>{visit.date}</td><td>{users.find(user => user.id === assignment?.studentId)?.name}</td><td>{institutions.find(item => item.id === agreement?.institutionId)?.name}</td><td>{visit.institutionContact}</td><td><span className="badge bg-primary">{visit.assessment} / 5</span></td><td>{visit.observations}</td></tr>;
+            return <tr key={visit.id}><td>{visit.date}</td><td>{users.find(user => user.id === assignment?.studentId)?.name}</td><td>{institutions.find(item => item.id === agreement?.institutionId)?.name}</td><td>{visit.institutionContact}</td><td>
+              <span className={`badge ${visit.assessment >= 3.8 ? 'bg-success' : visit.assessment >= 3.0 ? 'bg-warning text-dark' : 'bg-danger'}`}>
+                {visit.assessment >= 4 ? (visit.assessment === 5 ? "Aprobado (Excelente)" : "Aprobado (Bueno)") : visit.assessment === 3 ? "Aprobado con recomendaciones" : "No aprobado"} ({visit.assessment}/5)
+              </span>
+            </td><td>{visit.observations}</td></tr>;
           })}</tbody>
         </table>
       </div>

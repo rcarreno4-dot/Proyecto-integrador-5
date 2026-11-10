@@ -1797,13 +1797,27 @@ function assignmentsTable(assignments) {
 
 function renderStudentActivities(user) {
   const assignment = data.assignments.find((item) => item.studentId === user.id && item.status === "ACTIVA");
+  const period = assignment ? (data.periods || []).find((p) => p.id === assignment.periodId) : null;
+  const isPeriodClosed = period?.status === "CERRADO";
   const activities = assignment ? data.activities.filter((activity) => activity.assignmentId === assignment.id) : [];
   return `
     <section class="stack">
       <article class="card full">
         <h2>Nueva bitácora de actividades</h2>
         <p class="muted">Registra la actividad realizada, las horas y sus soportes. Puedes guardar un borrador o enviarlo al docente asesor.</p>
-        ${assignment ? modalForm("activity") : `<div class="empty">Necesitas una asignacion activa para registrar actividades.</div>`}
+        ${
+          !assignment
+            ? `<div class="empty">Necesitas una asignacion activa para registrar actividades.</div>`
+            : isPeriodClosed
+            ? `<div class="alert alert-warning border border-warning-subtle d-flex align-items-center gap-2 p-3 rounded-3 my-2">
+                <span class="fs-4">🔒</span>
+                <div>
+                  <strong>Periodo académico cerrado (${escapeHtml(period.program)} ${period.year}-${period.semester}):</strong><br>
+                  Este periodo ha finalizado formalmente y ya no admite nuevos registros ni correcciones de actividades (RF-01). Puedes consultar el historial acumulado en la tabla inferior.
+                </div>
+              </div>`
+            : modalForm("activity")
+        }
       </article>
       <article class="card full">
         <h2>Actividades registradas</h2>
@@ -3025,6 +3039,10 @@ function handleSubmit(form, submitter) {
       toast("No hay una asignacion activa para registrar esta actividad.");
       return;
     }
+    if (period.status === "CERRADO") {
+      alert("Operación bloqueada: El periodo académico de esta práctica ya ha sido cerrado formalmente. No se admiten nuevos registros de actividades.");
+      return;
+    }
     if (existing && (existing.assignmentId !== assignment.id || !["DEVUELTA", "BORRADOR"].includes(existing.status))) {
       toast("Solo puedes corregir tus actividades devueltas o completar borradores.");
       return;
@@ -3156,7 +3174,9 @@ function handleSubmit(form, submitter) {
     }
     const weightedScore = ratings.reduce((sum, rating) => sum + rating.score * rating.weight, 0) / 100;
     const roundedScore = Math.round(weightedScore * 10) / 10;
-    const concept = roundedScore >= 4.5 ? "Excelente" : roundedScore >= 3.8 ? "Bueno" : roundedScore >= 3.0 ? "Aceptable" : "Insuficiente";
+    const qualitative = roundedScore >= 4.5 ? "Excelente" : roundedScore >= 3.8 ? "Bueno" : roundedScore >= 3.0 ? "Aceptable" : "Insuficiente";
+    const officialConcept = roundedScore >= 3.8 ? "Aprobado" : roundedScore >= 3.0 ? "Aprobado con recomendaciones" : "No aprobado";
+    const concept = `${officialConcept} (${qualitative})`;
     data.visits.push({
       id: nextId(data.visits),
       assignmentId: assignment.id,
@@ -3502,6 +3522,16 @@ document.addEventListener("click", async (event) => {
     const periodId = Number(action.dataset.id);
     const period = (data.periods || []).find(p => p.id === periodId);
     if (!period) return;
+
+    // Validación RN-11: Un periodo no se puede cerrar mientras haya actividades pendientes de revisión
+    const periodAssignments = (data.assignments || []).filter(a => a.periodId === periodId);
+    const periodAssignmentIds = periodAssignments.map(a => a.id);
+    const pendingActivities = (data.activities || []).filter(act => periodAssignmentIds.includes(act.assignmentId) && act.status === "PENDIENTE");
+
+    if (pendingActivities.length > 0) {
+      alert(`No es posible cerrar el periodo académico "${period.program} ${period.year}-${period.semester}".\n\nMotivo (Regla RN-11 / RF-01):\nExisten ${pendingActivities.length} actividad(es) de bitácora en estado "PENDIENTE" de revisión por parte de los docentes asesores.\n\nPara cerrar el periodo formalmente, todas las actividades deben haber sido aprobadas, devueltas o rechazadas.`);
+      return;
+    }
 
     if (confirm(`¿Confirma el cierre definitivo del periodo académico "${period.program} ${period.year}-${period.semester}"?\n\nAl cerrar el periodo no se admitirán nuevas radicaciones ni asignaciones para esta cohorte.`)) {
       period.status = "CERRADO";

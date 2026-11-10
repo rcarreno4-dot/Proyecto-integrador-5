@@ -353,7 +353,7 @@ La versión entregada es un prototipo académico y tiene limitaciones que deben 
 | Validación de reglas y roles en el servidor.                             | Validación en el navegador; la API no verifica roles.                              |
 | Soportes guardados en un almacenamiento de archivos.                     | Se guardan el nombre y la ruta prevista, sin subir el archivo.                     |
 | Credenciales institucionales y contraseñas con hash.                     | Cuentas de demostración y registro con contraseñas en texto plano.                 |
-| Un periodo solo se cierra si no hay actividades pendientes (RN-11).      | El cierre no verifica pendientes y un periodo cerrado sigue aceptando actividades. |
+| Cierre formal de periodos académicos (RN-11 / RF-01).                    | Verificado e implementado: el sistema bloquea el cierre si existen actividades pendientes de revisión y deshabilita nuevos registros una vez cerrado. |
 | Solo se asignan estudiantes habilitados por el director (RN-01).         | La lista marca a los no habilitados, pero no impide asignarlos.                    |
 | Notificaciones a los participantes.                                      | Avisos dentro de la aplicación y eventos de auditoría; no se envían correos.       |
 

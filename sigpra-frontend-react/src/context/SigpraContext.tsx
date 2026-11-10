@@ -360,6 +360,17 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const closePeriod = (periodId: number) => {
     const target = periods.find(p => p.id === periodId);
     if (!target) return;
+
+    // Validación RN-11: No se puede cerrar si hay actividades pendientes de revisión
+    const periodAssignments = assignments.filter(a => a.periodId === periodId);
+    const periodAssignmentIds = periodAssignments.map(a => a.id);
+    const pendingActs = activities.filter(act => periodAssignmentIds.includes(act.assignmentId) && act.status === "PENDIENTE");
+
+    if (pendingActs.length > 0) {
+      showToast(`❌ No es posible cerrar: Existen ${pendingActs.length} actividades pendientes de revisión (Regla RN-11).`);
+      return;
+    }
+
     const updated = periods.map(p => p.id === periodId ? { ...p, status: "CERRADO" as const } : p);
     setPeriods(updated);
     localStorage.setItem("sigpra_react_periods", JSON.stringify(updated));
@@ -622,6 +633,13 @@ export const SigpraProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const addActivity = (actData: Omit<Activity, "id">) => {
+    const assignment = assignments.find(a => a.id === actData.assignmentId);
+    const period = periods.find(p => p.id === assignment?.periodId);
+    if (period?.status === "CERRADO") {
+      showToast("❌ No se pueden registrar actividades en un periodo académico cerrado (RF-01).");
+      return;
+    }
+
     const newAct: Activity = {
       ...actData,
       id: Date.now()

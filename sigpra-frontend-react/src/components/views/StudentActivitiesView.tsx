@@ -66,6 +66,15 @@ export const StudentActivitiesView: React.FC = () => {
         <span>Horas aprobadas: <strong>{approvedHours}</strong> / {period?.minHours || 160} h</span>
         <span>Los reportes nuevos quedan pendientes de validación.</span>
       </div>
+      {period?.status === "CERRADO" ? (
+        <div className="alert alert-warning border border-warning-subtle d-flex align-items-center gap-2 p-3 mb-4 rounded-3 shadow-xs">
+          <span className="fs-4">🔒</span>
+          <div>
+            <strong>Periodo académico cerrado ({period.program} {period.year}-{period.semester}):</strong><br />
+            Este periodo académico ha finalizado formalmente y ya no admite nuevos registros ni correcciones de actividades (RF-01). Puedes consultar el historial acumulado en la tabla inferior.
+          </div>
+        </div>
+      ) : (
       <form className="card card-body border-0 shadow-xs mb-4" onSubmit={handleSubmit}>
         <h5 className="fw-bold">{editingActivityId !== null ? "Corregir actividad devuelta" : "Registrar actividad ejecutada"}</h5>
         <div className="row g-3">
@@ -80,6 +89,7 @@ export const StudentActivitiesView: React.FC = () => {
           </div>
         </div>
       </form>
+      )}
       <div className="table-responsive card border-0 shadow-xs">
         <table className="table table-hover align-middle mb-0">
           <thead className="table-light"><tr><th>Fecha</th><th>Actividad</th><th>Descripción / evidencias</th><th>Horas</th><th>Estado</th><th>Observaciones docente</th></tr></thead>
