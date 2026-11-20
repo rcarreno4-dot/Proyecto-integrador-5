@@ -90,21 +90,9 @@ La capa backend se encuentra en `src/`:
 | --- | --- |
 | `src/controllers` | Recibe peticiones HTTP y responde JSON para cada servicio. |
 | `src/services` | Ejecuta reglas de negocio de S1 (Periodos/Convenios), S2 (Asignaciones), S3 (Seguimiento/Visitas), S4 (Reportes) y Autenticacion. |
-| `src/models` | Define tipos TypeScript (`types.ts`), datos demo (`seedData.ts`) y persistencia (`SigpraStore.ts`). |
+| `src/models` | Define tipos TypeScript (`types.ts`), datos iniciales (`seedData.ts`) y persistencia (`SigpraStore.ts`). |
 | `src/routes` | Enrutamiento Express agrupado y documentado por servicio. |
 | `src/postgres` | Adaptador y rutas para modo opcional con PostgreSQL y persistencia JSONB. |
-
-## Usuarios de prueba
-
-| Rol | Correo | Clave |
-| --- | --- | --- |
-| Coordinador | coordinador@udi.edu.co | 123456 |
-| Estudiante | estudiante@udi.edu.co | 123456 |
-| Estudiante | sofia@udi.edu.co | 123456 |
-| Estudiante | daniel@udi.edu.co | 123456 |
-| Estudiante | valentina@udi.edu.co | 123456 |
-| Docente asesor | docente@udi.edu.co | 123456 |
-| Director | director@udi.edu.co | 123456 |
 
 ## Funcionalidades incluidas
 
@@ -121,5 +109,5 @@ La capa backend se encuentra en `src/`:
 
 ## Alcance tecnico
 
-Esta version funciona con un backend API REST en Node.js/Express/TypeScript y conserva modo local de respaldo para demostracion inmediata. Los datos se sincronizan contra la persistencia JSON local del servidor (`data/sigpra-store.json`) o contra PostgreSQL mediante `SIGPRA_STORAGE=postgres` en `.env`.
+Esta version funciona con un backend API REST en Node.js/Express/TypeScript y conserva un modo local de respaldo para cuando la API no responde. Los datos se sincronizan contra la persistencia JSON local del servidor (`data/sigpra-store.json`) o contra PostgreSQL mediante `SIGPRA_STORAGE=postgres` en `.env`.
 >>>>>>> origin/main

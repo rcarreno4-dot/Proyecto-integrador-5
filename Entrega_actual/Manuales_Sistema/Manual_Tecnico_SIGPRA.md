@@ -56,13 +56,13 @@ Es un servidor Node.js con Express 4 escrito en TypeScript 5.4 y organizado con 
 | S4 Informes y auditoría    | ReportController                                  | ReportService                                                      |
 | Transversal                | AuthController, StateController, HealthController | AuthService, StateService                                          |
 
-Todos los servicios leen y escriben por medio de la clase SigpraStore (src/models/SigpraStore.ts), que mantiene el estado en memoria y lo guarda en el archivo JSON. Los tipos del modelo están en src/models/types.ts y los datos de demostración en src/models/seedData.ts.
+Todos los servicios leen y escriben por medio de la clase SigpraStore (src/models/SigpraStore.ts), que mantiene el estado en memoria y lo guarda en el archivo JSON. Los tipos del modelo están en src/models/types.ts y los datos iniciales en src/models/seedData.ts.
 
 ## 2.3 Capa de persistencia
 
 La aplicación tiene dos modos de almacenamiento, que se eligen con SIGPRA_STORAGE:
 
-- **Modo json (por defecto):** el estado completo se guarda en data/sigpra-store.json. El archivo se busca primero en la carpeta desde la que se ejecuta el servidor y luego junto a la carpeta compilada. Si no existe, se parte de los datos de demostración.
+- **Modo json (por defecto):** el estado completo se guarda en data/sigpra-store.json. El archivo se busca primero en la carpeta desde la que se ejecuta el servidor y luego junto a la carpeta compilada. Si no existe, se parte de los datos iniciales.
 
 - **Modo postgres:** el mismo estado se guarda en una sola fila de la tabla sigpra.estado_mvp, en una columna JSONB. Cada cambio se hace dentro de una transacción con bloqueo de fila. Al arrancar, el servidor crea el esquema y la tabla si no existen.
 
@@ -294,7 +294,7 @@ En total son 21 rutas en modo json y 16 en modo postgres. La interfaz entregada 
 ```text
 curl -X POST http://localhost:3000/api/auth/login \
 -H "Content-Type: application/json" \
--d '{"email":"coordinador@udi.edu.co","password":"123456"}'
+-d '{"email":"usuario@udi.edu.co","password":"su-clave"}'
 ```
 
 # 9. Seguridad, roles y auditoría
@@ -340,7 +340,7 @@ La versión entregada es un prototipo académico y tiene limitaciones que deben 
 | Persistencia en el esquema relacional y en MongoDB.                      | Estado en un archivo JSON o en una tabla JSONB.                                    |
 | Validación de reglas y roles en el servidor.                             | Validación en el navegador; la API no verifica roles.                              |
 | Soportes guardados en un almacenamiento de archivos.                     | Se guardan el nombre y la ruta prevista, sin subir el archivo.                     |
-| Credenciales institucionales y contraseñas con hash.                     | Cuentas de demostración y registro con contraseñas en texto plano.                 |
+| Credenciales institucionales y contraseñas con hash.                     | Cuentas creadas en el sistema y registro de estudiantes, con contraseñas en texto plano.                 |
 | Un periodo solo se cierra si no hay actividades pendientes (RN-11).      | El cierre no verifica pendientes y un periodo cerrado sigue aceptando actividades. |
 | Solo se asignan estudiantes habilitados por el director (RN-01).         | La lista marca a los no habilitados, pero no impide asignarlos.                    |
 | Notificaciones a los participantes.                                      | Avisos dentro de la aplicación y eventos de auditoría; no se envían correos.       |
@@ -371,7 +371,7 @@ docker cp ./respaldo_mongo sigpra_mongodb:/tmp/respaldo
 docker exec sigpra_mongodb mongorestore --db sigpra /tmp/respaldo/sigpra
 ```
 
-## 11.4 Restablecer los datos de demostración
+## 11.4 Restablecer los datos iniciales
 
 En modo json, detenga el servidor y borre o renombre data/sigpra-store.json; al arrancar, la aplicación parte de seedData.ts. En modo postgres, borre la fila de sigpra.estado_mvp. Tenga en cuenta que la interfaz también guarda una copia en el localStorage del navegador, que conviene limpiar.
 
@@ -383,7 +383,7 @@ Defina DATABASE_URL en el archivo .env o en el entorno.
 
 ### El servidor dice que existe data/sigpra-store.json y pide SIGPRA_PG_IMPORT_JSON=1.
 
-Es una protección para no reemplazar datos. Defina SIGPRA_PG_IMPORT_JSON=1 para importar el archivo, o retírelo si quiere partir de los datos de demostración.
+Es una protección para no reemplazar datos. Defina SIGPRA_PG_IMPORT_JSON=1 para importar el archivo, o retírelo si quiere partir de los datos iniciales.
 
 ### La interfaz muestra "Modo local".
 

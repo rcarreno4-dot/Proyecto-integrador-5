@@ -16,13 +16,14 @@
 La plataforma funcional está desplegada con certificado SSL HTTPS en:  
 👉 **[https://sigpra-udi.onrender.com](https://sigpra-udi.onrender.com)**
 
-### 👥 Cuentas de Acceso para Demostración:
-| Rol Institucional | Correo Electrónico | Contraseña | Capacidades y Casos de Uso |
-|---|---|---|---|
-| **Coordinador** | `coordinador@udi.edu.co` | `123456` | Programar periodos, gestionar convenios/plazas, asignaciones y analítica. |
-| **Director de Programa** | `director@udi.edu.co` | `123456` | Revisión de solicitudes de práctica (CU-08): ver soportes, aprobar, devolver o rechazar. Consulta de la auditoría. |
-| **Docente Asesor** | `docente@udi.edu.co` | `123456` | Validación pedagógica de actividades, rúbricas y visitas de seguimiento. |
-| **Estudiante Practicante** | `estudiante@udi.edu.co` | `123456` | Solicitud de práctica en 4 pasos, bitácora de actividades y barra de avance frente a las horas mínimas del periodo. |
+### 👥 Roles del sistema
+| Rol | Qué hace en SIGPRA |
+|---|---|
+| **Coordinador de prácticas** | Programa los periodos, gestiona convenios y plazas, asigna practicantes y consulta el consolidado. |
+| **Director de programa** | Revisa las solicitudes de práctica (CU-08): ve los soportes y aprueba, devuelve o rechaza. Consulta el consolidado y la auditoría. |
+| **Docente asesor** | Valida las actividades de sus practicantes y registra las visitas con su evaluación. |
+| **Estudiante practicante** | Solicita la práctica, registra sus actividades con soportes y ve su avance frente a las horas mínimas del periodo. |
+
 
 ---
 
