@@ -26,8 +26,8 @@ La presente entrega incorpora las capturas de pantalla a **Alta Fidelidad (Full 
 | **6** | [`CU-06.png`](./CU-06.png) | **CU-06: Visita de acompañamiento** | Docente Asesor | Registro formal de visitas in situ o remotas con calificación según rúbrica institucional. |
 | **7** | [`CU-07.png`](./CU-07.png) | **CU-07: Consolidado de prácticas** | Coordinación / Dirección | Tablero analítico con buscador en tiempo real, exportación oficial a Excel (CSV) y reporte imprimible UDI. |
 | **8** | [`CU-08.png`](./CU-08.png) | **CU-08: Radicación formal de práctica** | Estudiante | Radicación de prerrequisitos (Matrícula, EPS/ARL, Paz y Salvo) con Stepper interactivo de 4 etapas. |
-| **9** | [`CU-08_Director.png`](./CU-08_Director.png) | **CU-08: Evaluación y dictamen formal** | Director de Programa | Bandeja de dictamen con filtro reactivo, visor apilable de soportes digitales con firma SHA-256 y habilitación formal. |
-| **10** | [`Progreso_160_Horas.png`](./Progreso_160_Horas.png) | **Módulo de Seguimiento Normativo** | Estudiante | Velocímetro y barra de progreso hacia las **160 horas obligatorias** (Decreto 1075 de 2015 del MEN). |
+| **9** | [`CU-08_Director.png`](./CU-08_Director.png) | **CU-08: Evaluación y dictamen formal** | Director de Programa | Bandeja de dictamen con filtro reactivo, visor apilable de soportes digitales con código de verificación y habilitación formal. |
+| **10** | [`Progreso_160_Horas.png`](./Progreso_160_Horas.png) | **Módulo de Seguimiento Normativo** | Estudiante | Velocímetro y barra de progreso hacia las horas mínimas del periodo. |
 
 ---
 
@@ -78,7 +78,7 @@ La presente entrega incorpora las capturas de pantalla a **Alta Fidelidad (Full 
 
 ---
 
-### Módulo de Seguimiento Normativo: Cumplimiento de 160 Horas Obligatorias (Decreto 1075)
+### Módulo de Seguimiento: avance frente a las horas mínimas del periodo
 ![Progreso_160_Horas](./Progreso_160_Horas.png)
 
 ---

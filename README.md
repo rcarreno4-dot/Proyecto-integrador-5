@@ -20,29 +20,31 @@ La plataforma funcional está desplegada con certificado SSL HTTPS en:
 | Rol Institucional | Correo Electrónico | Contraseña | Capacidades y Casos de Uso |
 |---|---|---|---|
 | **Coordinador** | `coordinador@udi.edu.co` | `123456` | Programar periodos, gestionar convenios/plazas, asignaciones y analítica. |
-| **Director de Programa** | `director@udi.edu.co` | `123456` | Bandeja de radicación CU-08, verificación de soportes con firma SHA-256 y dictamen. |
+| **Director de Programa** | `director@udi.edu.co` | `123456` | Revisión de solicitudes de práctica (CU-08): ver soportes, aprobar, devolver o rechazar. Consulta de la auditoría. |
 | **Docente Asesor** | `docente@udi.edu.co` | `123456` | Validación pedagógica de actividades, rúbricas y visitas de seguimiento. |
-| **Estudiante Practicante** | `estudiante@udi.edu.co` | `123456` | Radicación con Stepper de 4 pasos, bitácora diaria y barra de 160 horas obligatorias. |
+| **Estudiante Practicante** | `estudiante@udi.edu.co` | `123456` | Solicitud de práctica en 4 pasos, bitácora de actividades y barra de avance frente a las horas mínimas del periodo. |
 
 ---
 
 ## 📂 Organización del Repositorio
 
-El repositorio se encuentra estructurado en módulos claros y desacoplados:
+Así está organizado el repositorio:
 
 * 📋 [**`Guia_Validacion_Cliente_SIGPRA.md`**](./Guia_Validacion_Cliente_SIGPRA.md): **Guía rápida de sustentación y validación funcional por roles para el cliente y evaluadores**.
 * 📁 [**`Entrega_actual/`**](./Entrega_actual/): **Todos los entregables académicos de la sustentación final** organizados por subcarpetas:
-  * 📄 [**`Documento_Final/`**](./Entrega_actual/Documento_Final/): Documento de propuesta final de 17 puntos según la rúbrica oficial.
+  * 📄 [**`Documento_Final/`**](./Entrega_actual/Documento_Final/): Documento final de la propuesta: análisis, diseño, implementación y anexos.
   * 🔬 [**`Articulo_IEEE/`**](./Entrega_actual/Articulo_IEEE/): Artículo científico en formato oficial IEEE (2 columnas).
   * 📊 [**`Poster_Sustentacion/`**](./Entrega_actual/Poster_Sustentacion/): Póster de defensa en alta resolución (90x120 cm).
-  * 🎬 [**`Guion_Video/`**](./Entrega_actual/Guion_Video/): Guión estructurado y libreto para el video demostrativo funcional.
+  * 🎬 **Video demostrativo**: [https://youtu.be/H5jdoqycu90](https://youtu.be/H5jdoqycu90)
   * 📖 [**`Manuales_Sistema/`**](./Entrega_actual/Manuales_Sistema/): Manual de Usuario por roles y Manual Técnico de arquitectura y APIs.
   * 📝 [**`Actas de seguimiento/`**](./Entrega_actual/Actas%20de%20seguimiento/): Registro formal de las reuniones de seguimiento y avances.
   * 📸 [**`Vistas_actuales_SIGPRA/`**](./Entrega_actual/Vistas_actuales_SIGPRA/): Prototipos de interfaz de alta fidelidad (CU-01 a CU-08).
   * 📐 [**`Diagramas UML/`**](./Entrega_actual/Diagramas%20UML/): Modelos de Arquitectura, Casos de Uso, Secuencia, Clases y Dominio.
-* 💻 [**`Aplicacion_SIGPRA/`**](./Aplicacion_SIGPRA/): Código fuente del aplicativo web SPA con backend Node.js, Express, TypeScript y arquitectura MVC desplegado en Render.
-* 🏗️ [**`Aplicacion completa/`**](./Aplicacion%20completa/): Arquitectura distribuida contenerizada en Docker (Microservicios + bases de datos).
-* 🗄️ [**`Base_de_datos_SIGPRA/`**](./Base_de_datos_SIGPRA/): Scripts de creación de esquemas, tablas, triggers y diagramas Entidad-Relación de PostgreSQL.
+* 💻 [**`Aplicacion_SIGPRA/`**](./Aplicacion_SIGPRA/): Código de la aplicación. La versión entregada y publicada en Render está en [`Primer servicio/`](./Aplicacion_SIGPRA/Primer%20servicio/): una SPA con Bootstrap y un servidor Node.js, Express y TypeScript con patrón MVC. Las carpetas `s1-…` a `s4-…`, `gateway/` y `microservices/` son una versión inicial de los servicios separados y no hacen parte de la versión entregada.
+* ⚛️ [**`sigpra-frontend-react/`**](./sigpra-frontend-react/): Segunda versión de la interfaz en React 18, TypeScript y Vite. Usa la misma API y solo se ejecuta en local (`iniciar_react.bat`).
+* 🏗️ [**`Aplicacion completa/`**](./Aplicacion%20completa/): Prototipo anterior con servicios separados en contenedores Docker. No es la versión entregada (ver la sección 6.5 del documento final).
+* 🐳 [**`docker-compose.yml`**](./docker-compose.yml): Entorno local con la aplicación, PostgreSQL 16 y MongoDB 7.
+* 🗄️ [**`Base_de_datos_SIGPRA/`**](./Base_de_datos_SIGPRA/): Scripts de PostgreSQL (esquema de 16 tablas) y de MongoDB, pruebas CRUD, diccionario de datos y diagramas entidad-relación y relacional.
 * 📦 [**`documentos_alternos/`**](./documentos_alternos/): Respaldos históricos de la primera entrega y prototipo Java/Oracle.
 
 ---
