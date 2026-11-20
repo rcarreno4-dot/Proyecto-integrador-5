@@ -83,6 +83,7 @@ La pantalla de **Inicio** de cada rol muestra tarjetas con los números más imp
 
 **Figura 1.** *Pantalla de inicio de sesión.*
 
+<<<<<<< HEAD
 ## 3.2 Cuentas de demostración
 
 Para pruebas y sustentaciones, la aplicación trae cuentas de demostración. Están en la sección **Cuentas de prueba (desplegar para ingresar)**, debajo del formulario; al desplegarla se puede entrar con un clic. Todas usan la clave 123456.
@@ -96,6 +97,11 @@ Para pruebas y sustentaciones, la aplicación trae cuentas de demostración. Est
 | Docente asesor                   | docente@udi.edu.co                                        | Validación de actividades y visitas              |
 | Estudiante con práctica asignada | estudiante@udi.edu.co                                     | Bitácora, evidencias y avance de horas           |
 | Estudiantes sin asignación       | sofia@udi.edu.co, daniel@udi.edu.co, valentina@udi.edu.co | Solicitud de práctica en distintos estados       |
+=======
+## 3.2 Cuentas de usuario
+
+Las cuentas del coordinador, del director de programa y de los docentes asesores ya vienen creadas en el sistema. Los estudiantes pueden crear la suya desde la pantalla de inicio (sección 3.3). Cada cuenta tiene un solo rol (Tabla 1), que el usuario no elige al entrar, y ese rol define las opciones que ve en el menú.
+>>>>>>> origin/main
 
 ## 3.3 Registro de un estudiante nuevo
 
@@ -173,7 +179,11 @@ Cada jornada de práctica se registra como una actividad con sus soportes.
 
 4.  Haga clic en **Guardar como borrador** para terminar después, o en **Enviar a validacion** para mandarla al docente asesor.
 
+<<<<<<< HEAD
 **Tabla 3.** *Reglas para registrar una actividad*
+=======
+**Tabla 2.** *Reglas para registrar una actividad*
+>>>>>>> origin/main
 
 | **Dato** | **Regla**                                                                                                                 |
 |----------|---------------------------------------------------------------------------------------------------------------------------|
@@ -216,7 +226,11 @@ La bandeja de **Solicitudes de práctica** muestra todas las solicitudes con el 
 
 **Figura 9.** *Ventana de evaluación de una solicitud.*
 
+<<<<<<< HEAD
 **Tabla 4.** *Decisiones sobre una solicitud*
+=======
+**Tabla 3.** *Decisiones sobre una solicitud*
+>>>>>>> origin/main
 
 | **Decisión**             | **Qué pasa**                                                                                          | **Justificación**                                           |
 |--------------------------|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
@@ -260,7 +274,11 @@ El formulario **Programar periodo de practica** se llena en tres etapas:
 
 4.  Haga clic en **Guardar como borrador** o en **Publicar periodo**.
 
+<<<<<<< HEAD
 **Tabla 5.** *Validaciones al guardar o publicar un periodo*
+=======
+**Tabla 4.** *Validaciones al guardar o publicar un periodo*
+>>>>>>> origin/main
 
 | **Regla**                                                                                 | **Cuándo aplica**                                  |
 |-------------------------------------------------------------------------------------------|----------------------------------------------------|
@@ -293,7 +311,11 @@ Para registrar una institución nueva, haga clic en **Nueva institucion** y escr
 
 La aplicación no permite guardar si la fecha de inicio es posterior a la de vencimiento o si ya existe un convenio con el mismo número.
 
+<<<<<<< HEAD
 **Tabla 6.** *Estados de un convenio*
+=======
+**Tabla 5.** *Estados de un convenio*
+>>>>>>> origin/main
 
 | **Estado** | **Significado**                                         | **Sus plazas se ofrecen** |
 |------------|---------------------------------------------------------|---------------------------|
@@ -364,7 +386,11 @@ El menú del docente asesor tiene **Inicio**, **Validar actividades** y **Visita
 
 **Figura 16.** *Revisión de una actividad.*
 
+<<<<<<< HEAD
 **Tabla 7.** *Resultados de la validación*
+=======
+**Tabla 6.** *Resultados de la validación*
+>>>>>>> origin/main
 
 | **Resultado** | **Qué pasa**                                                                           | **Observación** |
 |---------------|----------------------------------------------------------------------------------------|-----------------|
@@ -388,7 +414,11 @@ Para aprobar es necesario marcar la confirmación de revisión y que la activida
 
 La fecha de la visita debe estar dentro del periodo. La aplicación calcula la nota final con los pesos de la rúbrica, la redondea a un decimal y asigna el concepto:
 
+<<<<<<< HEAD
 **Tabla 8.** *Concepto según la nota final*
+=======
+**Tabla 7.** *Concepto según la nota final*
+>>>>>>> origin/main
 
 | **Nota final** | **Concepto** |
 |----------------|--------------|
@@ -401,7 +431,11 @@ Si el estudiante no asistió, la inasistencia queda en el registro de auditoría
 
 # 8. Estados que maneja la aplicación
 
+<<<<<<< HEAD
 **Tabla 9.** *Estados por tipo de registro*
+=======
+**Tabla 8.** *Estados por tipo de registro*
+>>>>>>> origin/main
 
 | **Registro**             | **Estados posibles**                                               |
 |--------------------------|--------------------------------------------------------------------|
