@@ -9,22 +9,23 @@
 * **URL en la Nube (Producción con SSL HTTPS)**: 👉 **[https://sigpra-udi.onrender.com](https://sigpra-udi.onrender.com)**
 * **Repositorio Oficial en GitHub**: [https://github.com/rcarreno4-dot/Proyecto-integrador-5](https://github.com/rcarreno4-dot/Proyecto-integrador-5)
 * **Versión del Sistema**: `v1.0.0-release` (Build `v20261101_v8`)
-* **Marco Normativo Vigente**: **Decreto 1075 de 2015** del Ministerio de Educación Nacional (MEN) — Mínimo de 160 horas obligatorias de práctica pedagógica y profesional (tope máximo configurable de 320 horas).
+* **Marco Normativo Vigente**: **Decreto 1075 de 2015** del Ministerio de Educación Nacional (MEN) — las horas mínimas de práctica las define el coordinador en cada periodo (la aplicación permite hasta 320 horas).
 
-> **💡 Consejo para la demostración:** Si abres la aplicación en el navegador web y deseas asegurar que se cargue la versión más reciente del diseño, presiona **`Ctrl + F5`** (o `Shift + F5`) para una recarga limpia de caché.
+> **💡 Consejo para la sustentación:** Si abres la aplicación en el navegador web y deseas asegurar que se cargue la versión más reciente del diseño, presiona **`Ctrl + F5`** (o `Shift + F5`) para una recarga limpia de caché.
 
 ---
 
-## 👥 2. Cuentas Institucionales para Demostración
+## 👥 2. Roles del sistema
 
-En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista desplegable interactiva **"Cuentas de prueba"**, la cual permite ingresar a cualquiera de los cuatro roles institucionales con **un solo clic**, o digitando las credenciales:
+Cada cuenta tiene un solo rol, que el usuario no elige al entrar. Las cuentas para la validación las entrega el equipo del proyecto; los estudiantes también pueden crear la suya desde la pantalla de inicio.
 
-| Rol Institucional | Correo Institucional | Clave | Misión y Casos de Uso Principales |
-|---|---|:---:|---|
-| **Director de Programa** | `director@udi.edu.co` | `123456` | Dictamen y habilitación formal (CU-08), verificación de soportes documentales con firma SHA-256 y **Auditoría exclusiva**. |
-| **Estudiante Practicante** | `estudiante@udi.edu.co` | `123456` | Radicación con Stepper de 4 pasos, seguimiento en tiempo real, protección de práctica activa y bitácora de 160 horas. |
-| **Coordinador de Prácticas** | `coordinador@udi.edu.co` | `123456` | Periodos académicos (con año dinámico, validación de fechas y tope 320h), convenios, asignación tripartita (CU-03) y reportes. |
-| **Docente Asesor** | `docente@udi.edu.co` | `123456` | Validación formativa de actividades, rúbricas y visitas de acompañamiento en centro de práctica. |
+| Rol | Misión y casos de uso principales |
+|---|---|
+| **Director de Programa** | Dictamen y habilitación formal (CU-08), revisión de los soportes documentales y **Auditoría exclusiva**. |
+| **Estudiante Practicante** | Radicación con Stepper de 4 pasos, seguimiento en tiempo real, protección de práctica activa y bitácora de actividades frente a las horas mínimas del periodo. |
+| **Coordinador de Prácticas** | Periodos académicos (con año dinámico, validación de fechas y tope 320h), convenios, asignación tripartita (CU-03) y reportes. |
+| **Docente Asesor** | Validación formativa de actividades, rúbricas y visitas de acompañamiento en centro de práctica. |
+
 
 ---
 
@@ -90,13 +91,13 @@ En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista d
 ```
 
 ### Paso 1: Prueba del Rol Director de Programa
-1. Ingresar con `director@udi.edu.co` / `123456`.
+1. Ingresar con la cuenta del director.
 2. Observar las **Tarjetas KPI interactivas** (`Por Dictaminar`, `Habilitados`, `En Práctica`, `Avance Reglamentario`).
 3. En el menú lateral, verificar que el Director **SÍ tiene acceso al módulo "Auditoría"**.
 4. En la tabla del Home **"Solicitudes pendientes de dictamen"**, hacer clic en el botón azul **`"🔍 Evaluar"`** de un estudiante pendiente (ej: Ana Francisca o Camila).
 5. Dentro de la ventana emergente:
    - Hacer clic en el botón **`"📄 Ver Soporte"`** al lado de cada documento (Certificado de Matrícula, Afiliación EPS/ARL, Paz y Salvo Académico).
-   - Constatar que se abre el visor con membrete oficial, marca de agua y firma criptográfica SHA-256.
+   - Constatar que se abre el visor con membrete oficial, marca de agua y código de verificación (se genera con el nombre del archivo; no es un hash del contenido).
    - Cerrar el visor con el botón `"Cerrar"` y verificar que la ventana de evaluación permanece abierta intacta sin borrar el formulario.
 6. Probar el dictamen:
    - Si se selecciona **"Aprobar y Habilitar"**, el practicante queda habilitado formalmente en el sistema.
@@ -105,9 +106,9 @@ En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista d
 ---
 
 ### Paso 2: Prueba del Rol Estudiante Practicante
-1. Ingresar con `estudiante@udi.edu.co` / `123456` (o un estudiante con práctica activa como Laura Gómez):
+1. Ingresar con la cuenta del estudiante (o un estudiante con práctica activa como Laura Gómez):
    - **Comprobar la regla de protección**: Como Laura Gómez ya tiene una práctica activa asignada, en el menú lateral **NO aparece la opción "Solicitar práctica"**, evitando radicaciones duplicadas.
-   - Ir a **"Mi avance"**: Observar el velocímetro y la barra de progreso hacia las **160 horas obligatorias**.
+   - Ir a **"Mi avance"**: Observar el velocímetro y la barra de progreso hacia las **horas mínimas del periodo**.
 2. Ingresar con un estudiante nuevo o sin práctica asignada (o registrar uno nuevo):
    - Verificar que **SÍ aparece la opción "Solicitar práctica"** en el menú.
    - En la **Etapa 1**, verificar el selector desplegable de periodos y convocatorias activas.
@@ -118,7 +119,7 @@ En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista d
 ---
 
 ### Paso 3: Prueba del Rol Coordinador de Prácticas
-1. Ingresar con `coordinador@udi.edu.co` / `123456`.
+1. Ingresar con la cuenta del coordinador.
 2. En el menú lateral, constatar que **"Auditoría" ya NO aparece** (es exclusiva de Dirección).
 3. Ir a **"Periodos de práctica"** ➔ **"Nuevo periodo"**:
    - En el Paso 1, comprobar la etiqueta **"Año académico"** con el año actual precargado por defecto.
@@ -138,7 +139,7 @@ En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista d
 ---
 
 ### Paso 4: Prueba del Rol Docente Asesor
-1. Ingresar con `docente@udi.edu.co` / `123456`.
+1. Ingresar con la cuenta del docente asesor.
 2. En el Dashboard, comprobar las tarjetas KPI de estudiantes a cargo y horas validadas.
 3. Ir a **"Validar actividades"**: revisar las actividades pendientes enviadas por los estudiantes y aprobarlas o devolverlas con observaciones pedagógicas.
 4. Ir a **"Visitas y evaluación"**: registrar una visita de acompañamiento institucional con rúbrica ponderada al 100%.
@@ -150,8 +151,8 @@ En la pantalla de inicio de sesión de SIGPRA se encuentra disponible la lista d
 | Requisito Académico | Implementación en SIGPRA | Evidencia en la Aplicación |
 |---|---|---|
 | **Arquitectura de Software** | MVC desacoplado con backend en Node.js, Express, TypeScript y frontend reactivo SPA. | Código en `Aplicacion_SIGPRA/Primer servicio/` y despliegue en Render. |
-| **Seguridad y Control de Roles** | Auditoría exclusiva para Director, firmas SHA-256 para documentos y protección contra solicitudes duplicadas. | Menú dinámico por rol y visor de soportes con sello digital. |
-| **Cumplimiento Normativo MEN** | Decreto 1075 de 2015 (Reglamentación de Prácticas Pedagógicas, Horas Mínimas 160h y tope máximo de 320h). | Semáforo de avance, reportes oficiales y límites en formulario de periodos. |
+| **Seguridad y Control de Roles** | Auditoría exclusiva para Director y protección contra solicitudes duplicadas. | Menú dinámico por rol y visor de soportes con sello digital. |
+| **Cumplimiento Normativo MEN** | Decreto 1075 de 2015 como marco normativo; horas mínimas definidas por el coordinador en cada periodo (máximo 320 h en la aplicación). | Semáforo de avance, reportes oficiales y límites en formulario de periodos. |
 | **Usabilidad y Accesibilidad** | Búsqueda bajo demanda, exportación fiel de tablas HTML, impresión oficial focalizada y modales apilables. | Interfaz Bootstrap 5 responsive móvil/escritorio. |
 
 ---
