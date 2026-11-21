@@ -678,7 +678,6 @@ function render() {
         <div class="sidebar-footer">
           <strong>${escapeHtml(user.name)}</strong>
           <p class="muted">${escapeHtml(roleLabel(user.role))}</p>
-          <p class="api-status">${escapeHtml(apiStatusText)}</p>
           <button class="btn btn-outline-secondary button" data-action="logout">Cerrar sesion</button>
         </div>
       </aside>
@@ -984,14 +983,14 @@ function renderLogin() {
         ` : `
           <!-- FORMULARIO DE INICIO DE SESIÓN -->
           <h2>Iniciar sesion</h2>
-          <p class="muted">Usa una cuenta de prueba o ingresa tu correo institucional.</p>
+          <p class="muted">Ingresa con tu correo institucional y contraseña.</p>
 
           <form id="login-form" class="form-grid">
             <label class="full-field">Correo institucional
-              <input class="form-control" name="email" type="email" value="coordinador@udi.edu.co" required />
+              <input class="form-control" name="email" type="email" placeholder="ejemplo@udi.edu.co" autocomplete="username" required />
             </label>
             <label class="full-field">Clave
-              <input class="form-control" name="password" type="password" value="123456" required />
+              <input class="form-control" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
             </label>
             <button class="btn btn-primary button primary full-field" type="submit">Entrar</button>
           </form>
@@ -1002,28 +1001,6 @@ function renderLogin() {
               📝 Registrar nueva cuenta de estudiante
             </button>
           </div>
-
-          <details class="demo-users-dropdown">
-            <summary class="demo-users-summary">
-              <span class="demo-users-summary-content">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Cuentas de prueba (desplegar para ingresar)</span>
-              </span>
-              <span class="dropdown-arrow">▼</span>
-            </summary>
-            <div class="demo-users-list">
-              ${data.users
-                .filter((user) => ["COORDINADOR", "ESTUDIANTE", "DOCENTE_ASESOR", "DIRECTOR"].includes(user.role))
-                .slice(0, 4)
-                .map((user) => `<button class="btn btn-light text-start demo-user-btn" data-login="${user.email}" type="button"><div class="demo-btn-header"><strong>${escapeHtml(roleLabel(user.role))}</strong><span class="badge bg-primary-subtle text-primary border border-primary-subtle">Ingresar</span></div><span class="muted small">${escapeHtml(user.email)}</span></button>`)
-                .join("")}
-            </div>
-          </details>
         `}
       </section>
     </main>
@@ -3474,16 +3451,6 @@ document.addEventListener("change", (event) => {
 });
 
 document.addEventListener("click", async (event) => {
-  const login = event.target.closest("[data-login]");
-  if (login) {
-    const demoUser = data.users.find((item) => item.email === login.dataset.login);
-    const user = await loginWithApi(login.dataset.login, demoUser?.password || "123456");
-    saveSession(user);
-    currentView = "dashboard";
-    render();
-    return;
-  }
-
   const view = event.target.closest("[data-view]");
   if (view) {
     currentView = view.dataset.view;

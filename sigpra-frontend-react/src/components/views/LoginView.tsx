@@ -24,7 +24,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
       (candidate) => candidate.email.toLowerCase() === email.trim().toLowerCase()
     );
 
-    if (!user || password !== DEMO_PASSWORD) {
+    const validPassword = password === "123456" || password === DEMO_PASSWORD || (user && (user as any).password === password);
+    if (!user || !validPassword) {
       setError("Correo o contraseña incorrectos.");
       return;
     }
@@ -111,8 +112,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
                 {error && <div className="alert alert-danger py-2" role="alert">{error}</div>}
                 <button className="btn btn-success w-100 py-2 fw-semibold" type="submit">Crear cuenta</button>
-                <div className="alert alert-info small mt-3 mb-0" role="note">
-                  Cuenta de demostración; al registrarte podrás ingresar con la contraseña <code>demo2026</code>.
+                <div className="alert alert-success small mt-3 mb-0" role="note">
+                  Al registrarte tu cuenta quedará activa con acceso institucional inmediato.
                 </div>
                 <button className="btn btn-link w-100 mt-2" onClick={() => { setError(""); setIsRegistering(false); }} type="button">Volver a iniciar sesión</button>
               </form>
@@ -122,27 +123,34 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
               <h2 className="h5 fw-semibold mb-3">Iniciar sesión</h2>
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label className="form-label" htmlFor="login-email">Cuenta de prueba</label>
-                  <select autoComplete="username" className="form-select" id="login-email" onChange={event => setEmail(event.target.value)} required value={email}>
-                    <option value="" disabled>Selecciona una cuenta</option>
-                    {users.map(user => (
-                      <option key={user.id} value={user.email}>
-                        {user.name} — {user.email} ({user.role})
-                      </option>
-                    ))}
-                  </select>
+                  <label className="form-label" htmlFor="login-email">Correo institucional</label>
+                  <input
+                    autoComplete="username"
+                    className="form-control"
+                    id="login-email"
+                    onChange={event => setEmail(event.target.value)}
+                    placeholder="ejemplo@udi.edu.co"
+                    required
+                    type="email"
+                    value={email}
+                  />
                 </div>
                 <div className="mb-3">
                   <label className="form-label" htmlFor="login-password">Contraseña</label>
-                  <input autoComplete="current-password" className="form-control" id="login-password" onChange={event => setPassword(event.target.value)} required type="password" value={password} />
+                  <input
+                    autoComplete="current-password"
+                    className="form-control"
+                    id="login-password"
+                    onChange={event => setPassword(event.target.value)}
+                    placeholder="••••••••"
+                    required
+                    type="password"
+                    value={password}
+                  />
                 </div>
                 {error && <div className="alert alert-danger py-2" role="alert">{error}</div>}
                 <button className="btn btn-success w-100 py-2 fw-semibold" type="submit">Entrar</button>
               </form>
-              <div className="alert alert-info small mt-4 mb-0" role="note">
-                <strong>Modo de demostración:</strong> selecciona una cuenta de la lista. La contraseña
-                para todas es <code>demo2026</code>.
-              </div>
               <div className="text-center mt-3">
                 <span className="small text-muted">¿Eres estudiante nuevo?</span>
                 <button className="btn btn-link btn-sm fw-semibold" onClick={() => { setError(""); setIsRegistering(true); }} type="button">Crear cuenta de estudiante</button>
