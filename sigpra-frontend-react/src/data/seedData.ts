@@ -9,8 +9,7 @@ export const initialUsers: User[] = [
   { id: 6, name: "Prof. Martha Pinzón", email: "martha@udi.edu.co", role: "DOCENTE_ASESOR", initials: "MP" },
   { id: 7, name: "Sofía Martínez", email: "sofia@udi.edu.co", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8 },
   { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8 },
-  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 },
-  { id: 10, name: "Ana Francisca", email: "jobixiita@gmail.com", role: "ESTUDIANTE", initials: "AF", code: "UDI-2026-006", semester: 8 }
+  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 }
 ];
 
 export const initialPeriods: Period[] = [

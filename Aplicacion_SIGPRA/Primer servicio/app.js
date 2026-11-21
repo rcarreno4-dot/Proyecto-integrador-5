@@ -1,4 +1,5 @@
-const STORAGE_KEY = "sigpra_mvp_data_v1";
+const STORAGE_KEY = "sigpra_mvp_data_v2";
+try { localStorage.removeItem("sigpra_mvp_data_v1"); } catch {}
 const SESSION_KEY = "sigpra_mvp_session_v1";
 const API_BASE = "/api";
 
@@ -7,16 +8,13 @@ let apiStatusText = "Modo local";
 let syncTimer = null;
 
 const additionalDemoStudents = [
-  { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8 },
-  { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8 },
-  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8 },
-  { id: 10, name: "ana francisca", email: "jobixiita@gmail.com", password: "123456", role: "ESTUDIANTE", initials: "AF", code: "udi 2026", semester: 8 }
+  { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8, enabledForAssignment: true },
+  { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8, enabledForAssignment: false },
+  { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8, enabledForAssignment: false }
 ];
 
 const additionalDemoPlaces = [
-  { id: 3, agreementId: 1, level: "Practica pedagogica VIII", shift: "TARDE", offered: 4, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" },
-  { id: 4, agreementId: 1, level: "Practica pedagogica VIII", shift: "MIXTA", offered: 3, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" },
-  { id: 5, agreementId: 2, level: "Practica pedagogica VIII", shift: "MANANA", offered: 5, occupied: 0, tutor: "Paula Vargas", status: "DISPONIBLE" }
+  { id: 3, agreementId: 1, level: "Practica pedagogica VIII", shift: "TARDE", offered: 4, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" }
 ];
 
 const seedData = {
@@ -223,24 +221,6 @@ const seedData = {
       createdAt: "2026-08-21 15:30",
       updatedAt: "2026-08-22 09:00"
     },
-    {
-      id: 6,
-      studentId: 10,
-      periodId: 1,
-      level: "VIII semestre",
-      modality: "Convenio institucional",
-      placeId: 2,
-      status: "PENDIENTE_REVISION",
-      documents: {
-        matricula: { name: "matricula_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" },
-        epsArl: { name: "eps_arl_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" },
-        pazYSalvo: { name: "paz_y_salvo_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" }
-      },
-      comments: "hacer mi practica",
-      submittedAt: "2026-10-27 03:52",
-      createdAt: "2026-10-27 03:52",
-      updatedAt: "2026-10-27 03:52"
-    }
   ],
   audit: [
     { id: 1, date: "2026-09-13 10:00", user: "Sistema", event: "Carga inicial de datos demo", entity: "APP" }

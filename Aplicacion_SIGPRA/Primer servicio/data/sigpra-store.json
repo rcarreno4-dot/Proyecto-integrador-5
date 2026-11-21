@@ -16,7 +16,8 @@
       "role": "ESTUDIANTE",
       "initials": "LG",
       "code": "UDI-2026-001",
-      "semester": 8
+      "semester": 8,
+      "enabledForAssignment": true
     },
     {
       "id": 3,
@@ -42,7 +43,8 @@
       "role": "ESTUDIANTE",
       "initials": "MR",
       "code": "UDI-2026-002",
-      "semester": 8
+      "semester": 8,
+      "enabledForAssignment": true
     },
     {
       "id": 6,
@@ -60,7 +62,8 @@
       "role": "ESTUDIANTE",
       "initials": "SM",
       "code": "UDI-2026-003",
-      "semester": 8
+      "semester": 8,
+      "enabledForAssignment": true
     },
     {
       "id": 8,
@@ -81,18 +84,35 @@
       "role": "ESTUDIANTE",
       "initials": "VR",
       "code": "UDI-2026-005",
-      "semester": 8
-    },
-    {
-      "id": 10,
-      "name": "ana francisca",
-      "email": "jobixiita@gmail.com",
-      "password": "123456",
-      "role": "ESTUDIANTE",
-      "initials": "AF",
-      "code": "udi 2026",
       "semester": 8,
       "enabledForAssignment": false
+    }
+  ],
+  "programs": [
+    {
+      "id": 1,
+      "name": "Ingenieria de Sistemas",
+      "levels": [
+        "Practica profesional"
+      ],
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Licenciatura en Pedagogia",
+      "levels": [
+        "Practica I",
+        "Practica II"
+      ],
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Licenciatura en Educacion Infantil",
+      "levels": [
+        "VIII semestre"
+      ],
+      "active": true
     }
   ],
   "periods": [
@@ -125,32 +145,6 @@
           "weight": 15
         }
       ]
-    },
-    {
-      "id": 2,
-      "program": "sebarcar",
-      "level": "PRACTICA VII",
-      "year": 2026,
-      "semester": 2,
-      "start": "2026-10-13",
-      "end": "2026-10-29",
-      "reportLimit": "2026-10-29",
-      "minHours": 20,
-      "status": "PUBLICADO",
-      "rubric": [
-        {
-          "name": "Cumplimiento de horas",
-          "weight": 40
-        },
-        {
-          "name": "Validacion de actividades",
-          "weight": 30
-        },
-        {
-          "name": "Visita de acompanamiento",
-          "weight": 30
-        }
-      ]
     }
   ],
   "institutions": [
@@ -170,24 +164,6 @@
       "contact": "Paula Vargas",
       "phone": "607 555 7788",
       "email": "practicas@aprender.org",
-      "active": true
-    },
-    {
-      "id": 3,
-      "name": "RAFAEL FABIAN CARREÑO BARRERA",
-      "nit": "46554654",
-      "contact": "asfa",
-      "phone": "3163249812",
-      "email": "rcarreno4@udi.edu.co",
-      "active": true
-    },
-    {
-      "id": 4,
-      "name": "UDI",
-      "nit": "46554654",
-      "contact": "asfa",
-      "phone": "3163249812",
-      "email": "rcarreno4@udi.edu.co",
       "active": true
     }
   ],
@@ -209,24 +185,6 @@
       "end": "2026-12-15",
       "status": "VIGENTE",
       "document": "convenio-aprender.pdf"
-    },
-    {
-      "id": 3,
-      "institutionId": 3,
-      "number": "3174641354",
-      "start": "2026-10-15",
-      "end": "2026-10-29",
-      "document": "Seguimiento_Individual.docx",
-      "status": "INACTIVA"
-    },
-    {
-      "id": 4,
-      "institutionId": 4,
-      "number": "31746413544",
-      "start": "2026-10-22",
-      "end": "2026-10-30",
-      "document": "Propuesta_SIGPRA_Segunda_Entrega (1).docx",
-      "status": "VIGENTE"
     }
   ],
   "places": [
@@ -259,46 +217,6 @@
       "occupied": 0,
       "tutor": "Sandra Perez",
       "status": "DISPONIBLE"
-    },
-    {
-      "id": 4,
-      "agreementId": 1,
-      "level": "Practica pedagogica VIII",
-      "shift": "MIXTA",
-      "offered": 3,
-      "occupied": 0,
-      "tutor": "Sandra Perez",
-      "status": "DISPONIBLE"
-    },
-    {
-      "id": 5,
-      "agreementId": 2,
-      "level": "Practica pedagogica VIII",
-      "shift": "MANANA",
-      "offered": 5,
-      "occupied": 0,
-      "tutor": "Paula Vargas",
-      "status": "DISPONIBLE"
-    },
-    {
-      "id": 6,
-      "agreementId": 3,
-      "level": "frances",
-      "shift": "MANANA",
-      "offered": 18,
-      "occupied": 1,
-      "tutor": "fabian",
-      "status": "INACTIVA"
-    },
-    {
-      "id": 7,
-      "agreementId": 4,
-      "level": "PORTUGUES",
-      "shift": "NOCHE",
-      "offered": 30,
-      "occupied": 0,
-      "tutor": "FRANSUA",
-      "status": "DISPONIBLE"
     }
   ],
   "assignments": [
@@ -321,18 +239,6 @@
       "date": "2026-08-21",
       "status": "ACTIVA",
       "approvedHours": 42
-    },
-    {
-      "id": 3,
-      "studentId": 7,
-      "teacherId": 3,
-      "placeId": 6,
-      "periodId": 1,
-      "date": "2026-10-11",
-      "status": "ACTIVA",
-      "approvedHours": 0,
-      "reassignedFrom": null,
-      "reassignmentReason": ""
     }
   ],
   "activities": [
@@ -400,152 +306,11 @@
       "status": "REGISTRADA"
     }
   ],
-  "audit": [
-    {
-      "id": 15,
-      "date": "26/10/2026, 10:52:32 p. m.",
-      "user": "ana francisca",
-      "event": "Radicó solicitud formal de práctica #6 ",
-      "entity": "SOLICITUD"
-    },
-    {
-      "id": 14,
-      "date": "26/10/2026, 10:51:57 p. m.",
-      "user": "Sistema",
-      "event": "Registro de nuevo estudiante practicante (jobixiita@gmail.com)",
-      "entity": "USUARIO"
-    },
-    {
-      "id": 13,
-      "date": "26/10/2026, 10:30:52 p. m.",
-      "user": "Director Programa",
-      "event": "Rechazó solicitud de práctica #4: no cumple con los parámetros",
-      "entity": "SOLICITUD"
-    },
-    {
-      "id": 12,
-      "date": "11/10/2026, 1:10:25 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Creo un periodo de practica",
-      "entity": "PERIODO_PRACTICA"
-    },
-    {
-      "id": 11,
-      "date": "11/10/2026, 1:09:43 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Elimino programa academico",
-      "entity": "PROGRAMA_ACADEMICO"
-    },
-    {
-      "id": 10,
-      "date": "11/10/2026, 1:09:38 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Registro programa academico",
-      "entity": "PROGRAMA_ACADEMICO"
-    },
-    {
-      "id": 9,
-      "date": "11/10/2026, 1:09:16 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Actualizo programa academico",
-      "entity": "PROGRAMA_ACADEMICO"
-    },
-    {
-      "id": 8,
-      "date": "11/10/2026, 1:08:59 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Registro programa academico",
-      "entity": "PROGRAMA_ACADEMICO"
-    },
-    {
-      "id": 7,
-      "date": "11/10/2026, 12:51:59 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Asignacion preparada para Sofia Martinez, docente Martha Rodriguez e institucion RAFAEL FABIAN CARREÑO BARRERA; verificar notificacion externa",
-      "entity": "NOTIFICACION"
-    },
-    {
-      "id": 6,
-      "date": "11/10/2026, 12:51:59 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Creo una asignacion de practica",
-      "entity": "ASIGNACION"
-    },
-    {
-      "id": 5,
-      "date": "11/10/2026, 12:48:30 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Registro un convenio y sus plazas",
-      "entity": "CONVENIO_PLAZA"
-    },
-    {
-      "id": 4,
-      "date": "11/10/2026, 12:47:33 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Registro una institucion",
-      "entity": "INSTITUCION"
-    },
-    {
-      "id": 3,
-      "date": "11/10/2026, 12:38:29 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Registro un convenio y sus plazas",
-      "entity": "CONVENIO_PLAZA"
-    },
-    {
-      "id": 2,
-      "date": "11/10/2026, 12:37:31 p. m.",
-      "user": "Rafael Carreno",
-      "event": "Registro una institucion",
-      "entity": "INSTITUCION"
-    },
-    {
-      "id": 1,
-      "date": "2026-09-13 10:00",
-      "user": "Sistema",
-      "event": "Carga inicial de datos demo",
-      "entity": "APP"
-    }
-  ],
-  "programs": [
-    {
-      "id": 1,
-      "name": "Ingenieria de Sistemas",
-      "levels": [
-        "Practica profesional II"
-      ],
-      "active": true
-    },
-    {
-      "id": 2,
-      "name": "Licenciatura en Pedagogia",
-      "levels": [
-        "Practica I",
-        "Practica II"
-      ],
-      "active": true
-    },
-    {
-      "id": 3,
-      "name": "Licenciatura en Educacion Infantil",
-      "levels": [
-        "VIII semestre"
-      ],
-      "active": true
-    },
-    {
-      "id": 4,
-      "name": "sebarcar",
-      "levels": [
-        "PRACTICA VII"
-      ],
-      "active": true
-    }
-  ],
   "requests": [
     {
       "id": 1,
       "studentId": 2,
+      "studentName": "Laura Gomez",
       "periodId": 1,
       "level": "VIII semestre",
       "modality": "Convenio institucional",
@@ -579,6 +344,7 @@
     {
       "id": 2,
       "studentId": 5,
+      "studentName": "Miguel Rios",
       "periodId": 1,
       "level": "VIII semestre",
       "modality": "Convenio institucional",
@@ -612,11 +378,12 @@
     {
       "id": 3,
       "studentId": 7,
+      "studentName": "Sofia Martinez",
       "periodId": 1,
       "level": "VIII semestre",
       "modality": "Convenio institucional",
       "placeId": 3,
-      "status": "PENDIENTE_REVISION",
+      "status": "APROBADA",
       "documents": {
         "matricula": {
           "name": "matricula_sofia.pdf",
@@ -634,19 +401,23 @@
           "uploadedAt": "2026-08-22"
         }
       },
-      "comments": "Solicitud pendiente de revision por Director de Programa.",
+      "comments": "Solicitud aprobada y habilitada para asignación de plaza.",
       "submittedAt": "2026-08-22 15:40",
+      "reviewedAt": "2026-08-23 10:00",
+      "reviewedBy": 4,
+      "justification": "Documentación en regla y 100% verificada.",
       "createdAt": "2026-08-22 15:00",
-      "updatedAt": "2026-08-22 15:40"
+      "updatedAt": "2026-08-23 10:00"
     },
     {
       "id": 4,
       "studentId": 8,
+      "studentName": "Daniel Torres",
       "periodId": 1,
       "level": "VIII semestre",
       "modality": "Practica autogestionada",
       "suggestedCompany": "Colegio Bilingüe San José",
-      "status": "RECHAZADA",
+      "status": "BORRADOR",
       "documents": {
         "matricula": {
           "name": "matricula_daniel.pdf",
@@ -656,18 +427,16 @@
       },
       "comments": "Borrador en curso. Pendiente anexar paz y salvo académico.",
       "createdAt": "2026-08-23 11:20",
-      "updatedAt": "2026-08-23 11:25",
-      "reviewedAt": "2026-10-27 03:30",
-      "reviewedBy": 4,
-      "justification": "no cumple con los parámetros"
+      "updatedAt": "2026-08-23 11:25"
     },
     {
       "id": 5,
       "studentId": 9,
+      "studentName": "Valentina Ruiz",
       "periodId": 1,
       "level": "VIII semestre",
       "modality": "Convenio institucional",
-      "placeId": 4,
+      "placeId": 3,
       "status": "DEVUELTA",
       "documents": {
         "matricula": {
@@ -693,37 +462,43 @@
       "justification": "El paz y salvo académico adjunto corresponde al periodo 2026-1. Debe adjuntar el paz y salvo vigente para 2026-2.",
       "createdAt": "2026-08-21 15:30",
       "updatedAt": "2026-08-22 09:00"
+    }
+  ],
+  "audit": [
+    {
+      "id": 1,
+      "date": "2026-08-18 09:30",
+      "user": "Laura Gomez",
+      "event": "Radicó solicitud formal de práctica (CU-08)",
+      "entity": "SOLICITUD"
     },
     {
-      "id": 6,
-      "studentId": 10,
-      "periodId": 1,
-      "level": "VIII semestre",
-      "modality": "Convenio institucional",
-      "placeId": 2,
-      "suggestedCompany": "",
-      "status": "PENDIENTE_REVISION",
-      "documents": {
-        "matricula": {
-          "name": "matricula_ana_francisca.pdf",
-          "type": "application/pdf",
-          "uploadedAt": "2026-10-27 03:52"
-        },
-        "epsArl": {
-          "name": "eps_arl_ana_francisca.pdf",
-          "type": "application/pdf",
-          "uploadedAt": "2026-10-27 03:52"
-        },
-        "pazYSalvo": {
-          "name": "paz_y_salvo_ana_francisca.pdf",
-          "type": "application/pdf",
-          "uploadedAt": "2026-10-27 03:52"
-        }
-      },
-      "comments": "hacer mi practica",
-      "submittedAt": "2026-10-27 03:52",
-      "createdAt": "2026-10-27 03:52",
-      "updatedAt": "2026-10-27 03:52"
+      "id": 2,
+      "date": "2026-08-19 14:15",
+      "user": "Director Programa",
+      "event": "Aprobó solicitud de práctica #1 y habilitó estudiante",
+      "entity": "SOLICITUD"
+    },
+    {
+      "id": 3,
+      "date": "2026-08-22 09:00",
+      "user": "Director Programa",
+      "event": "Devolvió solicitud #5 por documento desactualizado",
+      "entity": "SOLICITUD"
+    },
+    {
+      "id": 4,
+      "date": "2026-08-22 15:40",
+      "user": "Sofia Martinez",
+      "event": "Radicó solicitud formal de práctica (CU-08)",
+      "entity": "SOLICITUD"
+    },
+    {
+      "id": 5,
+      "date": "2026-08-23 10:00",
+      "user": "Director Programa",
+      "event": "Aprobó solicitud de práctica #3 y habilitó a Sofia Martinez",
+      "entity": "SOLICITUD"
     }
   ]
 }

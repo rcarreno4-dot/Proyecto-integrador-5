@@ -8,10 +8,9 @@ export const seedData: SigpraData = {
     { id: 4, name: "Director Programa", email: "director@udi.edu.co", password: "123456", role: "DIRECTOR", initials: "DP" },
     { id: 5, name: "Miguel Rios", email: "miguel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "MR", code: "UDI-2026-002", semester: 8, enabledForAssignment: true },
     { id: 6, name: "Carlos Mendoza", email: "docente2@udi.edu.co", password: "123456", role: "DOCENTE_ASESOR", initials: "CM" },
-    { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8, enabledForAssignment: false },
+    { id: 7, name: "Sofia Martinez", email: "sofia@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "SM", code: "UDI-2026-003", semester: 8, enabledForAssignment: true },
     { id: 8, name: "Daniel Torres", email: "daniel@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "DT", code: "UDI-2026-004", semester: 8, enabledForAssignment: false },
-    { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8, enabledForAssignment: false },
-    { id: 10, name: "ana francisca", email: "jobixiita@gmail.com", password: "123456", role: "ESTUDIANTE", initials: "AF", code: "udi 2026", semester: 8, enabledForAssignment: false }
+    { id: 9, name: "Valentina Ruiz", email: "valentina@udi.edu.co", password: "123456", role: "ESTUDIANTE", initials: "VR", code: "UDI-2026-005", semester: 8, enabledForAssignment: false }
   ],
   programs: [
     { id: 1, name: "Ingenieria de Sistemas", levels: ["Practica profesional"], active: true },
@@ -49,9 +48,7 @@ export const seedData: SigpraData = {
   places: [
     { id: 1, agreementId: 1, level: "Practica pedagogica VIII", shift: "MANANA", offered: 12, occupied: 1, tutor: "Sandra Perez", status: "DISPONIBLE" },
     { id: 2, agreementId: 2, level: "Practica pedagogica VIII", shift: "TARDE", offered: 6, occupied: 1, tutor: "Paula Vargas", status: "DISPONIBLE" },
-    { id: 3, agreementId: 1, level: "Practica pedagogica VIII", shift: "TARDE", offered: 4, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" },
-    { id: 4, agreementId: 1, level: "Practica pedagogica VIII", shift: "MIXTA", offered: 3, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" },
-    { id: 5, agreementId: 2, level: "Practica pedagogica VIII", shift: "MANANA", offered: 5, occupied: 0, tutor: "Paula Vargas", status: "DISPONIBLE" }
+    { id: 3, agreementId: 1, level: "Practica pedagogica VIII", shift: "TARDE", offered: 4, occupied: 0, tutor: "Sandra Perez", status: "DISPONIBLE" }
   ],
   assignments: [
     { id: 1, studentId: 2, teacherId: 3, placeId: 1, periodId: 1, date: "2026-08-20", status: "ACTIVA", approvedHours: 96 },
@@ -166,24 +163,6 @@ export const seedData: SigpraData = {
       createdAt: "2026-08-21 15:30",
       updatedAt: "2026-08-22 09:00"
     },
-    {
-      id: 6,
-      studentId: 10,
-      periodId: 1,
-      level: "VIII semestre",
-      modality: "Convenio institucional",
-      placeId: 2,
-      status: "PENDIENTE_REVISION",
-      documents: {
-        matricula: { name: "matricula_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" },
-        epsArl: { name: "eps_arl_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" },
-        pazYSalvo: { name: "paz_y_salvo_ana_francisca.pdf", type: "application/pdf", uploadedAt: "2026-10-27 03:52" }
-      },
-      comments: "hacer mi practica",
-      submittedAt: "2026-10-27 03:52",
-      createdAt: "2026-10-27 03:52",
-      updatedAt: "2026-10-27 03:52"
-    }
   ],
   audit: [
     { id: 1, date: "2026-08-18 09:30", user: "Laura Gomez", event: "Radicó solicitud formal de práctica (CU-08)", entity: "SOLICITUD" },
