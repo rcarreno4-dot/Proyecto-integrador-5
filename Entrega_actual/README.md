@@ -14,7 +14,7 @@ Este directorio consolida todos los componentes documentales, académicos y de d
 | **3** | [**`Poster_Sustentacion/`**](./Poster_Sustentacion/) | Póster académico de defensa oficial (90x120 cm). | `.pptx`, `.pdf` |
 | **4** | Video demostrativo | [https://youtu.be/x-PVk2pGT7g](https://youtu.be/x-PVk2pGT7g) | YouTube |
 | **5** | [**`Manuales_Sistema/`**](./Manuales_Sistema/) | [Manual de Usuario](./Manuales_Sistema/Manual_Usuario_SIGPRA.docx), [Manual Técnico](./Manuales_Sistema/Manual_Tecnico_SIGPRA.docx) y **[Guía de Validación para el Cliente](./Manuales_Sistema/Guia_Validacion_Cliente_SIGPRA.md)**. | `.docx`, `.md` |
-| **6** | [**`Actas de seguimiento/`**](./Actas%20de%20seguimiento/) | Actas de reuniones de seguimiento del semestre (incluyendo 26 y 27 de octubre). | `.docx`, `.md` |
+| **6** | [**`Actas de seguimiento/`**](./Actas%20de%20seguimiento/) | Actas de reuniones de seguimiento del semestre (incluyendo 26 y 27 de octubre, y 22 de noviembre). | `.docx`, `.md` |
 | **7** | [**`Vistas_actuales_SIGPRA/`**](./Vistas_actuales_SIGPRA/) | Capturas de la aplicación publicada (CU-01 a CU-08 y avance de horas del estudiante). | `.png`, `.md` |
 | **8** | [**`Diagramas UML/`**](./Diagramas%20UML/) | Diagramas de Arquitectura, Casos de Uso, Secuencia, Clases y Dominio (.asta y .png). | `.png`, `.asta`, `.md` |
 
