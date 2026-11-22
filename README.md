@@ -24,6 +24,13 @@ La plataforma funcional está desplegada con certificado SSL HTTPS en:
 | **Docente asesor** | Valida las actividades de sus practicantes y registra las visitas con su evaluación. |
 | **Estudiante practicante** | Solicita la práctica, registra sus actividades con soportes y ve su avance frente a las horas mínimas del periodo. |
 
+### 🔑 Usuarios de prueba por rol
+| Rol | Correo | Clave |
+|---|---|---|
+| Coordinador | coordinador@udi.edu.co | 123456 |
+| Estudiante Practicante | estudiante@udi.edu.co | 123456 |
+| Docente Asesor | docente@udi.edu.co | 123456 |
+| Director de Programa | director@udi.edu.co | 123456 |
 
 ---
 
@@ -36,8 +43,8 @@ Así está organizado el repositorio:
   * 📄 [**`Documento_Final/`**](./Entrega_actual/Documento_Final/): Documento final de la propuesta: análisis, diseño, implementación y anexos.
   * 🔬 [**`Articulo_IEEE/`**](./Entrega_actual/Articulo_IEEE/): Artículo científico en formato oficial IEEE (2 columnas).
   * 📊 [**`Poster_Sustentacion/`**](./Entrega_actual/Poster_Sustentacion/): Póster de defensa en alta resolución (90x120 cm).
-  * 🎬 **Video demostrativo**: [https://youtu.be/H5jdoqycu90](https://youtu.be/H5jdoqycu90)
-  * 📖 [**`Manuales_Sistema/`**](./Entrega_actual/Manuales_Sistema/): Manual de Usuario por roles y Manual Técnico de arquitectura y APIs.
+  * 🎬 **Video demostrativo**: [https://youtu.be/x-PVk2pGT7g](https://youtu.be/x-PVk2pGT7g)
+  * 📖 [**`Manuales_Sistema/`**](./Entrega_actual/Manuales_Sistema/): [Manual de Usuario](./Entrega_actual/Manuales_Sistema/Manual_Usuario_SIGPRA.docx) por roles y [Manual Técnico](./Entrega_actual/Manuales_Sistema/Manual_Tecnico_SIGPRA.docx) de arquitectura y APIs.
   * 📝 [**`Actas de seguimiento/`**](./Entrega_actual/Actas%20de%20seguimiento/): Registro formal de las reuniones de seguimiento y avances.
   * 📸 [**`Vistas_actuales_SIGPRA/`**](./Entrega_actual/Vistas_actuales_SIGPRA/): Prototipos de interfaz de alta fidelidad (CU-01 a CU-08).
   * 📐 [**`Diagramas UML/`**](./Entrega_actual/Diagramas%20UML/): Modelos de Arquitectura, Casos de Uso, Secuencia, Clases y Dominio.

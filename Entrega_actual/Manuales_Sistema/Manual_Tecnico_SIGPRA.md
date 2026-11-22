@@ -11,194 +11,6 @@ SIGPRA – Software Integral de Gestión de Prácticas Académicas
 *Arquitectura, instalación, configuración y operación – versión 1.0*
 
 Proyecto Integrador V – Quinto semestre
-<<<<<<< HEAD
-
-Ingeniería del Software II · Programación III · Teoría General de Sistemas
-
-Jesús Daniel Rueda Castillo
-
-Alonso Andrés Henao Roa
-
-Rafael Fabián Carreño Barrera
-
-Bucaramanga, noviembre de 2026
-
-**Contenido**
-
-# 1. Propósito y alcance
-
-Este manual describe cómo está construida la versión entregada de SIGPRA y cómo se instala, se configura, se despliega y se mantiene. Está dirigido a quien tenga que ejecutar la aplicación, revisar su código o continuar su desarrollo.
-
-Todo lo que aparece aquí corresponde a la versión del repositorio https://github.com/rcarreno4-dot/Proyecto-integrador-5, rama main. Cuando el diseño del proyecto y la implementación no coinciden, el manual lo dice de forma explícita; el resumen de esas diferencias está en el capítulo 10.
-
-# 2. Arquitectura de la versión entregada
-
-El diseño de SIGPRA es orientado a servicios: cuatro servicios (S1 planeación y convenios, S2 asignación de prácticas, S3 ejecución y seguimiento, S4 informes y auditoría) que se comunican por REST con mensajes JSON. En la versión entregada esos servicios están implementados como **módulos de un mismo servidor**, cada uno con su grupo de rutas bajo /api. La Figura 1 muestra la arquitectura que realmente se ejecuta.
-
-**Figura 1.** *Arquitectura de la versión entregada.*
-
-## 2.1 Capa de presentación
-
-Es una aplicación de una sola página (SPA) escrita en HTML5, JavaScript y Bootstrap 5.3.8. Está en tres archivos de la carpeta Aplicacion_SIGPRA/Primer servicio: index.html, app.js (unas 4.700 líneas, con todas las vistas por rol) y styles.css. El servidor entrega estos archivos sin caché para que el navegador siempre cargue la última versión.
-
-La interfaz carga el estado con GET /api/state y guarda los cambios enviando el estado completo con PUT /api/state. Si el servidor no responde, entra en **Modo local** y trabaja con una copia guardada en el localStorage del navegador. Las reglas de negocio de los formularios (fechas, horas, cupos, pesos de la rúbrica, justificaciones) se validan en el navegador.
-
-## 2.2 Capa de negocio
-
-Es un servidor Node.js con Express 4 escrito en TypeScript 5.4 y organizado con el patrón MVC. El punto de entrada es src/server.ts, que crea la aplicación definida en src/app.ts. Esta registra CORS, el lector de JSON (límite de 2 MB), el enrutador de la API y los archivos estáticos. Según la variable SIGPRA_STORAGE, la API usa el enrutador del modo JSON (src/routes/index.ts) o el del modo PostgreSQL (src/postgres/routes.ts).
-
-**Tabla 1.** *Componentes del servidor por servicio del diseño*
-
-| **Servicio**               | **Controladores**                                 | **Servicios**                                                      |
-|----------------------------|---------------------------------------------------|--------------------------------------------------------------------|
-| S1 Planeación y convenios  | PeriodController, AgreementController             | PeriodService, AgreementService                                    |
-| S2 Asignación de prácticas | AssignmentController, RequestController           | AssignmentService (RequestController usa SigpraStore directamente) |
-| S3 Ejecución y seguimiento | TrackingController                                | TrackingService                                                    |
-| S4 Informes y auditoría    | ReportController                                  | ReportService                                                      |
-| Transversal                | AuthController, StateController, HealthController | AuthService, StateService                                          |
-
-Todos los servicios leen y escriben por medio de la clase SigpraStore (src/models/SigpraStore.ts), que mantiene el estado en memoria y lo guarda en el archivo JSON. Los tipos del modelo están en src/models/types.ts y los datos de demostración en src/models/seedData.ts.
-
-## 2.3 Capa de persistencia
-
-La aplicación tiene dos modos de almacenamiento, que se eligen con SIGPRA_STORAGE:
-
-- **Modo json (por defecto):** el estado completo se guarda en data/sigpra-store.json. El archivo se busca primero en la carpeta desde la que se ejecuta el servidor y luego junto a la carpeta compilada. Si no existe, se parte de los datos de demostración.
-
-- **Modo postgres:** el mismo estado se guarda en una sola fila de la tabla sigpra.estado_mvp, en una columna JSONB. Cada cambio se hace dentro de una transacción con bloqueo de fila. Al arrancar, el servidor crea el esquema y la tabla si no existen.
-
-El esquema relacional de 16 tablas y las tres colecciones de MongoDB (capítulo 7) están diseñados, montados y probados, pero la aplicación todavía no lee ni escribe en ellos tabla por tabla.
-
-## 2.4 Diagramas de clases
-
-La Figura 2 muestra el modelo de datos que maneja el servidor y la Figura 3 la organización de controladores, servicios y almacenamiento. Las fuentes editables de ambos diagramas están en Entrega_actual/Diagramas UML/Clases y modelos editables (archivos .mmd, formato Mermaid).
-
-**Figura 2.** *Diagrama de clases: modelo de datos (src/models/types.ts).*
-
-**Figura 3.** *Diagrama de clases: controladores, servicios y SigpraStore.*
-
-# 3. Estructura del repositorio
-
-**Tabla 2.** *Carpetas principales del repositorio*
-
-| **Carpeta o archivo**                                                                    | **Contenido**                                                                                                                                        |
-|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Aplicacion_SIGPRA/Primer servicio/                                                       | Aplicación entregada: servidor (src/), interfaz (index.html, app.js, styles.css), recursos (assets/, vendor/bootstrap/), datos (data/) y Dockerfile. |
-| Base_de_datos_SIGPRA/                                                                    | Scripts de PostgreSQL y MongoDB, pruebas CRUD, diccionario de datos e imágenes de los modelos.                                                       |
-| sigpra-frontend-react/                                                                   | Segunda interfaz en React 18, TypeScript y Vite que consume la misma API. Solo se ejecuta en local.                                                  |
-| docker-compose.yml                                                                       | Entorno local con la aplicación, PostgreSQL 16 y MongoDB 7.                                                                                          |
-| render.yaml                                                                              | Configuración del servicio publicado en Render.                                                                                                      |
-| Entrega_actual/                                                                          | Entregables académicos: documento final, diagramas UML, manuales, artículo, póster, actas y capturas.                                                |
-| Aplicacion_SIGPRA/s1-…, s2-…, s3-…, s4-…, gateway/, microservices/; Aplicacion completa/ | Versiones iniciales de servicios separados y un prototipo con contenedores. No hacen parte de la versión entregada.                                  |
-| documentos_alternos/                                                                     | Respaldos de entregas anteriores y de un prototipo de escritorio en Java y Oracle.                                                                   |
-
-## 3.1 Estructura de la aplicación entregada
-
-> Aplicacion_SIGPRA/Primer servicio/
->
-> ├── src/
->
-> │ ├── server.ts punto de entrada
->
-> │ ├── app.ts configuración de Express
->
-> │ ├── routes/index.ts rutas del modo json
->
-> │ ├── postgres/ rutas y estado del modo postgres
->
-> │ ├── controllers/ 9 controladores
->
-> │ ├── services/ 7 servicios
->
-> │ └── models/ types.ts, seedData.ts, SigpraStore.ts
->
-> ├── index.html, app.js, styles.css interfaz (SPA)
->
-> ├── assets/ logo e ilustraciones
->
-> ├── vendor/bootstrap/ Bootstrap 5.3.8 local
->
-> ├── scripts/copy-bootstrap.cjs
->
-> ├── data/sigpra-store.json estado en modo json
->
-> ├── .env.example
->
-> ├── Dockerfile
->
-> └── package.json
-
-# 4. Tecnologías y dependencias
-
-**Tabla 3.** *Tecnologías de la versión entregada*
-
-| **Tecnología** | **Versión**   | **Uso**                                                                |
-|----------------|---------------|------------------------------------------------------------------------|
-| Node.js        | 20            | Entorno de ejecución del servidor (imagen node:20-alpine en Docker).   |
-| Express        | 4.18          | Servidor HTTP y enrutamiento de la API.                                |
-| TypeScript     | 5.4           | Lenguaje del servidor; se compila a dist/ con tsc.                     |
-| pg             | 8.13          | Cliente de PostgreSQL para el modo postgres.                           |
-| cors, dotenv   | 2.8 / 16.4    | CORS y lectura del archivo .env.                                       |
-| tsx            | 4.7           | Ejecución en desarrollo con recarga automática.                        |
-| Bootstrap      | 5.3.8         | Estilos y componentes de la interfaz, servidos desde vendor/bootstrap. |
-| PostgreSQL     | 16            | Esquema relacional y modo de almacenamiento postgres.                  |
-| MongoDB        | 7             | Colecciones documentales (montadas y probadas aparte).                 |
-| Docker Compose | —             | Entorno local con la aplicación y las dos bases de datos.              |
-| Render         | plan gratuito | Publicación de la aplicación con HTTPS.                                |
-
-## 4.1 Scripts de npm
-
-**Tabla 4.** *Scripts definidos en package.json*
-
-| **Comando**   | **Qué hace**                                                                                    |
-|---------------|-------------------------------------------------------------------------------------------------|
-| npm install   | Instala dependencias. Al terminar, ejecuta postinstall, que copia Bootstrap a vendor/bootstrap. |
-| npm run dev   | Ejecuta src/server.ts con tsx y recarga al guardar cambios.                                     |
-| npm run build | Copia Bootstrap y compila TypeScript a dist/.                                                   |
-| npm start     | Ejecuta la versión compilada (node dist/server.js).                                             |
-
-# 5. Configuración
-
-La configuración se hace con variables de entorno. En local se pueden poner en un archivo .env dentro de Aplicacion_SIGPRA/Primer servicio (hay un ejemplo en .env.example).
-
-**Tabla 5.** *Variables de entorno*
-
-| **Variable**          | **Valor por defecto** | **Descripción**                                                                                                                                                                             |
-|-----------------------|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| PORT                  | 3000                  | Puerto del servidor HTTP.                                                                                                                                                                   |
-| SIGPRA_STORAGE        | json                  | Modo de almacenamiento: json o postgres.                                                                                                                                                    |
-| DATABASE_URL          | —                     | Cadena de conexión a PostgreSQL. Obligatoria en modo postgres. Ejemplo: postgresql://postgres:CLAVE@localhost:5432/sigpra.                                                                  |
-| SIGPRA_PG_IMPORT_JSON | sin definir           | En modo postgres, si existe data/sigpra-store.json y la tabla todavía está vacía, el servidor se niega a arrancar para no reemplazar datos. Con 1, importa ese archivo como estado inicial. |
-| NODE_ENV              | —                     | Render y Docker la ponen en production. La aplicación no cambia su comportamiento por esta variable.                                                                                        |
-
-|                                                                                                                          |
-|--------------------------------------------------------------------------------------------------------------------------|
-| **Nota:** la aplicación no usa ninguna variable de conexión a MongoDB, porque todavía no se conecta a esa base de datos. |
-
-# 6. Instalación y despliegue
-
-## 6.1 Ejecución local con Node.js
-
-Requisitos: Node.js 20 y npm.
-
-> git clone https://github.com/rcarreno4-dot/Proyecto-integrador-5.git
->
-> cd "Proyecto-integrador-5/Aplicacion_SIGPRA/Primer servicio"
->
-> npm install
->
-> npm run build
->
-> npm start \# o, en desarrollo: npm run dev
-
-La aplicación queda en http://localhost:3000 en modo json. Para usar PostgreSQL, cree la base de datos, defina SIGPRA_STORAGE=postgres y DATABASE_URL en el archivo .env y arranque de nuevo. Al conectarse, el servidor muestra el mensaje "SIGPRA: PostgreSQL conectado".
-
-## 6.2 Entorno local con Docker Compose
-
-Desde la raíz del repositorio:
-
-> docker compose up -d --build
-=======
 
 Ingeniería del Software II · Programación III · Teoría General de Sistemas
 
@@ -373,7 +185,6 @@ Desde la raíz del repositorio:
 ```text
 docker compose up -d --build
 ```
->>>>>>> origin/main
 
 **Tabla 6.** *Contenedores definidos en docker-compose.yml*
 
@@ -381,15 +192,9 @@ docker compose up -d --build
 |-----------------|-------------------------------------------------|------------|----------------------------------------------------------------------------------------------------------------|
 | sigpra_app      | Construida con el Dockerfile de Primer servicio | 3000       | Modo json por defecto. Monta Primer servicio/data en /app/data.                                                |
 | sigpra_postgres | postgres:16-alpine                              | 5432       | Base sigpra, usuario postgres. Carga postgresql_schema.sql al crearse el volumen. Tiene verificación de salud. |
-| sigpra_mongodb  | mongo:7.0                                       | 27017      | Base sigpra. Carga mongodb_collections.js al crearse el volumen.                                               |
+| sigpra_mongodb  | mongo:7.0                                       | 27017      | El script mongodb_collections.js, que se carga al crearse el volumen, crea las colecciones en la base sigpra_documental. |
 
-<<<<<<< HEAD
-|                                                                                                                                                                                                                                                                                                                                                                               |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Nota:** para que el contenedor de la aplicación use PostgreSQL, cambie SIGPRA_STORAGE a postgres en docker-compose.yml. Como la carpeta data ya contiene sigpra-store.json, agregue también SIGPRA_PG_IMPORT_JSON=1 la primera vez, o el servidor no arrancará. La contraseña de PostgreSQL del archivo es solo para desarrollo y debe cambiarse en cualquier otro entorno. |
-=======
 > **Nota:** para que el contenedor de la aplicación use PostgreSQL, cambie SIGPRA_STORAGE a postgres en docker-compose.yml. Como la carpeta data ya contiene sigpra-store.json, agregue también SIGPRA_PG_IMPORT_JSON=1 la primera vez, o el servidor no arrancará. La contraseña de PostgreSQL del archivo es solo para desarrollo y debe cambiarse en cualquier otro entorno.
->>>>>>> origin/main
 
 ## 6.3 Despliegue en Render
 
@@ -408,30 +213,19 @@ El servicio publicado se define en render.yaml, en la raíz del repositorio:
 
 Cada cambio en la rama conectada vuelve a desplegar el servicio. En el plan gratuito el disco es efímero: los cambios hechos en la aplicación publicada se pierden cuando el servicio se reinicia o se vuelve a desplegar, y el estado vuelve a ser el de data/sigpra-store.json del repositorio. Además, el servicio se suspende cuando no se usa por un tiempo y tarda cerca de un minuto en responder la primera solicitud.
 
-<<<<<<< HEAD
-=======
 ![Despliegue en Render y en el entorno local con Docker Compose](imagenes_manual_tecnico/despliegue_render_docker.png)
 
->>>>>>> origin/main
 **Figura 4.** *Despliegue en Render y en el entorno local con Docker Compose. El contenedor de MongoDB se levanta, pero la aplicación todavía no se conecta a él.*
 
 ## 6.4 Interfaz en React (opcional)
 
 La carpeta sigpra-frontend-react tiene una segunda interfaz en React 18, TypeScript y Vite. Con el servidor corriendo en el puerto 3000, se ejecuta así (en Windows también con iniciar_react.bat):
 
-<<<<<<< HEAD
-> cd sigpra-frontend-react
->
-> npm install
->
-> npm run dev \# abre http://localhost:5173
-=======
 ```text
 cd sigpra-frontend-react
 npm install
 npm run dev # abre http://localhost:5173
 ```
->>>>>>> origin/main
 
 Vite redirige las solicitudes de /api al puerto 3000. Esta interfaz no está publicada en Render.
 
@@ -497,19 +291,11 @@ En total son 21 rutas en modo json y 16 en modo postgres. La interfaz entregada 
 
 ### Ejemplo
 
-<<<<<<< HEAD
-> curl -X POST http://localhost:3000/api/auth/login \\
->
-> -H "Content-Type: application/json" \\
->
-> -d '{"email":"coordinador@udi.edu.co","password":"123456"}'
-=======
 ```text
 curl -X POST http://localhost:3000/api/auth/login \
 -H "Content-Type: application/json" \
--d '{"email":"usuario@udi.edu.co","password":"su-clave"}'
+-d '{"email":"coordinador@udi.edu.co","password":"123456"}'
 ```
->>>>>>> origin/main
 
 # 9. Seguridad, roles y auditoría
 
@@ -554,12 +340,7 @@ La versión entregada es un prototipo académico y tiene limitaciones que deben 
 | Persistencia en el esquema relacional y en MongoDB.                      | Estado en un archivo JSON o en una tabla JSONB.                                    |
 | Validación de reglas y roles en el servidor.                             | Validación en el navegador; la API no verifica roles.                              |
 | Soportes guardados en un almacenamiento de archivos.                     | Se guardan el nombre y la ruta prevista, sin subir el archivo.                     |
-<<<<<<< HEAD
-| Credenciales institucionales y contraseñas con hash.                     | Cuentas de demostración y registro con contraseñas en texto plano.                 |
-=======
 | Credenciales institucionales y contraseñas con hash.                     | Cuentas creadas en el sistema y registro de estudiantes, con contraseñas en texto plano.                 |
->>>>>>> origin/main
-| Un periodo solo se cierra si no hay actividades pendientes (RN-11).      | El cierre no verifica pendientes y un periodo cerrado sigue aceptando actividades. |
 | Solo se asignan estudiantes habilitados por el director (RN-01).         | La lista marca a los no habilitados, pero no impide asignarlos.                    |
 | Notificaciones a los participantes.                                      | Avisos dentro de la aplicación y eventos de auditoría; no se envían correos.       |
 
@@ -571,31 +352,6 @@ Basta con copiar el archivo data/sigpra-store.json con el servidor detenido. Par
 
 ## 11.2 PostgreSQL (entorno Docker Compose)
 
-<<<<<<< HEAD
-> \# Respaldo
->
-> docker exec sigpra_postgres pg_dump -U postgres -d sigpra -F c -f /tmp/sigpra.dump
->
-> docker cp sigpra_postgres:/tmp/sigpra.dump ./sigpra.dump
->
-> \# Restauración
->
-> docker cp ./sigpra.dump sigpra_postgres:/tmp/sigpra.dump
->
-> docker exec sigpra_postgres pg_restore -U postgres -d sigpra --clean /tmp/sigpra.dump
-
-## 11.3 MongoDB (entorno Docker Compose)
-
-> docker exec sigpra_mongodb mongodump --db sigpra --out /tmp/respaldo
->
-> docker cp sigpra_mongodb:/tmp/respaldo ./respaldo_mongo
->
-> docker cp ./respaldo_mongo sigpra_mongodb:/tmp/respaldo
->
-> docker exec sigpra_mongodb mongorestore --db sigpra /tmp/respaldo/sigpra
-
-## 11.4 Restablecer los datos de demostración
-=======
 ```text
 # Respaldo
 docker exec sigpra_postgres pg_dump -U postgres -d sigpra -F c -f /tmp/sigpra.dump
@@ -608,14 +364,13 @@ docker exec sigpra_postgres pg_restore -U postgres -d sigpra --clean /tmp/sigpra
 ## 11.3 MongoDB (entorno Docker Compose)
 
 ```text
-docker exec sigpra_mongodb mongodump --db sigpra --out /tmp/respaldo
+docker exec sigpra_mongodb mongodump --db sigpra_documental --out /tmp/respaldo
 docker cp sigpra_mongodb:/tmp/respaldo ./respaldo_mongo
 docker cp ./respaldo_mongo sigpra_mongodb:/tmp/respaldo
-docker exec sigpra_mongodb mongorestore --db sigpra /tmp/respaldo/sigpra
+docker exec sigpra_mongodb mongorestore --db sigpra_documental /tmp/respaldo/sigpra_documental
 ```
 
 ## 11.4 Restablecer los datos iniciales
->>>>>>> origin/main
 
 En modo json, detenga el servidor y borre o renombre data/sigpra-store.json; al arrancar, la aplicación parte de seedData.ts. En modo postgres, borre la fila de sigpra.estado_mvp. Tenga en cuenta que la interfaz también guarda una copia en el localStorage del navegador, que conviene limpiar.
 
@@ -627,11 +382,7 @@ Defina DATABASE_URL en el archivo .env o en el entorno.
 
 ### El servidor dice que existe data/sigpra-store.json y pide SIGPRA_PG_IMPORT_JSON=1.
 
-<<<<<<< HEAD
-Es una protección para no reemplazar datos. Defina SIGPRA_PG_IMPORT_JSON=1 para importar el archivo, o retírelo si quiere partir de los datos de demostración.
-=======
 Es una protección para no reemplazar datos. Defina SIGPRA_PG_IMPORT_JSON=1 para importar el archivo, o retírelo si quiere partir de los datos iniciales.
->>>>>>> origin/main
 
 ### La interfaz muestra "Modo local".
 
