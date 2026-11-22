@@ -93,7 +93,6 @@ La Figura 2 muestra el modelo de datos que maneja el servidor y la Figura 3 la o
 | render.yaml                                                                              | Configuración del servicio publicado en Render.                                                                                                      |
 | Entrega_actual/                                                                          | Entregables académicos: documento final, diagramas UML, manuales, artículo, póster, actas y capturas.                                                |
 | Aplicacion_SIGPRA/s1-…, s2-…, s3-…, s4-…, gateway/, microservices/; Aplicacion completa/ | Versiones iniciales de servicios separados y un prototipo con contenedores. No hacen parte de la versión entregada.                                  |
-| documentos_alternos/                                                                     | Respaldos de entregas anteriores y de un prototipo de escritorio en Java y Oracle.                                                                   |
 
 ## 3.1 Estructura de la aplicación entregada
 

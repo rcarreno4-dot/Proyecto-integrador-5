@@ -1,5 +1,0 @@
-// Alternativa para trabajar en equipo local con Oracle XE:
-// Reemplazar temporalmente la URL en src/gestionpracticas/util/ConexionBD.java por:
-"jdbc:oracle:thin:@localhost:1521:XE"
-// Usuario: PROYECTOJD
-// Contraseña: PROYECTOJD

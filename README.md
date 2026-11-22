@@ -38,7 +38,7 @@ La plataforma funcional está desplegada con certificado SSL HTTPS en:
 
 Así está organizado el repositorio:
 
-* 📋 [**`Guia_Validacion_Cliente_SIGPRA.md`**](./Guia_Validacion_Cliente_SIGPRA.md): **Guía rápida de sustentación y validación funcional por roles para el cliente y evaluadores**.
+* 📋 [**`Guia_Validacion_Cliente_SIGPRA.md`**](./Entrega_actual/Manuales_Sistema/Guia_Validacion_Cliente_SIGPRA.md): **Guía rápida de sustentación y validación funcional por roles para el cliente y evaluadores**.
 * 📁 [**`Entrega_actual/`**](./Entrega_actual/): **Todos los entregables académicos de la sustentación final** organizados por subcarpetas:
   * 📄 [**`Documento_Final/`**](./Entrega_actual/Documento_Final/): Documento final de la propuesta: análisis, diseño, implementación y anexos.
   * 🔬 [**`Articulo_IEEE/`**](./Entrega_actual/Articulo_IEEE/): Artículo científico en formato oficial IEEE (2 columnas).
@@ -53,7 +53,6 @@ Así está organizado el repositorio:
 * 🏗️ [**`Aplicacion completa/`**](./Aplicacion%20completa/): Prototipo anterior con servicios separados en contenedores Docker. No es la versión entregada (ver la sección 6.5 del documento final).
 * 🐳 [**`docker-compose.yml`**](./docker-compose.yml): Entorno local con la aplicación, PostgreSQL 16 y MongoDB 7.
 * 🗄️ [**`Base_de_datos_SIGPRA/`**](./Base_de_datos_SIGPRA/): Scripts de PostgreSQL (esquema de 16 tablas) y de MongoDB, pruebas CRUD, diccionario de datos y diagramas entidad-relación y relacional.
-* 📦 [**`documentos_alternos/`**](./documentos_alternos/): Respaldos históricos de la primera entrega y prototipo Java/Oracle.
 
 ---
 
