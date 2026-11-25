@@ -2144,41 +2144,43 @@ input[type="radio"] {
 }
 
 .sigpra-logo-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
 
 .navidad-hat {
   display: none;
-  position: absolute;
-  top: -12px;
-  left: -8px;
-  font-size: 20px;
-  line-height: 1;
-  pointer-events: none;
-  transform: rotate(-15deg);
+  position: absolute !important;
+  top: -8px !important;
+  left: 50% !important;
+  transform: translateX(-50%) rotate(-10deg) !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
   animation: hatBounce 2.5s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
   user-select: none;
 }
 
 .navidad-hat-login {
-  top: -16px;
-  left: -10px;
-  font-size: 26px;
+  top: -10px !important;
+  font-size: 22px !important;
 }
 
 body.navidad-active .navidad-hat {
-  display: block;
+  display: block !important;
 }
 
 @keyframes hatBounce {
   0%, 100% {
-    transform: rotate(-15deg) translateY(0);
+    transform: translateX(-50%) rotate(-10deg) translateY(0);
   }
   50% {
-    transform: rotate(-8deg) translateY(-2px);
+    transform: translateX(-50%) rotate(-5deg) translateY(-2px);
   }
 }
 
@@ -2236,5 +2238,11 @@ body.navidad-active .navidad-hat {
 body.navidad-active .topbar {
   border-bottom: 2px solid transparent;
   border-image: linear-gradient(90deg, #10b981, #ef4444, #10b981) 1;
+}
+
+body.navidad-active .login-card {
+  position: relative !important;
+  border-top: 4px solid #dc2626 !important;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12), 0 0 18px rgba(16, 185, 129, 0.2) !important;
 }
 

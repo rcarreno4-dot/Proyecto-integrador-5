@@ -34,16 +34,20 @@ function startSnowAnimation() {
   window.addEventListener("resize", resizeCanvas);
 
   snowflakes = [];
-  const count = Math.min(65, Math.floor(window.innerWidth / 22));
+  const count = Math.min(80, Math.floor(window.innerWidth / 18));
   for (let i = 0; i < count; i++) {
+    const isCrystal = i % 4 === 0;
     snowflakes.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      radius: Math.random() * 2.8 + 1.2,
-      speedY: Math.random() * 1.3 + 0.6,
+      radius: isCrystal ? Math.random() * 2.5 + 3.5 : Math.random() * 2.5 + 1.8,
+      speedY: Math.random() * 1.3 + 0.65,
       speedX: Math.random() * 0.8 - 0.4,
-      opacity: Math.random() * 0.55 + 0.35,
-      sway: Math.random() * Math.PI * 2
+      opacity: Math.random() * 0.35 + 0.65,
+      sway: Math.random() * Math.PI * 2,
+      isCrystal: isCrystal,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.03
     });
   }
 
@@ -55,22 +59,41 @@ function startSnowAnimation() {
     for (let i = 0; i < snowflakes.length; i++) {
       const f = snowflakes[i];
       f.sway += 0.015;
-      f.x += Math.sin(f.sway) * 0.6 + f.speedX;
+      f.x += Math.sin(f.sway) * 0.65 + f.speedX;
       f.y += f.speedY;
+      if (f.rot !== undefined) f.rot += f.rotSpeed;
 
-      if (f.y > canvas.height) {
-        f.y = -10;
+      if (f.y > canvas.height + 15) {
+        f.y = -15;
         f.x = Math.random() * canvas.width;
       }
-      if (f.x > canvas.width + 10) f.x = -10;
-      if (f.x < -10) f.x = canvas.width + 10;
+      if (f.x > canvas.width + 15) f.x = -15;
+      if (f.x < -15) f.x = canvas.width + 15;
 
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, false);
-      ctx.fillStyle = `rgba(255, 255, 255, ${f.opacity})`;
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = "rgba(147, 197, 253, 0.45)";
-      ctx.fill();
+      ctx.save();
+      if (f.isCrystal) {
+        ctx.translate(f.x, f.y);
+        ctx.rotate(f.rot);
+        ctx.font = `bold ${Math.round(f.radius * 3.2)}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.strokeStyle = `rgba(2, 132, 199, ${f.opacity * 0.9})`;
+        ctx.lineWidth = 1.2;
+        ctx.strokeText("❄", 0, 0);
+        ctx.fillStyle = `rgba(240, 249, 255, ${f.opacity})`;
+        ctx.fillText("❄", 0, 0);
+      } else {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, false);
+        ctx.fillStyle = `rgba(248, 250, 252, ${f.opacity})`;
+        ctx.strokeStyle = `rgba(2, 132, 199, ${f.opacity * 0.8})`;
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = `rgba(14, 165, 233, ${f.opacity * 0.85})`;
+        ctx.stroke();
+        ctx.fill();
+      }
+      ctx.restore();
     }
     snowAnimationId = requestAnimationFrame(draw);
   }
@@ -757,8 +780,8 @@ function render() {
       <aside class="sidebar">
         <div class="brand d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <div class="sigpra-logo-wrap position-relative">
-              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="34" height="34" />
+            <div class="sigpra-logo-wrap position-relative" style="display:inline-block; position:relative; width:34px; height:34px;">
+              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="34" height="34" style="display:block;" />
               <span class="navidad-hat" title="¡Feliz Navidad!">🎅</span>
             </div>
             <div>
@@ -1018,10 +1041,10 @@ function renderLogin() {
       </section>
 
       <section class="login-card">
-        <div class="brand login-brand d-flex align-items-center justify-content-between">
+        <div class="brand login-brand d-flex align-items-center justify-content-between mb-3">
           <div class="d-flex align-items-center gap-2">
-            <div class="sigpra-logo-wrap position-relative">
-              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="login-logo" width="48" height="48" />
+            <div class="sigpra-logo-wrap position-relative" style="display:inline-block; position:relative; width:48px; height:48px;">
+              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="login-logo" width="48" height="48" style="display:block;" />
               <span class="navidad-hat navidad-hat-login" title="¡Feliz Navidad!">🎅</span>
             </div>
             <div class="login-brand-text">
@@ -1029,9 +1052,12 @@ function renderLogin() {
               <span>Gestion de practicas academicas</span>
             </div>
           </div>
-          <button class="btn btn-sm ${isNavidadActive() ? 'btn-navidad-active' : 'btn-navidad-idle'} d-lg-none d-flex align-items-center gap-1 shadow-sm px-2 py-1 ms-auto" data-action="toggle-navidad" title="${isNavidadActive() ? 'Desactivar Modo Navidad' : 'Activar Modo Navidad'}">
-            ${isNavidadActive() ? '🎄 ON' : '❄️ Navidad'}
-          </button>
+          <div class="d-flex align-items-center gap-2 ms-auto">
+            ${isNavidadActive() ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 small fw-bold">🎄 UDI 2026</span>' : ''}
+            <button class="btn btn-sm ${isNavidadActive() ? 'btn-navidad-active' : 'btn-navidad-idle'} d-lg-none d-flex align-items-center gap-1 shadow-sm px-2 py-1" data-action="toggle-navidad" title="${isNavidadActive() ? 'Desactivar Modo Navidad' : 'Activar Modo Navidad'}">
+              ${isNavidadActive() ? '🎄 ON' : '❄️ Navidad'}
+            </button>
+          </div>
         </div>
 
         ${isRegister ? `
