@@ -4,9 +4,11 @@ import { NotificationBell } from "./NotificationBell";
 
 interface NavbarProps {
   onLogout: () => void;
+  isNavidad?: boolean;
+  onToggleNavidad?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onLogout, isNavidad, onToggleNavidad }) => {
   const { currentUser } = useSigpra();
 
   const getRoleBadge = (role: string) => {
@@ -23,11 +25,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
     <header className="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-2 shadow-sm d-print-none">
       <div className="container-fluid p-0">
         <div className="d-flex align-items-center gap-3">
-          <div
-            className="rounded-3 d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
-            style={{ width: 40, height: 40, background: "#0f766e", fontSize: "1.2rem" }}
-          >
-            S
+          <div className="position-relative">
+            <div
+              className="rounded-3 d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+              style={{ width: 40, height: 40, background: "#0f766e", fontSize: "1.2rem" }}
+            >
+              S
+            </div>
+            {isNavidad && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: -12,
+                  left: -8,
+                  fontSize: "1.2rem",
+                  pointerEvents: "none",
+                  transform: "rotate(-15deg)"
+                }}
+              >
+                🎅
+              </span>
+            )}
           </div>
           <div>
             <span className="navbar-brand mb-0 fw-bold fs-5 d-block text-white" style={{ letterSpacing: "-0.5px" }}>
@@ -40,6 +58,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
         </div>
 
         <div className="d-flex align-items-center gap-3">
+          {onToggleNavidad && (
+            <button
+              className={`btn btn-sm ${isNavidad ? "btn-danger fw-bold shadow" : "btn-outline-info"} d-flex align-items-center gap-1 shadow-sm px-2 py-1`}
+              onClick={onToggleNavidad}
+              type="button"
+              style={{ fontSize: "0.82rem", borderRadius: "20px" }}
+              title={isNavidad ? "Desactivar Modo Navidad" : "Activar Modo Navidad"}
+            >
+              {isNavidad ? "🎄 Navidad ON (❄️)" : "❄️ Modo Navidad"}
+            </button>
+          )}
           <NotificationBell />
           <div className="d-flex align-items-center gap-2">
             <div

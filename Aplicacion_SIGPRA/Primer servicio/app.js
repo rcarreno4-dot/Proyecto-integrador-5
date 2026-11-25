@@ -2,6 +2,122 @@ const STORAGE_KEY = "sigpra_mvp_data_v2";
 try { localStorage.removeItem("sigpra_mvp_data_v1"); } catch {}
 const SESSION_KEY = "sigpra_mvp_session_v1";
 const API_BASE = "/api";
+const NAVIDAD_KEY = "sigpra_modo_navidad";
+
+function isNavidadActive() {
+  try {
+    return localStorage.getItem(NAVIDAD_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+let snowAnimationId = null;
+let snowflakes = [];
+
+function startSnowAnimation() {
+  let canvas = document.getElementById("sigpra-snow-canvas");
+  if (!canvas) {
+    canvas = document.createElement("canvas");
+    canvas.id = "sigpra-snow-canvas";
+    canvas.setAttribute("aria-hidden", "true");
+    document.body.appendChild(canvas);
+  }
+  const ctx = canvas.getContext("2d");
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.removeEventListener("resize", resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
+
+  snowflakes = [];
+  const count = Math.min(65, Math.floor(window.innerWidth / 22));
+  for (let i = 0; i < count; i++) {
+    snowflakes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 2.8 + 1.2,
+      speedY: Math.random() * 1.3 + 0.6,
+      speedX: Math.random() * 0.8 - 0.4,
+      opacity: Math.random() * 0.55 + 0.35,
+      sway: Math.random() * Math.PI * 2
+    });
+  }
+
+  if (snowAnimationId) cancelAnimationFrame(snowAnimationId);
+
+  function draw() {
+    if (!isNavidadActive()) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < snowflakes.length; i++) {
+      const f = snowflakes[i];
+      f.sway += 0.015;
+      f.x += Math.sin(f.sway) * 0.6 + f.speedX;
+      f.y += f.speedY;
+
+      if (f.y > canvas.height) {
+        f.y = -10;
+        f.x = Math.random() * canvas.width;
+      }
+      if (f.x > canvas.width + 10) f.x = -10;
+      if (f.x < -10) f.x = canvas.width + 10;
+
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, false);
+      ctx.fillStyle = `rgba(255, 255, 255, ${f.opacity})`;
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = "rgba(147, 197, 253, 0.45)";
+      ctx.fill();
+    }
+    snowAnimationId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopSnowAnimation() {
+  if (snowAnimationId) {
+    cancelAnimationFrame(snowAnimationId);
+    snowAnimationId = null;
+  }
+  const canvas = document.getElementById("sigpra-snow-canvas");
+  if (canvas) canvas.remove();
+}
+
+function toggleNavidadMode() {
+  const current = isNavidadActive();
+  const next = !current;
+  try {
+    localStorage.setItem(NAVIDAD_KEY, next ? "true" : "false");
+  } catch {}
+  if (next) {
+    document.body.classList.add("navidad-active");
+    startSnowAnimation();
+    if (typeof toast === "function") {
+      toast("¡Modo Navidad activado! 🎄❄️ Felices fiestas UDI");
+    }
+  } else {
+    document.body.classList.remove("navidad-active");
+    stopSnowAnimation();
+    if (typeof toast === "function") {
+      toast("Modo institucional formal restaurado.");
+    }
+  }
+  render();
+}
+
+function initNavidadMode() {
+  if (isNavidadActive()) {
+    document.body.classList.add("navidad-active");
+    startSnowAnimation();
+  } else {
+    document.body.classList.remove("navidad-active");
+    stopSnowAnimation();
+  }
+}
+
 
 let apiEnabled = false;
 let apiStatusText = "Modo local";
@@ -641,7 +757,10 @@ function render() {
       <aside class="sidebar">
         <div class="brand d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="34" height="34" />
+            <div class="sigpra-logo-wrap position-relative">
+              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="sidebar-logo" width="34" height="34" />
+              <span class="navidad-hat" title="¡Feliz Navidad!">🎅</span>
+            </div>
             <div>
               <strong>SIGPRA</strong>
               <span class="d-none d-sm-block">Gestión de prácticas</span>
@@ -668,6 +787,9 @@ function render() {
             <p class="subtitle">${escapeHtml(viewSubtitle(currentView, user.role))}</p>
           </div>
           <div class="userbox d-flex align-items-center gap-3">
+            <button class="btn btn-sm ${isNavidadActive() ? 'btn-navidad-active' : 'btn-navidad-idle'} d-flex align-items-center gap-1 shadow-sm px-2 py-1" data-action="toggle-navidad" title="${isNavidadActive() ? 'Desactivar Modo Navidad' : 'Activar Modo Navidad'}">
+              ${isNavidadActive() ? '🎄 Navidad: ON (❄️)' : '❄️ Modo Navidad'}
+            </button>
             <div class="text-end">
               <strong class="d-block" style="color: #0f172a; font-size: 0.95rem;">${escapeHtml(user.name)}</strong>
               <div class="muted small" style="color: #334155;">${escapeHtml(user.email)}</div>
@@ -872,8 +994,11 @@ function renderLogin() {
     <main class="login-page">
       <section class="login-aside">
         <div class="login-aside-header">
-          <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="d-flex align-items-center justify-content-between mb-3">
             <span class="badge bg-warning text-dark px-3 py-1 fw-bold text-uppercase">UDI • Proyecto Integrador</span>
+            <button class="btn btn-sm ${isNavidadActive() ? 'btn-navidad-active' : 'btn-navidad-idle-login'} d-flex align-items-center gap-1 shadow-sm px-2 py-1" data-action="toggle-navidad" title="${isNavidadActive() ? 'Desactivar Modo Navidad' : 'Activar Modo Navidad'}">
+              ${isNavidadActive() ? '🎄 Navidad: ON (❄️)' : '❄️ Modo Navidad'}
+            </button>
           </div>
           <h1>SIGPRA</h1>
           <p class="lead">Sistema Integrado de Gestión de Prácticas Académicas</p>
@@ -893,12 +1018,20 @@ function renderLogin() {
       </section>
 
       <section class="login-card">
-        <div class="brand login-brand">
-          <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="login-logo" width="48" height="48" />
-          <div class="login-brand-text">
-            <strong>SIGPRA</strong>
-            <span>Gestion de practicas academicas</span>
+        <div class="brand login-brand d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="sigpra-logo-wrap position-relative">
+              <img src="assets/logo-sigpra.svg" alt="Logo SIGPRA" class="login-logo" width="48" height="48" />
+              <span class="navidad-hat navidad-hat-login" title="¡Feliz Navidad!">🎅</span>
+            </div>
+            <div class="login-brand-text">
+              <strong>SIGPRA</strong>
+              <span>Gestion de practicas academicas</span>
+            </div>
           </div>
+          <button class="btn btn-sm ${isNavidadActive() ? 'btn-navidad-active' : 'btn-navidad-idle'} d-lg-none d-flex align-items-center gap-1 shadow-sm px-2 py-1 ms-auto" data-action="toggle-navidad" title="${isNavidadActive() ? 'Desactivar Modo Navidad' : 'Activar Modo Navidad'}">
+            ${isNavidadActive() ? '🎄 ON' : '❄️ Navidad'}
+          </button>
         </div>
 
         ${isRegister ? `
@@ -3447,6 +3580,11 @@ document.addEventListener("click", async (event) => {
   const action = event.target.closest("[data-action]");
   if (!action) return;
 
+  if (action.dataset.action === "toggle-navidad") {
+    toggleNavidadMode();
+    return;
+  }
+
     
   if (action.dataset.action === "close-receipt-modal") {
     document.querySelector(".sigpra-modal-backdrop")?.remove();
@@ -4557,6 +4695,7 @@ function openRequestReviewModal(requestId) {
 
 
 initializeApi();
+initNavidadMode();
 
 
 // Global Live Table Search Filter (Microinteraction)

@@ -16,16 +16,49 @@ import { AssignmentsView } from "./components/views/AssignmentsView";
 import { StudentActivitiesView } from "./components/views/StudentActivitiesView";
 import { TeacherValidationsView } from "./components/views/TeacherValidationsView";
 import { TeacherVisitsView } from "./components/views/TeacherVisitsView";
+import { SnowOverlay } from "./components/common/SnowOverlay";
 
 const MainContent: React.FC = () => {
   const { currentUser, currentView, toastMessage, setCurrentView } = useSigpra();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isNavidad, setIsNavidad] = useState(() => {
+    try {
+      return localStorage.getItem("sigpra_modo_navidad") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleNavidad = () => {
+    setIsNavidad((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("sigpra_modo_navidad", next ? "true" : "false");
+      } catch {}
+      return next;
+    });
+  };
 
   if (!isAuthenticated) {
-    return <LoginView onLogin={() => {
-      setCurrentView("dashboard");
-      setIsAuthenticated(true);
-    }} />;
+    return (
+      <>
+        {isNavidad && <SnowOverlay />}
+        <div style={{ position: "fixed", top: 16, right: 16, zIndex: 1080 }}>
+          <button
+            className={`btn btn-sm ${isNavidad ? "btn-danger fw-bold shadow" : "btn-outline-info"} d-flex align-items-center gap-1 shadow-sm px-2 py-1`}
+            onClick={toggleNavidad}
+            type="button"
+            style={{ fontSize: "0.82rem", borderRadius: "20px" }}
+          >
+            {isNavidad ? "🎄 Navidad ON (❄️)" : "❄️ Modo Navidad"}
+          </button>
+        </div>
+        <LoginView onLogin={() => {
+          setCurrentView("dashboard");
+          setIsAuthenticated(true);
+        }} />
+      </>
+    );
   }
 
   const renderView = () => {
@@ -80,10 +113,15 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      <Navbar onLogout={() => {
-        setCurrentView("dashboard");
-        setIsAuthenticated(false);
-      }} />
+      {isNavidad && <SnowOverlay />}
+      <Navbar
+        onLogout={() => {
+          setCurrentView("dashboard");
+          setIsAuthenticated(false);
+        }}
+        isNavidad={isNavidad}
+        onToggleNavidad={toggleNavidad}
+      />
 
       {/* Notificación flotante Toast */}
       {toastMessage && (

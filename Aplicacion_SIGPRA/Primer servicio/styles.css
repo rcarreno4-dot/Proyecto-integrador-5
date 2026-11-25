@@ -2129,3 +2129,112 @@ input[type="radio"] {
   background: rgba(15, 23, 42, 0.65) !important;
   backdrop-filter: blur(4px);
 }
+
+/* ========================================================
+   TEMATICA NAVIDEÑA INTERACTIVA (MODO NAVIDAD UDI)
+   ======================================================== */
+#sigpra-snow-canvas {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 99999 !important;
+}
+
+.sigpra-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navidad-hat {
+  display: none;
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  font-size: 20px;
+  line-height: 1;
+  pointer-events: none;
+  transform: rotate(-15deg);
+  animation: hatBounce 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  user-select: none;
+}
+
+.navidad-hat-login {
+  top: -16px;
+  left: -10px;
+  font-size: 26px;
+}
+
+body.navidad-active .navidad-hat {
+  display: block;
+}
+
+@keyframes hatBounce {
+  0%, 100% {
+    transform: rotate(-15deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-8deg) translateY(-2px);
+  }
+}
+
+.btn-navidad-idle {
+  background: rgba(14, 165, 233, 0.08) !important;
+  color: #0284c7 !important;
+  border: 1px solid rgba(14, 165, 233, 0.4) !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-navidad-idle:hover {
+  background: rgba(14, 165, 233, 0.18) !important;
+  color: #0369a1 !important;
+  transform: translateY(-1px);
+}
+
+.btn-navidad-idle-login {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-navidad-idle-login:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.btn-navidad-active {
+  background: linear-gradient(135deg, #059669 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #f87171 !important;
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  font-size: 0.82rem !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35) !important;
+  animation: pulseFestive 2.2s infinite ease-in-out;
+}
+
+@keyframes pulseFestive {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.45);
+  }
+}
+
+body.navidad-active .topbar {
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #10b981, #ef4444, #10b981) 1;
+}
+
